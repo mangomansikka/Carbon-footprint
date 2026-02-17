@@ -1,47 +1,153 @@
 package fi.metropolia.canopy
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.os.Bundle
+import android.os.Looper
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.google.android.gms.location.*
 import fi.metropolia.canopy.ui.theme.CanopyMinnoTheme
 
 class MainActivity : ComponentActivity() {
+
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationCallback: LocationCallback
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        // Set the content of the activity
         setContent {
             CanopyMinnoTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    LocationScreen(
+                        fusedLocationClient = fusedLocationClient,
+                        setCallback = { callback -> locationCallback = callback }
                     )
                 }
             }
         }
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    CanopyMinnoTheme {
-        Greeting("Android")
+    // Stop location updates when the activity is paused
+    override fun onStop() {
+        super.onStop()
+        if (::locationCallback.isInitialized) {
+            fusedLocationClient.removeLocationUpdates(locationCallback)
+        }
     }
+}
+
+// LocationScreen composable UI
+@Composable
+fun LocationScreen(
+    fusedLocationClient: FusedLocationProviderClient,
+    setCallback: (LocationCallback) -> Unit
+) {
+    var locationText by remember { mutableStateOf("No location yet") }
+    var isTracking by remember { mutableStateOf(false) }
+    var locationCallback by remember { mutableStateOf<LocationCallback?>(null) }
+
+    val permissionLauncher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { granted ->
+            if (granted) {
+                locationCallback = startLocationUpdates(
+                    fusedLocationClient,
+                    onLocationUpdate = { locationText = it },
+                    setCallback = setCallback
+                )
+                isTracking = true
+            } else {
+                locationText = "Permission denied"
+            }
+        }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+
+        Button(
+            onClick = {
+                permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            },
+            enabled = !isTracking
+        ) {
+            Text("Start")
+        }
+
+        Button(
+            onClick = {
+                stopLocationUpdates(fusedLocationClient, locationCallback)
+                isTracking = false
+                locationText = "Tracking stopped"
+            },
+            enabled = isTracking
+        ) {
+            Text("End")
+        }
+
+        Text(locationText)
+    }
+}
+
+// Location updates
+@SuppressLint("MissingPermission")
+fun startLocationUpdates(
+    fusedLocationClient: FusedLocationProviderClient,
+    onLocationUpdate: (String) -> Unit,
+    setCallback: (LocationCallback) -> Unit
+): LocationCallback {
+
+    onLocationUpdate("Waiting for location updates…")
+
+    // Configure location request
+    val locationRequest = LocationRequest.Builder(
+        Priority.PRIORITY_HIGH_ACCURACY, // Do it outside of Wi-Fi
+        2000L
+    ).build()
+
+    // Configure location callback
+    val callback = object : LocationCallback() {
+        override fun onLocationResult(result: LocationResult) {
+            val location = result.lastLocation
+            if (location != null) {
+                onLocationUpdate(
+                    "Lat: ${location.latitude}, Lng: ${location.longitude}"
+                )
+            }
+        }
+    }
+
+    setCallback(callback)
+
+    fusedLocationClient.requestLocationUpdates(
+        locationRequest,
+        callback,
+        Looper.getMainLooper()
+    )
+
+    return callback
+}
+
+// Stop location updates
+fun stopLocationUpdates(
+    fusedLocationClient: FusedLocationProviderClient,
+    callback: LocationCallback?
+) {
+    callback?.let { fusedLocationClient.removeLocationUpdates(it) }
 }
