@@ -12,9 +12,16 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.location.*
+import fi.metropolia.canopy.data.DAO
+import fi.metropolia.canopy.data.CanopyDatabase
+import fi.metropolia.canopy.data.LocationEntity
 import fi.metropolia.canopy.ui.theme.CanopyMinnoTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -58,6 +65,9 @@ fun LocationScreen(
     var isTracking by remember { mutableStateOf(false) }
     var locationCallback by remember { mutableStateOf<LocationCallback?>(null) }
 
+    val context = LocalContext.current
+    val locationDao = CanopyDatabase.getInstance(context).locationDao()
+
     val permissionLauncher =
         rememberLauncherForActivityResult(
             ActivityResultContracts.RequestPermission()
@@ -66,7 +76,8 @@ fun LocationScreen(
                 locationCallback = startLocationUpdates(
                     fusedLocationClient,
                     onLocationUpdate = { locationText = it },
-                    setCallback = setCallback
+                    setCallback = setCallback,
+                    locationDao = locationDao
                 )
                 isTracking = true
             } else {
@@ -110,7 +121,8 @@ fun LocationScreen(
 fun startLocationUpdates(
     fusedLocationClient: FusedLocationProviderClient,
     onLocationUpdate: (String) -> Unit,
-    setCallback: (LocationCallback) -> Unit
+    setCallback: (LocationCallback) -> Unit,
+    locationDao: DAO
 ): LocationCallback {
 
     onLocationUpdate("Waiting for location updates…")
@@ -129,6 +141,17 @@ fun startLocationUpdates(
                 onLocationUpdate(
                     "Lat: ${location.latitude}, Lng: ${location.longitude}"
                 )
+
+                // Save location to database
+                val entity = LocationEntity(
+                    latitude = location.latitude,
+                    longitude = location.longitude
+                )
+
+                // Launch coroutine to save to database
+                CoroutineScope(Dispatchers.IO).launch {
+                    locationDao.insertLocation(entity)
+                }
             }
         }
     }
