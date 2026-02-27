@@ -1,8 +1,7 @@
-package fi.metropolia.canopy.data
+package fi.metropolia.canopy.data.source
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-
 
 @Entity(tableName = "locations")
 data class LocationEntity(

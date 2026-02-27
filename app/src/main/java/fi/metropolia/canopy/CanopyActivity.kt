@@ -15,16 +15,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.location.*
-import fi.metropolia.canopy.data.DAO
-import fi.metropolia.canopy.data.CanopyDatabase
-import fi.metropolia.canopy.data.LocationEntity
+import fi.metropolia.canopy.data.source.LocationDAO
+import fi.metropolia.canopy.data.source.CanopyDatabase
+import fi.metropolia.canopy.data.source.LocationEntity
 import fi.metropolia.canopy.ui.theme.CanopyMinnoTheme
 import fi.metropolia.canopy.viewmodels.TripViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class MainActivity : ComponentActivity() {
+class CanopyActivity : ComponentActivity() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
@@ -129,7 +129,7 @@ fun startLocationUpdates(
     fusedLocationClient: FusedLocationProviderClient,
     onLocationUpdate: (String) -> Unit,
     setCallback: (LocationCallback) -> Unit,
-    locationDao: DAO,
+    locationDao: LocationDAO,
     viewModel: TripViewModel
 ): LocationCallback {
 
