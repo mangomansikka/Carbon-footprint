@@ -12,7 +12,7 @@ data class EmissionSlice(
     val label: String,
     val value: Double,
     val color: Color,
-    val iconKey: String? = null // jos haluat mapata iconit myöhemmin
+    val iconKey: String? = null
 )
 
 data class EmissionBreakdown(
