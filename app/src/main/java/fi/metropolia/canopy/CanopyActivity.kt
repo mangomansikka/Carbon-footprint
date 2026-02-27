@@ -24,6 +24,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+
 class CanopyActivity : ComponentActivity() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -38,7 +39,9 @@ class CanopyActivity : ComponentActivity() {
         setContent {
             CanopyMinnoTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    LocationScreen(
+                    val navController = androidx.navigation.compose.rememberNavController()
+                    fi.metropolia.canopy.ui.navigation.AppNavGraph(
+                        navController = navController,
                         fusedLocationClient = fusedLocationClient,
                         setCallback = { callback -> locationCallback = callback },
                         viewModel = TripViewModel()
@@ -62,7 +65,8 @@ class CanopyActivity : ComponentActivity() {
 fun LocationScreen(
     fusedLocationClient: FusedLocationProviderClient,
     setCallback: (LocationCallback) -> Unit,
-    viewModel: TripViewModel
+    viewModel: TripViewModel,
+    onGoOverview: () -> Unit
 ) {
     var locationText by remember { mutableStateOf("No location yet") }
     val state by viewModel.tripState
@@ -115,6 +119,11 @@ fun LocationScreen(
             enabled = isTracking
         ) {
             Text("End")
+        }
+        Button(
+            onClick = onGoOverview
+        ) {
+            Text("Overview")
         }
 
         Text(locationText)
