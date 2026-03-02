@@ -13,13 +13,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import kotlin.math.roundToInt
 
 @Composable
 fun OverviewScreen(
-    modifier: Modifier = Modifier
+    navController: NavController
 ) {
     var dimension by remember { mutableStateOf(CompareDimension.ME) }
 
@@ -37,7 +40,7 @@ fun OverviewScreen(
     val selected = targets.first { it.id == selectedId }
 
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(OverviewColors.BgGreen)
     ) {
@@ -47,6 +50,25 @@ fun OverviewScreen(
             style = MaterialTheme.typography.headlineLarge,
             modifier = Modifier.padding(horizontal = 20.dp)
         )
+
+        Button(
+            onClick = { navController.navigate("locationScreen") },
+            modifier = Modifier
+                .padding(horizontal = 24.dp)
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF3F6F4F),
+                contentColor = Color.White
+            )
+        ) {
+            Text(
+                text = "Go back",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
 
         Spacer(Modifier.height(18.dp))
 
@@ -198,7 +220,8 @@ private fun Double.roundTo2(): String = ((this * 100.0).roundToInt() / 100.0).to
 @Preview(showBackground = true)
 @Composable
 fun OverviewPreview() {
+    val navController = rememberNavController()
     MaterialTheme {
-        OverviewScreen()
+        OverviewScreen(navController = navController)
     }
 }
