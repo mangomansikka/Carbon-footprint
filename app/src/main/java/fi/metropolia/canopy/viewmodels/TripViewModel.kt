@@ -1,5 +1,6 @@
 package fi.metropolia.canopy.viewmodels
 
+import android.content.Context
 import android.location.Location
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -12,7 +13,7 @@ data class TripState(
     val isTracking: Boolean = false,
 )
 
-class TripViewModel : ViewModel() {
+class TripViewModel(context: Context) : ViewModel() {
 
     private val _tripState = mutableStateOf(TripState())
     val tripState: State<TripState> = _tripState

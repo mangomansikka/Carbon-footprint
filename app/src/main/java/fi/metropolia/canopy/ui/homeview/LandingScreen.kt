@@ -14,10 +14,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import fi.metropolia.canopy.R
 
 @Composable
-fun LandingScreen() {
+fun LandingScreen(navController: NavController) {
 
     Column(
         modifier = Modifier
@@ -65,7 +67,7 @@ fun LandingScreen() {
 
 
         Button(
-            onClick = { /* navigate next */ },
+            onClick = { navController.navigate("locationScreen") },
             modifier = Modifier
                 .padding(horizontal = 24.dp)
                 .fillMaxWidth()
@@ -98,7 +100,8 @@ fun LandingScreen() {
 @Preview(showBackground = true)
 @Composable
 fun CommunityTreeCardPreview() {
+    val navController = rememberNavController()
     MaterialTheme {
-        LandingScreen()
+        LandingScreen(navController = navController)
     }
 }
