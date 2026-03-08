@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.annotation.RequiresPermission
 import com.google.android.gms.location.ActivityRecognition
 
@@ -24,9 +25,13 @@ class ActivityRecognitionManager(private val context: Context) {
     @RequiresPermission(Manifest.permission.ACTIVITY_RECOGNITION)
     fun start() {
         client.requestActivityUpdates(
-            2000,
+            3000,
             pendingIntent
-        )
+        ).addOnSuccessListener {
+            Log.d("ActivityRecognition", "Activity updates started")
+        }.addOnFailureListener {
+            Log.e("ActivityRecognition", "Failed to start updates", it)
+        }
     }
 
     @RequiresPermission(Manifest.permission.ACTIVITY_RECOGNITION)

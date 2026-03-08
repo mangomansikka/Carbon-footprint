@@ -14,6 +14,8 @@ class ActivityRecognitionReceiver : BroadcastReceiver() {
 
         if (!ActivityRecognitionResult.hasResult(intent)) return
 
+        Log.d("ActivityRecognition", "Receiver triggered")
+
         val result = ActivityRecognitionResult.extractResult(intent)
         val activity = result?.mostProbableActivity
         
@@ -38,7 +40,7 @@ class ActivityRecognitionReceiver : BroadcastReceiver() {
         Log.d("ActivityRecognition", "Detected: $movement with $confidence% confidence")
 
         // Add to the list of unique modes used if confidence is decent
-        if (confidence > 30 && movement != "still" && movement != "tilting") {
+        if (confidence > 30 ) {
             if (!TrackingState.usedTransportModes.contains(movement)) {
                 TrackingState.usedTransportModes.add(movement)
             }
