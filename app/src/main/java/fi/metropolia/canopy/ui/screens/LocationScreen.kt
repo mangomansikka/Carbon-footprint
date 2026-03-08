@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -19,7 +20,7 @@ import com.google.android.gms.location.LocationCallback
 import fi.metropolia.canopy.activityrecognition.ActivityRecognitionManager
 import fi.metropolia.canopy.data.TrackingState
 import fi.metropolia.canopy.data.source.CanopyDatabase
-import fi.metropolia.canopy.utils.LocationHelper
+import fi.metropolia.canopy.location.LocationTracker
 import fi.metropolia.canopy.utils.viewModelFactories.TripViewModelFactory
 import fi.metropolia.canopy.viewmodels.TripViewModel
 
@@ -36,13 +37,13 @@ fun LocationScreen(
     var locationText by remember { mutableStateOf("No location yet") }
     val state by viewModel.tripState
     
-    // Observed from TrackingState
-    val activities = TrackingState.usedTransportModes
-
-    val activityRecognitionManager = remember { ActivityRecognitionManager(context) }
-    var locationCallback by remember { mutableStateOf<LocationCallback?>(null) }
+    val modeDistances = TrackingState.modeDistances
 
     val locationDao = CanopyDatabase.getInstance(context).locationDao()
+    
+    // We use the LocationTracker class which contains our distance-per-mode logic
+    val locationTracker = remember { LocationTracker(fusedLocationClient, locationDao, viewModel) }
+    val activityRecognitionManager = remember { ActivityRecognitionManager(context) }
 
     val permissionLauncher =
         rememberLauncherForActivityResult(
@@ -56,16 +57,13 @@ fun LocationScreen(
             }
 
             if (locationGranted && activityGranted) {
-                locationCallback = LocationHelper.startLocationUpdates(
-                    fusedLocationClient,
-                    onLocationUpdate = { locationText = it },
-                    setCallback = { 
-                        locationCallback = it
-                        setCallback(it) 
-                    },
-                    locationDao = locationDao,
-                    viewModel = viewModel
-                )
+                // START tracking using our custom LocationTracker
+                locationTracker.start { 
+                    locationText = it 
+                    // Link the callback back to the activity if needed for background persistence
+                    locationTracker.getCallback()?.let { cb -> setCallback(cb) }
+                }
+                
                 try {
                     activityRecognitionManager.start()
                 } catch (e: SecurityException) {
@@ -84,72 +82,104 @@ fun LocationScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
-        Button(
-            onClick = {
-                val permissions = mutableListOf(Manifest.permission.ACCESS_FINE_LOCATION)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    permissions.add(Manifest.permission.ACTIVITY_RECOGNITION)
-                }
-                permissionLauncher.launch(permissions.toTypedArray())
-            },
-            enabled = !state.isTracking
-        ) {
-            Text("Start Trip")
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(
+                onClick = {
+                    val permissions = mutableListOf(Manifest.permission.ACCESS_FINE_LOCATION)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        permissions.add(Manifest.permission.ACTIVITY_RECOGNITION)
+                    }
+                    permissionLauncher.launch(permissions.toTypedArray())
+                },
+                enabled = !state.isTracking,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Start Trip")
+            }
+
+            Button(
+                onClick = {
+                    // STOP tracking using our custom LocationTracker
+                    locationTracker.stop()
+                    try {
+                        activityRecognitionManager.stop()
+                    } catch (e: SecurityException) {}
+                    viewModel.stopTracking()
+                    locationText = "Tracking stopped"
+                },
+                enabled = state.isTracking,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("End Trip")
+            }
         }
 
-        Button(
-            onClick = {
-                LocationHelper.stopLocationUpdates(fusedLocationClient, locationCallback)
-                try {
-                    activityRecognitionManager.stop()
-                } catch (e: SecurityException) {}
-                viewModel.stopTracking()
-                locationText = "Tracking stopped"
-            },
-            enabled = state.isTracking
-        ) {
-            Text("End Trip")
-        }
-        
-        Button(
-            onClick = {
-                navController.navigate("overviewScreen")
+        // Live Debug Section
+        if (state.isTracking) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Text("Live Detection", style = MaterialTheme.typography.titleSmall)
+                    Text("Current: ${TrackingState.currentActivityByConfidence}")
+                    LinearProgressIndicator(
+                        progress = { TrackingState.currentConfidence / 100f },
+                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp)
+                    )
+                }
             }
-        ) {
-            Text("Overview")
         }
 
         Text(locationText)
-        Text("Distance: ${"%.2f".format(state.totalDistanceMeters)} m")
-        Text("Speed: ${"%.2f".format(state.currentSpeedMps)} m/s")
+        Text("Total Distance: ${"%.2f".format(TrackingState.totalDistanceMeters)} m")
+        Text("Current Speed: ${"%.2f".format(state.currentSpeedMps)} m/s")
 
         HorizontalDivider()
 
-        Text("Detected Activities:", style = MaterialTheme.typography.titleMedium)
+        Text("Distance per Mode:", style = MaterialTheme.typography.titleMedium)
         
         LazyColumn(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            items(activities.distinct()) { activity ->
+            items(modeDistances.entries.toList()) { entry ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                 ) {
-                    Text(
-                        text = activity.replaceFirstChar { it.uppercase() },
-                        modifier = Modifier.padding(8.dp),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = entry.key.replaceFirstChar { it.uppercase() },
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "${"%.1f".format(entry.value)} m",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
                 }
             }
-            if (activities.isEmpty()) {
+            if (modeDistances.isEmpty()) {
                 item {
-                    Text("No activities detected", style = MaterialTheme.typography.bodyMedium)
+                    Text("No distance recorded yet", style = MaterialTheme.typography.bodyMedium)
                 }
             }
+        }
+
+        Button(
+            onClick = {
+                navController.navigate("overviewScreen")
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Go to Overview")
         }
     }
 }

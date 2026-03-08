@@ -11,38 +11,38 @@ import fi.metropolia.canopy.data.TrackingState
 class ActivityRecognitionReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-
         if (!ActivityRecognitionResult.hasResult(intent)) return
 
-        Log.d("ActivityRecognition", "Receiver triggered")
-
         val result = ActivityRecognitionResult.extractResult(intent)
-        val activity = result?.mostProbableActivity
+        val activity = result?.mostProbableActivity ?: return
         
-        val confidence = activity?.confidence ?: 0
-        val type = activity?.type
+        val confidence = activity.confidence
+        val activityType = activity.type
 
-        val movement = when (type) {
-            DetectedActivity.WALKING -> "walking"
-            DetectedActivity.ON_BICYCLE -> "biking"
-            DetectedActivity.IN_VEHICLE -> "in_vehicle"
-            DetectedActivity.RUNNING -> "running"
-            DetectedActivity.STILL -> "still"
-            DetectedActivity.TILTING -> "tilting"
-            DetectedActivity.ON_FOOT -> "on_foot"
-            else -> "unknown ($type)"
+        val activityName = when (activityType) {
+            DetectedActivity.IN_VEHICLE -> "In Vehicle"
+            DetectedActivity.ON_BICYCLE -> "On Bicycle"
+            DetectedActivity.ON_FOOT, 
+            DetectedActivity.WALKING, 
+            DetectedActivity.RUNNING -> "On Foot"
+            DetectedActivity.STILL -> "Still"
+            DetectedActivity.TILTING -> "Tilting"
+            else -> "Unknown"
         }
 
-        // Update live debug info
-        TrackingState.currentActivityByConfidence = movement
-        TrackingState.currentConfidence = confidence
-        
-        Log.d("ActivityRecognition", "Detected: $movement with $confidence% confidence")
+        Log.d("ActivityRecognition", "Detected: $activityName with $confidence% confidence")
 
-        // Add to the list of unique modes used if confidence is decent
-        if (confidence > 30 ) {
-            if (!TrackingState.usedTransportModes.contains(movement)) {
-                TrackingState.usedTransportModes.add(movement)
+        // Update live debug info
+        TrackingState.currentActivityByConfidence = activityName
+        TrackingState.currentConfidence = confidence
+
+        // If confidence is high, we can treat this as the "official" current mode for distance tracking
+        if (confidence >= 30) {
+            val modeKey = activityName.lowercase()
+            TrackingState.currentConfirmedMode = modeKey
+            
+            if (modeKey != "still" && !TrackingState.usedTransportModes.contains(modeKey)) {
+                TrackingState.usedTransportModes.add(modeKey)
             }
         }
     }

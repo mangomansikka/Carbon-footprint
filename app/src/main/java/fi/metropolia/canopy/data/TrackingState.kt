@@ -8,17 +8,20 @@ import androidx.compose.runtime.setValue
 
 object TrackingState {
 
-    var totalDistanceMeters: Double = 0.0
+    // Using mutableStateOf so the UI in LocationScreen can observe changes
+    var totalDistanceMeters by mutableStateOf(0.0)
 
     // Keeps unique transport modes used during trip
     val usedTransportModes = mutableStateListOf<String>()
     
     // Track distance per mode: Mode Name -> Distance in Meters
     val modeDistances = mutableStateMapOf<String, Double>()
-    
-    // For debugging: live update of current activity and confidence
+
     var currentActivityByConfidence by mutableStateOf("None")
     var currentConfidence by mutableStateOf(0)
+    
+    // The "official" mode currently used for distance attribution
+    var currentConfirmedMode by mutableStateOf("still")
 
     var lastLatitude: Double? = null
     var lastLongitude: Double? = null
@@ -29,6 +32,7 @@ object TrackingState {
         modeDistances.clear()
         currentActivityByConfidence = "None"
         currentConfidence = 0
+        currentConfirmedMode = "still"
         lastLatitude = null
         lastLongitude = null
     }

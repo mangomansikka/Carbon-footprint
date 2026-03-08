@@ -18,14 +18,14 @@ class ActivityRecognitionManager(private val context: Context) {
             context,
             0,
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
         )
     }
 
     @RequiresPermission(Manifest.permission.ACTIVITY_RECOGNITION)
     fun start() {
         client.requestActivityUpdates(
-            3000,
+            2000,
             pendingIntent
         ).addOnSuccessListener {
             Log.d("ActivityRecognition", "Activity updates started")
