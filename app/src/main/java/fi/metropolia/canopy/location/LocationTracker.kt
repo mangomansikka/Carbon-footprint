@@ -22,12 +22,24 @@ class LocationTracker(
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
-
                 val location = result.lastLocation ?: return
-
+                
                 val lastLat = TrackingState.lastLatitude
                 val lastLon = TrackingState.lastLongitude
 
+                // 1. Determine current mode based on speed
+                val speedMps = location.speed
+                val speedKmh = speedMps * 3.6
+                
+                val mode = when {
+                    speedKmh < 3.0 -> "still"
+                    speedKmh < 8.0 -> "walking"
+                    speedKmh < 25.0 -> "cycling"
+                    speedKmh < 120.0 -> "car/bus"
+                    else -> "train/high-speed"
+                }
+
+                // 2. Calculate distance delta and attribute it to the mode
                 if (lastLat != null && lastLon != null) {
                     val results = FloatArray(1)
                     Location.distanceBetween(
@@ -35,14 +47,17 @@ class LocationTracker(
                         location.latitude, location.longitude,
                         results
                     )
-                    TrackingState.totalDistanceMeters += results[0]
+                    val deltaDistance = results[0].toDouble()
+                    
+                    TrackingState.totalDistanceMeters += deltaDistance
+                    TrackingState.addDistanceToMode(mode, deltaDistance)
                 }
 
                 TrackingState.lastLatitude = location.latitude
                 TrackingState.lastLongitude = location.longitude
 
                 onLocationUpdate(
-                    "Lat: ${location.latitude}, Lng: ${location.longitude}"
+                    "Speed: %.1f km/h\nDistance: %.0f m".format(speedKmh, TrackingState.totalDistanceMeters)
                 )
             }
         }
