@@ -1,22 +1,26 @@
 package fi.metropolia.canopy.ui.home
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.Image
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import fi.metropolia.canopy.R
 
 private val BgGreen = Color(0xFF6F9C73)
+private val LightGreen = Color(0xFFAED3B0)
 private val AccentGreen = Color(0xFF58F0B1)
 
 @Composable
@@ -24,6 +28,11 @@ fun HomeScreen(
     onGoLocation: () -> Unit,
     onGoOverview: () -> Unit
 ) {
+
+    val animatedValue by animateFloatAsState(
+        targetValue = 17.4f,
+        label = "co2Animation"
+    )
 
     Column(
         modifier = Modifier
@@ -50,7 +59,7 @@ fun HomeScreen(
             Row(verticalAlignment = Alignment.Bottom) {
 
                 Text(
-                    text = "17.4",
+                    text = String.format("%.1f", animatedValue),
                     style = MaterialTheme.typography.displayLarge,
                     color = Color.White
                 )
@@ -102,22 +111,67 @@ fun HomeScreen(
 
             Button(
                 onClick = onGoLocation,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF4B5FA4)
+                )
             ) {
                 Icon(Icons.Default.PlayArrow, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
                 Text("Start tracking")
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(20.dp))
 
-            Image(
-                painter = painterResource(R.drawable.plant_girl),
-                contentDescription = "Plant girl",
+            /* 🌿 AALTO + KUVA */
+
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(220.dp)
-            )
+            ) {
+
+                Canvas(modifier = Modifier.fillMaxSize()) {
+
+                    val path = Path().apply {
+
+                        moveTo(0f, size.height * 0.3f)
+
+                        quadraticBezierTo(
+                            size.width * 0.25f,
+                            size.height * 0.1f,
+                            size.width * 0.5f,
+                            size.height * 0.35f
+                        )
+
+                        quadraticBezierTo(
+                            size.width * 0.75f,
+                            size.height * 0.6f,
+                            size.width,
+                            size.height * 0.3f
+                        )
+
+                        lineTo(size.width, size.height)
+                        lineTo(0f, size.height)
+                        close()
+                    }
+
+                    drawPath(
+                        path = path,
+                        color = LightGreen
+                    )
+                }
+
+                Image(
+                    painter = painterResource(R.drawable.plant_girl),
+                    contentDescription = "Plant girl",
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .height(180.dp)
+                )
+            }
 
             Spacer(Modifier.height(12.dp))
 
@@ -129,6 +183,8 @@ fun HomeScreen(
             }
         }
 
+        /* 🌟 BOTTOM NAVIGATION */
+
         NavigationBar(
             containerColor = Color(0xFF3A2F2F)
         ) {
@@ -136,25 +192,49 @@ fun HomeScreen(
             NavigationBarItem(
                 selected = true,
                 onClick = { },
-                icon = { Icon(Icons.Default.Home, contentDescription = "home") }
+                icon = {
+                    Icon(
+                        Icons.Default.Home,
+                        contentDescription = "home",
+                        tint = AccentGreen
+                    )
+                }
             )
 
             NavigationBarItem(
                 selected = false,
                 onClick = { },
-                icon = { Icon(Icons.Default.EmojiEvents, contentDescription = "trophy") }
+                icon = {
+                    Icon(
+                        Icons.Default.EmojiEvents,
+                        contentDescription = "trophy",
+                        tint = AccentGreen
+                    )
+                }
             )
 
             NavigationBarItem(
                 selected = false,
                 onClick = { },
-                icon = { Icon(Icons.Default.ShowChart, contentDescription = "stats") }
+                icon = {
+                    Icon(
+                        Icons.Default.ShowChart,
+                        contentDescription = "stats",
+                        tint = AccentGreen
+                    )
+                }
             )
 
             NavigationBarItem(
                 selected = false,
                 onClick = { },
-                icon = { Icon(Icons.Default.Public, contentDescription = "globe") }
+                icon = {
+                    Icon(
+                        Icons.Default.Public,
+                        contentDescription = "globe",
+                        tint = AccentGreen
+                    )
+                }
             )
         }
     }
@@ -177,11 +257,30 @@ fun LineChart() {
 
         for (i in 0 until points.size - 1) {
 
+            val start = Offset(space * i, size.height - points[i])
+            val end = Offset(space * (i + 1), size.height - points[i + 1])
+
+            // glow
+            drawLine(
+                color = AccentGreen.copy(alpha = 0.3f),
+                start = start,
+                end = end,
+                strokeWidth = 16f
+            )
+
+            // main line
             drawLine(
                 color = AccentGreen,
-                start = Offset(space * i, size.height - points[i]),
-                end = Offset(space * (i + 1), size.height - points[i + 1]),
+                start = start,
+                end = end,
                 strokeWidth = 6f
+            )
+
+            // datapiste
+            drawCircle(
+                color = AccentGreen,
+                radius = 8f,
+                center = start
             )
         }
     }
