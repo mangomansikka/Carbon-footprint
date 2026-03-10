@@ -92,6 +92,14 @@ fun LocationScreen(
             Text("Overview")
         }
 
+        Button(
+            onClick = {
+                navController.navigate("homeScreen")
+            }
+        ) {
+            Text("Home")
+        }
+
         Text(locationText)
         Text("Distance: ${"%.2f".format(state.totalDistanceMeters)} m")
         Text("Speed: ${"%.2f".format(state.currentSpeedMps)} m/s")
