@@ -15,6 +15,7 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationServices
 import fi.metropolia.canopy.ui.theme.CanopyMinnoTheme
 import androidx.navigation.compose.composable
+import fi.metropolia.canopy.ui.homeview.HomeScreen
 import fi.metropolia.canopy.ui.homeview.LandingScreen
 import fi.metropolia.canopy.ui.overview.OverviewScreen
 import fi.metropolia.canopy.ui.screens.LocationScreen
@@ -66,6 +67,10 @@ fun AppNavGraph(
 
         composable("overviewScreen") {
             OverviewScreen(navController)
+        }
+
+        composable("homeScreen") {
+            HomeScreen(navController)
         }
 
         //To add new screens into navigation graph, add them here
