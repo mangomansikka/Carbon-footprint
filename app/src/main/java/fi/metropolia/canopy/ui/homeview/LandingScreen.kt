@@ -67,7 +67,7 @@ fun LandingScreen(navController: NavController) {
 
 
         Button(
-            onClick = { navController.navigate("locationScreen") },
+            onClick = { navController.navigate("homeScreen") },
             modifier = Modifier
                 .padding(horizontal = 24.dp)
                 .fillMaxWidth()
