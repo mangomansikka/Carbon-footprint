@@ -20,14 +20,15 @@ class ActivityRecognitionReceiver : BroadcastReceiver() {
         val activityType = activity.type
 
         val activityName = when (activityType) {
-            DetectedActivity.IN_VEHICLE -> "In Vehicle"
-            DetectedActivity.ON_BICYCLE -> "On Bicycle"
-            DetectedActivity.ON_FOOT, 
-            DetectedActivity.WALKING, 
-            DetectedActivity.RUNNING -> "On Foot"
-            DetectedActivity.STILL -> "Still"
-            DetectedActivity.TILTING -> "Tilting"
-            else -> "Unknown"
+            // Use averageSpeedMps for vehicle classification
+            DetectedActivity.IN_VEHICLE -> classifyVehicleType(TrackingState.averageSpeedMps)
+            DetectedActivity.ON_BICYCLE -> "bicycle"
+            DetectedActivity.WALKING -> "walking"
+            DetectedActivity.RUNNING -> "running"
+            DetectedActivity.ON_FOOT -> "walking" 
+            DetectedActivity.STILL -> "still"
+            DetectedActivity.TILTING -> "tilting"
+            else -> "unknown"
         }
 
         Log.d("ActivityRecognition", "Detected: $activityName with $confidence% confidence")
@@ -36,14 +37,23 @@ class ActivityRecognitionReceiver : BroadcastReceiver() {
         TrackingState.currentActivityByConfidence = activityName
         TrackingState.currentConfidence = confidence
 
-        // If confidence is high, we can treat this as the "official" current mode for distance tracking
         if (confidence >= 30) {
             val modeKey = activityName.lowercase()
             TrackingState.currentConfirmedMode = modeKey
             
-            if (modeKey != "still" && !TrackingState.usedTransportModes.contains(modeKey)) {
-                TrackingState.usedTransportModes.add(modeKey)
+            if (modeKey != "still" && modeKey != "tilting" && modeKey != "unknown") {
+                if (!TrackingState.usedTransportModes.contains(modeKey)) {
+                    TrackingState.usedTransportModes.add(modeKey)
+                }
             }
+        }
+    }
+
+    private fun classifyVehicleType(speed: Float): String {
+        return when {
+            speed < 12f -> "bus"
+            speed <= 25f -> "car"
+            else -> "train"
         }
     }
 }
