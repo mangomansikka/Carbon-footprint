@@ -10,5 +10,7 @@ data class LocationEntity(
     val id: Int = 0,
     val latitude: Double,
     val longitude: Double,
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    val segmentDistanceMeters: Double = 0.0,
+    val segmentEmissionKg: Double = 0.0
 )

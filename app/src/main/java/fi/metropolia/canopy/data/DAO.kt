@@ -9,6 +9,12 @@ interface DAO {
     @Insert
     suspend fun insertLocation(location: LocationEntity)
 
+    @Query("SELECT COALESCE(SUM(segmentDistanceMeters), 0.0) FROM locations")
+    suspend fun getTotalDistanceMeters(): Double
+
+    @Query("SELECT COALESCE(SUM(segmentEmissionKg), 0.0) FROM locations")
+    suspend fun getTotalEmissionKg(): Double
+
     @Query("SELECT * FROM locations ORDER BY timestamp DESC")
     suspend fun getAllLocations(): List<LocationEntity>
 

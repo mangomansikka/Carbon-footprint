@@ -23,10 +23,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+
+
+
 class MainActivity : ComponentActivity() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,7 +67,10 @@ fun LocationScreen(
 ) {
     var locationText by remember { mutableStateOf("No location yet") }
     var isTracking by remember { mutableStateOf(false) }
-    var locationCallback by remember { mutableStateOf<LocationCallback?>(null) }
+    var totalDistance by remember { mutableDoubleStateOf(0.0) }
+    val locations = remember { mutableStateListOf<LocationEntity>() }
+    var dbDistanceMeters by remember { mutableDoubleStateOf(0.0) }
+    var dbEmissionKg by remember { mutableDoubleStateOf(0.0) }
 
     val context = LocalContext.current
     val locationDao = CanopyDatabase.getInstance(context).locationDao()
@@ -73,11 +80,14 @@ fun LocationScreen(
             ActivityResultContracts.RequestPermission()
         ) { granted ->
             if (granted) {
-                locationCallback = startLocationUpdates(
+                locations.clear()
+                totalDistance = 0.0
+                startLocationUpdates(
                     fusedLocationClient,
                     onLocationUpdate = { locationText = it },
                     setCallback = setCallback,
-                    locationDao = locationDao
+                    locationDao = locationDao,
+                    locations = locations
                 )
                 isTracking = true
             } else {
@@ -103,9 +113,16 @@ fun LocationScreen(
 
         Button(
             onClick = {
-                stopLocationUpdates(fusedLocationClient, locationCallback)
-                isTracking = false
-                locationText = "Tracking stopped"
+                CoroutineScope(Dispatchers.IO).launch {
+                    val distance = locationDao.getTotalDistanceMeters()
+                    val emission = locationDao.getTotalEmissionKg()
+                    kotlinx.coroutines.withContext(Dispatchers.Main) {
+                        dbDistanceMeters = distance
+                        dbEmissionKg = emission
+                        locationText = "Tracking stopped. DB distance: %.2f m, DB emission: %.5f kgCO2e"
+                            .format(distance, emission)
+                    }
+                }
             },
             enabled = isTracking
         ) {
@@ -113,6 +130,12 @@ fun LocationScreen(
         }
 
         Text(locationText)
+        if (totalDistance > 0) {
+            Text("Total distance traveled: %.2f meters".format(totalDistance))
+        }
+
+        Text("DB total distance: %.2f m".format(dbDistanceMeters))
+        Text("DB total emissions: %.5f kgCO2e".format(dbEmissionKg))
     }
 }
 
@@ -122,7 +145,8 @@ fun startLocationUpdates(
     fusedLocationClient: FusedLocationProviderClient,
     onLocationUpdate: (String) -> Unit,
     setCallback: (LocationCallback) -> Unit,
-    locationDao: DAO
+    locationDao: DAO,
+    locations: MutableList<LocationEntity>
 ): LocationCallback {
 
     onLocationUpdate("Waiting for location updates…")
@@ -133,6 +157,8 @@ fun startLocationUpdates(
         2000L
     ).build()
 
+    var previousLocation: android.location.Location? = null
+
     // Configure location callback
     val callback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
@@ -142,16 +168,23 @@ fun startLocationUpdates(
                     "Lat: ${location.latitude}, Lng: ${location.longitude}"
                 )
 
+                val distanceMeters = previousLocation?.distanceTo(location)?.toDouble() ?: 0.0
+                val PETROL_CAR_KG_CO2E_PER_KM = 0.17048
+                val emissionKg = (distanceMeters / 1000.0) * PETROL_CAR_KG_CO2E_PER_KM
+
                 // Save location to database
                 val entity = LocationEntity(
                     latitude = location.latitude,
-                    longitude = location.longitude
+                    longitude = location.longitude,
+                    segmentDistanceMeters = distanceMeters,
+                    segmentEmissionKg = emissionKg
                 )
 
                 // Launch coroutine to save to database
                 CoroutineScope(Dispatchers.IO).launch {
                     locationDao.insertLocation(entity)
                 }
+                previousLocation = location
             }
         }
     }
@@ -166,6 +199,9 @@ fun startLocationUpdates(
 
     return callback
 }
+
+
+
 
 // Stop location updates
 fun stopLocationUpdates(
