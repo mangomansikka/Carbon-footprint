@@ -5,7 +5,11 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [LocationEntity::class], version = 1, exportSchema = false)
+@Database(
+    entities = [LocationEntity::class],
+    version = 2, // Was 1, incremented to 2 for schema change
+    exportSchema = false
+)
 abstract class CanopyDatabase : RoomDatabase() {
     abstract fun locationDao(): LocationDAO
 
@@ -19,7 +23,10 @@ abstract class CanopyDatabase : RoomDatabase() {
                     context.applicationContext,
                     CanopyDatabase::class.java,
                     "canopy_db"
-                ).build().also { instance = it }
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
+                    .also { instance = it }
             }
     }
 }
