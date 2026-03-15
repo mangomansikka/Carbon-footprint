@@ -122,6 +122,7 @@ class TrackingService : Service() {
         TrackingState.lastLongitude = location.longitude
 
         // Database persistence
+        // TODO add mode to database and Co2 footprint
         serviceScope.launch {
             db.locationDao().insertLocation(
                 LocationEntity(latitude = location.latitude, longitude = location.longitude)

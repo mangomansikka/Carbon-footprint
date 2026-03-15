@@ -77,6 +77,8 @@ fun LocationScreen(navController: NavController) {
             Button(
                 onClick = {
                     stopTrackingService(context)
+                    // Trigger the persistence logic in the ViewModel
+                    viewModel.stopTracking()
                 },
                 enabled = TrackingState.isTracking,
                 modifier = Modifier.weight(1f)
