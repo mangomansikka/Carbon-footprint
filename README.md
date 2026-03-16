@@ -26,6 +26,11 @@ This project is developed as part of a Metropolia's multidiciplinary innovation 
 - Database: Local SQLite
 
 ---
+## Documentation
+
+- [User Manual](docs/user-manual.md)
+- Architecture Overview (TODO)
+---
 
 ## Quick Start
 
@@ -38,12 +43,6 @@ This project is developed as part of a Metropolia's multidiciplinary innovation 
 ```bash
 git clone https://github.com/mangomansikka/Carbon-footprint
 ```
----
-
-## Architecture Overview
-
-*TODO*
-
 ---
 
 ## License
