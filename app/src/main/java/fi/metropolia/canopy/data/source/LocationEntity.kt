@@ -11,7 +11,11 @@ data class LocationEntity(
     val longitude: Double,
     val timestamp: Long = System.currentTimeMillis(),
 
-    // Emission fields for different transportation modes (in kg CO2)
+    // Persistent trip results
+    val transportModes: String = "",
+    val carbonEmissionGrams: Float = 0f,
+
+    // Existing fields for mode-specific totals
     val emissionBussKg: Double = 0.0,
     val emissionMetroKg: Double = 0.0,
     val emissionPetrolCarKg: Double = 0.0,
