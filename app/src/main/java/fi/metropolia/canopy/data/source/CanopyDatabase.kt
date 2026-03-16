@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [LocationEntity::class],
-    version = 2, // Was 1, incremented to 2 for schema change
+    version = 3,
     exportSchema = false
 )
 abstract class CanopyDatabase : RoomDatabase() {

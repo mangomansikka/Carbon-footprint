@@ -1,4 +1,4 @@
-package fi.metropolia.canopy.permissions
+package fi.metropolia.canopy.utils
 
 import android.Manifest
 import android.content.Context

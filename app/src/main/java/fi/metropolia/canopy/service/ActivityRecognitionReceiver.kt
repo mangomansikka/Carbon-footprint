@@ -1,4 +1,4 @@
-package fi.metropolia.canopy.activityrecognition
+package fi.metropolia.canopy.service
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -6,7 +6,7 @@ import android.content.Intent
 import android.util.Log
 import com.google.android.gms.location.ActivityRecognitionResult
 import com.google.android.gms.location.DetectedActivity
-import fi.metropolia.canopy.data.TrackingState
+import fi.metropolia.canopy.domain.model.TrackingState
 
 class ActivityRecognitionReceiver : BroadcastReceiver() {
 
@@ -15,7 +15,7 @@ class ActivityRecognitionReceiver : BroadcastReceiver() {
 
         val result = ActivityRecognitionResult.extractResult(intent)
         val activity = result?.mostProbableActivity ?: return
-        
+
         val confidence = activity.confidence
         val activityType = activity.type
 
@@ -25,7 +25,7 @@ class ActivityRecognitionReceiver : BroadcastReceiver() {
             DetectedActivity.ON_BICYCLE -> "bicycle"
             DetectedActivity.WALKING -> "walking"
             DetectedActivity.RUNNING -> "running"
-            DetectedActivity.ON_FOOT -> "walking" 
+            DetectedActivity.ON_FOOT -> "walking"
             DetectedActivity.STILL -> "still"
             DetectedActivity.TILTING -> "tilting"
             else -> "unknown"
@@ -40,7 +40,7 @@ class ActivityRecognitionReceiver : BroadcastReceiver() {
         if (confidence >= 30) {
             val modeKey = activityName.lowercase()
             TrackingState.currentConfirmedMode = modeKey
-            
+
             if (modeKey != "still" && modeKey != "tilting" && modeKey != "unknown") {
                 if (!TrackingState.usedTransportModes.contains(modeKey)) {
                     TrackingState.usedTransportModes.add(modeKey)

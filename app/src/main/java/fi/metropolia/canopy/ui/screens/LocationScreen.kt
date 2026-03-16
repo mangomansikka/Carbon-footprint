@@ -18,8 +18,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import fi.metropolia.canopy.data.TrackingState
-import fi.metropolia.canopy.location.TrackingService
+import fi.metropolia.canopy.domain.model.TrackingState
+import fi.metropolia.canopy.service.TrackingService
 import fi.metropolia.canopy.utils.viewModelFactories.TripViewModelFactory
 import fi.metropolia.canopy.viewmodels.TripViewModel
 

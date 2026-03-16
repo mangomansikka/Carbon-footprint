@@ -3,7 +3,7 @@ package fi.metropolia.canopy.viewmodels
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import fi.metropolia.canopy.data.TrackingState
+import fi.metropolia.canopy.domain.model.TrackingState
 import fi.metropolia.canopy.data.source.CanopyDatabase
 import fi.metropolia.canopy.data.source.LocationEntity
 import fi.metropolia.canopy.utils.CarbonHelper

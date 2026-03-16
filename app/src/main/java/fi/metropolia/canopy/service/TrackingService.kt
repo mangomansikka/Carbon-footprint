@@ -1,4 +1,4 @@
-package fi.metropolia.canopy.location
+package fi.metropolia.canopy.service
 
 import android.annotation.SuppressLint
 import android.app.*
@@ -12,8 +12,8 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.*
 import fi.metropolia.canopy.CanopyActivity
-import fi.metropolia.canopy.activityrecognition.ActivityRecognitionManager
-import fi.metropolia.canopy.data.TrackingState
+import fi.metropolia.canopy.utils.ActivityRecognitionManager
+import fi.metropolia.canopy.domain.model.TrackingState
 import fi.metropolia.canopy.data.source.CanopyDatabase
 import fi.metropolia.canopy.data.source.LocationEntity
 import kotlinx.coroutines.CoroutineScope
@@ -56,10 +56,10 @@ class TrackingService : Service() {
     @SuppressLint("MissingPermission")
     private fun startTracking() {
         if (TrackingState.isTracking) return
-        
+
         TrackingState.reset()
         TrackingState.isTracking = true
-        
+
         val notification = createNotification("Trip tracking active")
         startForeground(NOTIFICATION_ID, notification)
 
@@ -76,7 +76,7 @@ class TrackingService : Service() {
             .build()
 
         val db = CanopyDatabase.getInstance(this)
-        
+
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
                 val location = result.lastLocation ?: return
@@ -96,12 +96,12 @@ class TrackingService : Service() {
         val lastLon = TrackingState.lastLongitude
 
         TrackingState.currentSpeedMps = location.speed
-        
+
         // Update rolling average speed
         TrackingState.updateRollingAverage(location.speed)
-        
+
         val speedKmh = location.speed * 3.6
-        
+
         // Mode logic
         val mode = determineTransportMode(speedKmh)
 
@@ -109,7 +109,7 @@ class TrackingService : Service() {
             val results = FloatArray(1)
             Location.distanceBetween(lastLat, lastLon, location.latitude, location.longitude, results)
             val deltaDistance = results[0].toDouble()
-            
+
             // GPS Drift Filtering
             // distance > 8 meters AND accuracy < 15 meters AND speed > 0.5 m/s
             if (deltaDistance > 8.0 && location.accuracy < 15f && location.speed > 0.5f) {
@@ -132,10 +132,10 @@ class TrackingService : Service() {
 
     private fun determineTransportMode(speedKmh: Double): String {
         return when {
-            TrackingState.currentConfirmedMode != "still" && 
-            TrackingState.currentConfirmedMode != "unknown" &&
-            TrackingState.currentConfirmedMode != "none" &&
-            TrackingState.currentConfirmedMode != "Tilting" -> {
+            TrackingState.currentConfirmedMode != "still" &&
+                    TrackingState.currentConfirmedMode != "unknown" &&
+                    TrackingState.currentConfirmedMode != "none" &&
+                    TrackingState.currentConfirmedMode != "Tilting" -> {
                 TrackingState.currentConfirmedMode.lowercase()
             }
             speedKmh < 3.0 -> "still"
@@ -151,7 +151,7 @@ class TrackingService : Service() {
         try {
             activityRecognitionManager.stop()
         } catch (e: SecurityException) {}
-        
+
         TrackingState.isTracking = false
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
@@ -173,13 +173,11 @@ class TrackingService : Service() {
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID, "Trip Tracking", NotificationManager.IMPORTANCE_LOW
-            )
-            val manager = getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(channel)
-        }
+        val channel = NotificationChannel(
+            CHANNEL_ID, "Trip Tracking", NotificationManager.IMPORTANCE_LOW
+        )
+        val manager = getSystemService(NotificationManager::class.java)
+        manager.createNotificationChannel(channel)
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

@@ -1,4 +1,4 @@
-package fi.metropolia.canopy.activityrecognition
+package fi.metropolia.canopy.utils
 
 import android.Manifest
 import android.app.PendingIntent
@@ -7,6 +7,7 @@ import android.content.Intent
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import com.google.android.gms.location.ActivityRecognition
+import fi.metropolia.canopy.service.ActivityRecognitionReceiver
 
 class ActivityRecognitionManager(private val context: Context) {
 
