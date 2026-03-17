@@ -1,8 +1,6 @@
 package fi.metropolia.canopy.ui.screens
 
 import android.Manifest
-import android.content.Context
-import android.content.Intent
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,11 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import fi.metropolia.canopy.domain.model.TrackingState
-import fi.metropolia.canopy.service.TrackingService
 import fi.metropolia.canopy.utils.viewModelFactories.TripViewModelFactory
 import fi.metropolia.canopy.viewmodels.TripViewModel
 
@@ -42,7 +38,7 @@ fun LocationScreen(navController: NavController) {
             }
 
             if (locationGranted && activityGranted) {
-                startTrackingService(context)
+                viewModel.startTracking(context)
             }
         }
 
@@ -68,7 +64,7 @@ fun LocationScreen(navController: NavController) {
                     }
                     permissionLauncher.launch(permissions.toTypedArray())
                 },
-                enabled = !TrackingState.isTracking,
+                enabled = !viewModel.isTracking,
                 modifier = Modifier.weight(1f)
             ) {
                 Text("Start Trip")
@@ -76,11 +72,9 @@ fun LocationScreen(navController: NavController) {
 
             Button(
                 onClick = {
-                    stopTrackingService(context)
-                    // Trigger the persistence logic in the ViewModel
-                    viewModel.stopTracking()
+                    viewModel.endTrip(context)
                 },
-                enabled = TrackingState.isTracking,
+                enabled = viewModel.isTracking,
                 modifier = Modifier.weight(1f)
             ) {
                 Text("End Trip")
@@ -88,7 +82,7 @@ fun LocationScreen(navController: NavController) {
         }
 
         // Live Debug & Detection Section
-        if (TrackingState.isTracking) {
+        if (viewModel.isTracking) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
@@ -99,7 +93,6 @@ fun LocationScreen(navController: NavController) {
                     
                     Spacer(modifier = Modifier.height(4.dp))
                     
-                    // PART 4: UI Debug Display
                     Text(
                         text = "Average speed (last ${TrackingState.speedHistorySize} points): ${"%.1f".format(TrackingState.averageSpeedMps)} m/s",
                         style = MaterialTheme.typography.bodySmall
@@ -113,8 +106,8 @@ fun LocationScreen(navController: NavController) {
             }
         }
 
-        Text("Total Distance: ${"%.2f".format(TrackingState.totalDistanceMeters)} m")
-        Text("Current Speed: ${"%.2f".format(TrackingState.currentSpeedMps)} m/s")
+        Text("Total Distance: ${"%.2f".format(viewModel.totalDistanceMeters)} m")
+        Text("Current Speed: ${"%.2f".format(viewModel.currentSpeedMps)} m/s")
 
         HorizontalDivider()
 
@@ -124,7 +117,7 @@ fun LocationScreen(navController: NavController) {
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            items(TrackingState.modeDistances.entries.toList()) { entry ->
+            items(viewModel.modeDistances.entries.toList()) { entry ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
@@ -147,11 +140,21 @@ fun LocationScreen(navController: NavController) {
                     }
                 }
             }
-            if (TrackingState.modeDistances.isEmpty()) {
+            if (viewModel.modeDistances.isEmpty()) {
                 item {
                     Text("No distance recorded yet", style = MaterialTheme.typography.bodyMedium)
                 }
             }
+        }
+
+        HorizontalDivider()
+
+        Text("Emissions per Mode:", style = MaterialTheme.typography.titleMedium)
+
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
         }
 
         Button(
@@ -163,18 +166,4 @@ fun LocationScreen(navController: NavController) {
             Text("Go to Overview")
         }
     }
-}
-
-private fun startTrackingService(context: Context) {
-    val intent = Intent(context, TrackingService::class.java).apply {
-        action = TrackingService.ACTION_START
-    }
-    ContextCompat.startForegroundService(context, intent)
-}
-
-private fun stopTrackingService(context: Context) {
-    val intent = Intent(context, TrackingService::class.java).apply {
-        action = TrackingService.ACTION_STOP
-    }
-    context.startService(intent)
 }

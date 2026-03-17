@@ -1,6 +1,9 @@
 package fi.metropolia.canopy.domain.model
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -9,11 +12,11 @@ import androidx.compose.runtime.setValue
 object TrackingState {
 
     var isTracking by mutableStateOf(false)
-    var totalDistanceMeters by mutableStateOf(0.0)
-    var currentSpeedMps by mutableStateOf(0f)
+    var totalDistanceMeters by mutableDoubleStateOf(0.0)
+    var currentSpeedMps by mutableFloatStateOf(0f)
 
     // Rolling average speed state
-    var averageSpeedMps by mutableStateOf(0f)
+    var averageSpeedMps by mutableFloatStateOf(0f)
     private val speedHistory = mutableListOf<Float>()
     val speedHistorySize: Int get() = speedHistory.size
 
@@ -27,7 +30,7 @@ object TrackingState {
 
     // Debug live info
     var currentActivityByConfidence by mutableStateOf("None")
-    var currentConfidence by mutableStateOf(0)
+    var currentConfidence by mutableIntStateOf(0)
 
     var lastLatitude: Double? = null
     var lastLongitude: Double? = null
