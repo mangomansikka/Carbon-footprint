@@ -6,7 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import fi.metropolia.canopy.R
 
 private val BgGreen = Color(0xFF6F9C73)
@@ -25,8 +26,7 @@ private val AccentGreen = Color(0xFF58F0B1)
 
 @Composable
 fun HomeScreen(
-    onGoLocation: () -> Unit,
-    onGoOverview: () -> Unit
+    navController: NavController
 ) {
 
     val animatedValue by animateFloatAsState(
@@ -109,7 +109,7 @@ fun HomeScreen(
 
             Spacer(Modifier.height(30.dp))
 
-            /* 🌿 AALTO + KUVA (SUUREMPI) */
+            /* 🌿 KUVA */
 
             Box(
                 modifier = Modifier
@@ -142,10 +142,7 @@ fun HomeScreen(
                         close()
                     }
 
-                    drawPath(
-                        path = path,
-                        color = LightGreen
-                    )
+                    drawPath(path = path, color = LightGreen)
                 }
 
                 Image(
@@ -159,54 +156,12 @@ fun HomeScreen(
 
             Spacer(Modifier.height(12.dp))
 
-            OutlinedButton(
-                onClick = onGoOverview,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Go to Overview")
-            }
-        }
 
-        /* -------- BOTTOM NAVIGATION -------- */
-
-        NavigationBar(
-            containerColor = Color(0xFF3A2F2F)
-        ) {
-
-            NavigationBarItem(
-                selected = false,
-                onClick = { },
-                icon = {
-                    Icon(Icons.Default.Home, contentDescription = "home", tint = AccentGreen)
-                }
-            )
-
-            NavigationBarItem(
-                selected = false,
-                onClick = onGoOverview,
-                icon = {
-                    Icon(Icons.Default.EmojiEvents, contentDescription = "trophy", tint = AccentGreen)
-                }
-            )
-
-            NavigationBarItem(
-                selected = true,
-                onClick = { },
-                icon = {
-                    Icon(Icons.Default.ShowChart, contentDescription = "chart", tint = AccentGreen)
-                }
-            )
-
-            NavigationBarItem(
-                selected = false,
-                onClick = { },
-                icon = {
-                    Icon(Icons.Default.Eco, contentDescription = "eco", tint = AccentGreen)
-                }
-            )
         }
     }
 }
+
+/* -------- CHART -------- */
 
 @Composable
 fun LineChart() {

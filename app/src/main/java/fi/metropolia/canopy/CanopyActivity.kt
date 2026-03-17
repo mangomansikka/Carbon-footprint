@@ -1,196 +1,165 @@
 package fi.metropolia.canopy
 
-import android.Manifest
-import android.annotation.SuppressLint
 import android.os.Bundle
-import android.os.Looper
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.google.android.gms.location.*
-import fi.metropolia.canopy.data.source.LocationDAO
-import fi.metropolia.canopy.data.source.CanopyDatabase
-import fi.metropolia.canopy.data.source.LocationEntity
+import androidx.navigation.compose.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.core.view.WindowCompat
 import fi.metropolia.canopy.ui.theme.CanopyMinnoTheme
-import fi.metropolia.canopy.viewmodels.TripViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-
+import fi.metropolia.canopy.ui.home.HomeScreen
+import fi.metropolia.canopy.ui.homeview.LandingScreen
+import fi.metropolia.canopy.ui.overview.OverviewScreen
+import fi.metropolia.canopy.ui.screens.LocationScreen
 
 class CanopyActivity : ComponentActivity() {
-
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var locationCallback: LocationCallback
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        // Set the content of the activity
         setContent {
             CanopyMinnoTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    val navController = androidx.navigation.compose.rememberNavController()
-                    fi.metropolia.canopy.ui.navigation.AppNavGraph(
-                        navController = navController,
-                        fusedLocationClient = fusedLocationClient,
-                        setCallback = { callback -> locationCallback = callback },
-                        viewModel = TripViewModel()
-                    )
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = Color.Transparent
+                ) {
+                    AppNavGraph()
                 }
             }
         }
     }
-
-    // Stop location updates when the activity is paused
-    override fun onStop() {
-        super.onStop()
-        if (::locationCallback.isInitialized) {
-            fusedLocationClient.removeLocationUpdates(locationCallback)
-        }
-    }
 }
 
-// LocationScreen composable UI
 @Composable
-fun LocationScreen(
-    fusedLocationClient: FusedLocationProviderClient,
-    setCallback: (LocationCallback) -> Unit,
-    viewModel: TripViewModel,
-    onGoOverview: () -> Unit
-) {
-    var locationText by remember { mutableStateOf("No location yet") }
-    val state by viewModel.tripState
-    var isTracking by remember { mutableStateOf(false) }
-    var locationCallback by remember { mutableStateOf<LocationCallback?>(null) }
+fun AppNavGraph() {
 
-    val context = LocalContext.current
-    val locationDao = CanopyDatabase.getInstance(context).locationDao()
+    val navController = rememberNavController()
 
-    val permissionLauncher =
-        rememberLauncherForActivityResult(
-            ActivityResultContracts.RequestPermission()
-        ) { granted ->
-            if (granted) {
-                locationCallback = startLocationUpdates(
-                    fusedLocationClient,
-                    onLocationUpdate = { locationText = it },
-                    setCallback = setCallback,
-                    locationDao = locationDao,
-                    viewModel = viewModel
-                )
-                isTracking = true
-            } else {
-                locationText = "Permission denied"
-            }
-        }
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntry?.destination?.route
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
+    val AccentGreen = Color(0xFF58F0B1)
 
-        Button(
-            onClick = {
-                permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-            },
-            enabled = !isTracking
-        ) {
-            Text("Start")
-        }
+    Scaffold(
+        bottomBar = {
 
-        Button(
-            onClick = {
-                stopLocationUpdates(fusedLocationClient, locationCallback)
-                isTracking = false
-                locationText = "Tracking stopped"
-            },
-            enabled = isTracking
-        ) {
-            Text("End")
-        }
-        Button(
-            onClick = onGoOverview
-        ) {
-            Text("Overview")
-        }
+            Box {
 
-        Text(locationText)
-        Text("Distance: ${state.totalDistanceMeters} m")
-        Text("Speed: ${state.currentSpeedMps} m/s")
-    }
-}
+                /*  NAV BAR */
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(70.dp)
+                        .background(Color(0xFF3A2F2F)),
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
 
-// Location updates
-@SuppressLint("MissingPermission")
-fun startLocationUpdates(
-    fusedLocationClient: FusedLocationProviderClient,
-    onLocationUpdate: (String) -> Unit,
-    setCallback: (LocationCallback) -> Unit,
-    locationDao: LocationDAO,
-    viewModel: TripViewModel
-): LocationCallback {
+                    val iconColor = { route: String ->
+                        if (currentRoute == route) AccentGreen else Color.Gray
+                    }
 
-    onLocationUpdate("Waiting for location updates…")
+                    /*  HOME */
+                    IconButton(onClick = {
+                        navController.navigate("landingScreen") {
+                            popUpTo("landingScreen")
+                            launchSingleTop = true
+                        }
+                    }) {
+                        Icon(Icons.Default.Home, null, tint = iconColor("landingScreen"))
+                    }
 
-    // Configure location request
-    val locationRequest = LocationRequest.Builder(
-        Priority.PRIORITY_HIGH_ACCURACY, // Do it outside of Wi-Fi
-        2000L
-    ).build()
+                    /*  OVERVIEW */
+                    IconButton(onClick = {
+                        navController.navigate("overviewScreen") {
+                            launchSingleTop = true
+                        }
+                    }) {
+                        Icon(Icons.Default.EmojiEvents, null, tint = iconColor("overviewScreen"))
+                    }
 
-    // Configure location callback
-    val callback = object : LocationCallback() {
-        override fun onLocationResult(result: LocationResult) {
-            val location = result.lastLocation
-            if (location != null) {
-                onLocationUpdate(
-                    "Lat: ${location.latitude}, Lng: ${location.longitude}"
-                )
+                    Spacer(modifier = Modifier.width(60.dp))
 
-                // Update ViewModel
-                viewModel.onNewLocation(location)
+                    /*  FOOTPRINT */
+                    IconButton(onClick = {
+                        navController.navigate("homeScreen") {
+                            launchSingleTop = true
+                        }
+                    }) {
+                        Icon(Icons.Default.ShowChart, null, tint = iconColor("homeScreen"))
+                    }
 
-                // Save location to database
-                val entity = LocationEntity(
-                    latitude = location.latitude,
-                    longitude = location.longitude
-                )
+                    /* 🌱 ECO */
+                    IconButton(onClick = { }) {
+                        Icon(Icons.Default.Eco, null, tint = Color.Gray)
+                    }
+                }
 
-                // Launch coroutine to save to database
-                CoroutineScope(Dispatchers.IO).launch {
-                    locationDao.insertLocation(entity)
+                /*  KESKINAPPI (GLOW) */
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .offset(y = (-25).dp)
+                        .size(70.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    /* glow efekti */
+                    Box(
+                        modifier = Modifier
+                            .size(70.dp)
+                            .background(
+                                color = AccentGreen.copy(alpha = 0.2f),
+                                shape = CircleShape
+                            )
+                    )
+
+                    /* nappi */
+                    FloatingActionButton(
+                        onClick = {
+                            //  tänne myöhemmin uusi screen
+                        },
+                        containerColor = Color(0xFF4E7D5A)
+                    ) {
+                        Icon(Icons.Default.Search, null, tint = Color.White)
+                    }
                 }
             }
         }
+    ) { _ ->
+
+        NavHost(
+            navController = navController,
+            startDestination = "landingScreen"
+        ) {
+
+            composable("landingScreen") {
+                LandingScreen(navController)
+            }
+
+            composable("locationScreen") {
+                LocationScreen(navController)
+            }
+
+            composable("overviewScreen") {
+                OverviewScreen(navController)
+            }
+
+            composable("homeScreen") {
+                HomeScreen(navController)
+            }
+        }
     }
-
-    setCallback(callback)
-
-    fusedLocationClient.requestLocationUpdates(
-        locationRequest,
-        callback,
-        Looper.getMainLooper()
-    )
-
-    return callback
-}
-
-// Stop location updates
-fun stopLocationUpdates(
-    fusedLocationClient: FusedLocationProviderClient,
-    callback: LocationCallback?
-) {
-    callback?.let { fusedLocationClient.removeLocationUpdates(it) }
 }

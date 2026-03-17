@@ -4,198 +4,144 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.DirectionsBus
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.DirectionsSubway
+import androidx.compose.material.icons.filled.Train
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.Alignment
 import androidx.navigation.NavController
 import kotlin.math.roundToInt
 
-private val AccentGreen = Color(0xFF58F0B1)
-
 @Composable
-fun OverviewScreen(
-    navController: NavController,
-    modifier: Modifier = Modifier
-) {
+fun OverviewScreen(navController: NavController) {
 
-    val me = remember { OverviewFakeData.myAverage() }
-    val selected = me
+    val data = remember { OverviewFakeData.myAverage() }
+    val total = data.breakdown.totalTonsPerYear.coerceAtLeast(0.000001)
 
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(OverviewColors.BgGreen)
     ) {
 
-        Column(
-            modifier = Modifier.weight(1f)
+        /* 🔥 STATUS BAR SPACING */
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Text(
+            text = "Overview",
+            style = MaterialTheme.typography.titleLarge,
+            color = Color.White,
+            modifier = Modifier.padding(start = 20.dp)
+        )
+
+        Spacer(Modifier.height(24.dp))
+
+        /*  DONUT + PROSENTIT */
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
 
-            Spacer(Modifier.height(24.dp))
-
-            Text(
-                text = "Overview",
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.padding(horizontal = 20.dp)
+            DonutChart(
+                centerText = "${data.breakdown.totalTonsPerYear.roundTo1()} ton",
+                slices = data.breakdown.slices
             )
 
-            Spacer(Modifier.height(40.dp))
+            Spacer(Modifier.width(24.dp))
 
-            val total = selected.breakdown.totalTonsPerYear.coerceAtLeast(0.000001)
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+                data.breakdown.slices.forEach { s ->
 
-                DonutChart(
-                    centerText = "${selected.breakdown.totalTonsPerYear.roundTo1()} ton",
-                    slices = selected.breakdown.slices
-                )
+                    val pct = (s.value / total * 100).roundToInt()
 
-                Spacer(Modifier.width(24.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
 
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
+                        Icon(
+                            imageVector = iconForLabel(s.label),
+                            contentDescription = null,
+                            tint = Color.Black
+                        )
 
-                    selected.breakdown.slices.forEach { s ->
+                        Spacer(Modifier.width(8.dp))
 
-                        val pct = (s.value / total * 100).roundToInt()
-
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-
-                            Icon(
-                                imageVector = iconForLabel(s.label),
-                                contentDescription = s.label,
-                                tint = Color.Black
-                            )
-
-                            Text(
-                                text = "$pct%",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
+                        Text(
+                            text = "$pct%",
+                            color = Color.White,
+                            style = MaterialTheme.typography.titleMedium
+                        )
                     }
                 }
             }
+        }
 
-            Spacer(Modifier.height(30.dp))
+        Spacer(Modifier.height(30.dp))
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
-                    .background(OverviewColors.CardWhite)
-                    .padding(20.dp)
-            ) {
+        /*  VALKOINEN CARD */
 
-                Text(
-                    text = "${selected.breakdown.totalTonsPerYear.roundTo1()} ton CO2/yr",
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.padding(vertical = 10.dp)
-                )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
+                .background(Color(0xFFEFEFEF))
+                .padding(20.dp)
+        ) {
 
-                Spacer(Modifier.height(8.dp))
+            Text(
+                text = "${data.breakdown.totalTonsPerYear.roundTo1()} ton CO2/yr",
+                style = MaterialTheme.typography.headlineMedium
+            )
 
-                selected.breakdown.slices.forEach { s ->
+            Spacer(Modifier.height(24.dp))
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
+            data.breakdown.slices.forEach { s ->
 
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
 
-                            Icon(
-                                imageVector = iconForLabel(s.label),
-                                contentDescription = s.label,
-                                tint = Color.Black
-                            )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
 
-                            Text(
-                                text = s.label,
-                                style = MaterialTheme.typography.titleLarge
-                            )
-                        }
+                        Icon(
+                            imageVector = iconForLabel(s.label),
+                            contentDescription = null,
+                            tint = Color.Black
+                        )
+
+                        Spacer(Modifier.width(12.dp))
 
                         Text(
-                            text = "${s.value.roundTo2()} ton",
+                            text = s.label,
                             style = MaterialTheme.typography.titleLarge
                         )
                     }
 
-                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        text = "${s.value.roundTo2()} ton",
+                        style = MaterialTheme.typography.titleLarge
+                    )
                 }
+
+                Spacer(Modifier.height(16.dp))
             }
-        }
-
-        /* -------- BOTTOM NAVIGATION -------- */
-
-        NavigationBar(
-            containerColor = Color(0xFF3A2F2F)
-        ) {
-
-            NavigationBarItem(
-                selected = false,
-                onClick = {
-                    navController.navigate("home")
-                },
-                icon = {
-                    Icon(Icons.Default.Home, contentDescription = "home", tint = AccentGreen)
-                }
-            )
-
-            NavigationBarItem(
-                selected = true,
-                onClick = {
-                    navController.navigate("overview") {
-                        popUpTo("footprint")
-                        launchSingleTop = true
-                    }
-                },
-                icon = {
-                    Icon(Icons.Default.EmojiEvents, contentDescription = "trophy", tint = AccentGreen)
-                }
-            )
-
-            NavigationBarItem(
-                selected = false,
-                onClick = {
-                    navController.navigate("footprint")
-                },
-                icon = {
-                    Icon(Icons.Default.ShowChart, contentDescription = "chart", tint = AccentGreen)
-                }
-            )
-
-            NavigationBarItem(
-                selected = false,
-                onClick = {
-                    navController.navigate("eco") {
-                        popUpTo("footprint")
-                        launchSingleTop = true
-                    }
-                },
-                icon = {
-                    Icon(Icons.Default.Eco, contentDescription = "eco", tint = AccentGreen)
-                }
-            )
         }
     }
 }
+
+/* ICONS */
 
 private fun iconForLabel(label: String) = when (label) {
     "Bus" -> Icons.Filled.DirectionsBus
@@ -204,6 +150,8 @@ private fun iconForLabel(label: String) = when (label) {
     "Metro" -> Icons.Filled.DirectionsSubway
     else -> Icons.Filled.DirectionsCar
 }
+
+/* FORMAT */
 
 private fun Double.roundTo1(): String =
     ((this * 10.0).roundToInt() / 10.0).toString()
