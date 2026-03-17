@@ -6,7 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,7 +26,7 @@ private val AccentGreen = Color(0xFF58F0B1)
 
 @Composable
 fun HomeScreen(
-    navController: NavController,
+    navController: NavController
 ) {
 
     val animatedValue by animateFloatAsState(
@@ -107,30 +107,14 @@ fun HomeScreen(
                 Text("Apr", color = Color.White)
             }
 
-            Spacer(Modifier.height(40.dp))
-
-            Button(
-                onClick = { navController.navigate("locationScreen") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF4B5FA4)
-                )
-            ) {
-                Icon(Icons.Default.PlayArrow, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text("Start tracking")
-            }
-
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(30.dp))
 
             /* 🌿 AALTO + KUVA */
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(220.dp)
+                    .height(320.dp)
             ) {
 
                 Canvas(modifier = Modifier.fillMaxSize()) {
@@ -166,79 +150,20 @@ fun HomeScreen(
 
                 Image(
                     painter = painterResource(R.drawable.plant_girl),
-                    contentDescription = "Plant girl",
+                    contentDescription = null,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .height(180.dp)
+                        .height(260.dp)
                 )
             }
 
             Spacer(Modifier.height(12.dp))
 
-            OutlinedButton(
-                onClick = { navController.navigate("overviewScreen") },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Go to Overview")
-            }
-        }
-
-        /* 🌟 BOTTOM NAVIGATION */
-
-        NavigationBar(
-            containerColor = Color(0xFF3A2F2F)
-        ) {
-
-            NavigationBarItem(
-                selected = true,
-                onClick = { },
-                icon = {
-                    Icon(
-                        Icons.Default.Home,
-                        contentDescription = "home",
-                        tint = AccentGreen
-                    )
-                }
-            )
-
-            NavigationBarItem(
-                selected = false,
-                onClick = { },
-                icon = {
-                    Icon(
-                        Icons.Default.EmojiEvents,
-                        contentDescription = "trophy",
-                        tint = AccentGreen
-                    )
-                }
-            )
-
-            NavigationBarItem(
-                selected = false,
-                onClick = { },
-                icon = {
-                    Icon(
-                        Icons.Default.ShowChart,
-                        contentDescription = "stats",
-                        tint = AccentGreen
-                    )
-                }
-            )
-
-            NavigationBarItem(
-                selected = false,
-                onClick = { },
-                icon = {
-                    Icon(
-                        Icons.Default.Public,
-                        contentDescription = "globe",
-                        tint = AccentGreen
-                    )
-                }
-            )
         }
     }
 }
+
+/* -------- CHART -------- */
 
 @Composable
 fun LineChart() {
@@ -260,7 +185,6 @@ fun LineChart() {
             val start = Offset(space * i, size.height - points[i])
             val end = Offset(space * (i + 1), size.height - points[i + 1])
 
-            // glow
             drawLine(
                 color = AccentGreen.copy(alpha = 0.3f),
                 start = start,
@@ -268,7 +192,6 @@ fun LineChart() {
                 strokeWidth = 16f
             )
 
-            // main line
             drawLine(
                 color = AccentGreen,
                 start = start,
@@ -276,7 +199,6 @@ fun LineChart() {
                 strokeWidth = 6f
             )
 
-            // datapiste
             drawCircle(
                 color = AccentGreen,
                 radius = 8f,

@@ -88,7 +88,7 @@ fun LandingScreen(navController: NavController) {
 
 
 
-            )
+                )
         }
 
         Spacer(modifier = Modifier.height(90.dp))

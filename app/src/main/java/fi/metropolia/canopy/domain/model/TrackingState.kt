@@ -1,29 +1,22 @@
 package fi.metropolia.canopy.domain.model
 
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 
 object TrackingState {
 
     var isTracking by mutableStateOf(false)
+
     var totalDistanceMeters by mutableDoubleStateOf(0.0)
     var currentSpeedMps by mutableFloatStateOf(0f)
-
-    // Rolling average speed state
     var averageSpeedMps by mutableFloatStateOf(0f)
+
     private val speedHistory = mutableListOf<Float>()
     val speedHistorySize: Int get() = speedHistory.size
 
-    // Keeps unique transport modes used during trip
     val usedTransportModes = mutableStateListOf<String>()
-
-    // Track distance per mode
     val modeDistances = mutableStateMapOf<String, Double>()
     
     // Track emissions per mode
@@ -31,7 +24,6 @@ object TrackingState {
 
     var currentConfirmedMode by mutableStateOf("still")
 
-    // Debug live info
     var currentActivityByConfidence by mutableStateOf("None")
     var currentConfidence by mutableIntStateOf(0)
 
@@ -66,7 +58,6 @@ object TrackingState {
         }
     }
 
-    // update rolling average based on 10 most recent points
     fun updateRollingAverage(newSpeed: Float) {
         speedHistory.add(newSpeed)
         if (speedHistory.size > 10) {
