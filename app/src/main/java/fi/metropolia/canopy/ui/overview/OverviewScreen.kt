@@ -10,95 +10,75 @@ import androidx.compose.material.icons.filled.DirectionsSubway
 import androidx.compose.material.icons.filled.Train
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import kotlin.math.roundToInt
 
 @Composable
-fun OverviewScreen(
-    navController: NavController
-) {
-    var dimension by remember { mutableStateOf(CompareDimension.ME) }
+fun OverviewScreen(navController: NavController) {
 
-    val me = remember { OverviewFakeData.myAverage() }
-    val campuses = remember { OverviewFakeData.campuses() }
-    val roles = remember { OverviewFakeData.roles() }
-
-    val targets: List<CompareTarget> = when (dimension) {
-        CompareDimension.ME -> listOf(me)
-        CompareDimension.CAMPUS -> campuses
-        CompareDimension.ROLE -> roles
-    }
-
-    var selectedId by remember(dimension) { mutableStateOf(targets.first().id) }
-    val selected = targets.first { it.id == selectedId }
+    val data = remember { OverviewFakeData.myAverage() }
+    val total = data.breakdown.totalTonsPerYear.coerceAtLeast(0.000001)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(OverviewColors.BgGreen)
     ) {
-        Spacer(Modifier.height(24.dp))
+
+        /* STATUS BAR SPACING */
+        Spacer(modifier = Modifier.height(32.dp))
+
         Text(
             text = "Overview",
-            style = MaterialTheme.typography.headlineLarge,
-            modifier = Modifier.padding(horizontal = 20.dp)
+            style = MaterialTheme.typography.titleLarge,
+            color = Color.White
         )
 
-        Button(
-            onClick = { navController.navigate("locationScreen") },
-            modifier = Modifier
-                .padding(horizontal = 24.dp)
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF3F6F4F),
-                contentColor = Color.White
-            )
-        ) {
-            Text(
-                text = "Go back",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
+        Spacer(Modifier.height(24.dp))
 
-        Spacer(Modifier.height(18.dp))
+        /* DONUT + PROSENTIT */
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
+
             DonutChart(
-                centerText = "${selected.breakdown.totalTonsPerYear.roundTo1()} ton",
-                slices = selected.breakdown.slices
+                centerText = "${data.breakdown.totalTonsPerYear.roundTo1()} ton",
+                slices = data.breakdown.slices
             )
 
-            Column(
-                modifier = Modifier.padding(start = 14.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                val total = selected.breakdown.totalTonsPerYear.coerceAtLeast(0.000001)
-                selected.breakdown.slices.forEach { s ->
+            Spacer(Modifier.width(24.dp))
+
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+
+                data.breakdown.slices.forEach { s ->
+
                     val pct = (s.value / total * 100).roundToInt()
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+
                         Icon(
                             imageVector = iconForLabel(s.label),
-                            contentDescription = s.label,
-                            tint = s.color
+                            contentDescription = null,
+                            tint = Color.Black
                         )
+
+                        Spacer(Modifier.width(8.dp))
+
                         Text(
-                            text = "${s.label}  $pct%",
+                            text = "$pct%",
+                            color = Color.White,
                             style = MaterialTheme.typography.titleMedium
                         )
                     }
@@ -106,105 +86,61 @@ fun OverviewScreen(
             }
         }
 
-        Spacer(Modifier.height(18.dp))
+        Spacer(Modifier.height(30.dp))
+
+        /* VALKOINEN CARD */
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
-                .background(OverviewColors.CardWhite)
+                .background(Color(0xFFEFEFEF))
                 .padding(20.dp)
         ) {
-            TabRow(selectedTabIndex = dimension.ordinal) {
-                CompareDimension.entries.forEachIndexed { index, dim ->
-                    Tab(
-                        selected = dimension.ordinal == index,
-                        onClick = { dimension = dim },
-                        text = { Text(dim.title) }
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            if (dimension != CompareDimension.ME) {
-                CompareTargetDropdown(
-                    targets = targets,
-                    selectedId = selectedId,
-                    onSelected = { selectedId = it }
-                )
-                Spacer(Modifier.height(10.dp))
-            }
 
             Text(
-                text = "${selected.breakdown.totalTonsPerYear.roundTo1()} ton CO2/yr",
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(vertical = 10.dp)
+                text = "${data.breakdown.totalTonsPerYear.roundTo1()} ton CO2/yr",
+                style = MaterialTheme.typography.headlineMedium
             )
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(24.dp))
 
-            selected.breakdown.slices.forEach { s ->
-                BreakdownRow(
-                    label = s.label,
-                    valueTons = s.value,
-                    color = s.color
-                )
-                Spacer(Modifier.height(12.dp))
-            }
-        }
-    }
-}
+            data.breakdown.slices.forEach { s ->
 
-@Composable
-private fun CompareTargetDropdown(
-    targets: List<CompareTarget>,
-    selectedId: String,
-    onSelected: (String) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-    val selected = targets.first { it.id == selectedId }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
 
-    Box {
-        OutlinedButton(onClick = { expanded = true }) {
-            Text(selected.name)
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            targets.forEach { t ->
-                DropdownMenuItem(
-                    text = { Text(t.name) },
-                    onClick = {
-                        onSelected(t.id)
-                        expanded = false
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+
+                        Icon(
+                            imageVector = iconForLabel(s.label),
+                            contentDescription = null,
+                            tint = Color.Black
+                        )
+
+                        Spacer(Modifier.width(12.dp))
+
+                        Text(
+                            text = s.label,
+                            style = MaterialTheme.typography.titleLarge
+                        )
                     }
-                )
+
+                    Text(
+                        text = "${s.value.roundTo2()} ton",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                }
+
+                Spacer(Modifier.height(16.dp))
             }
         }
     }
 }
 
-@Composable
-private fun BreakdownRow(
-    label: String,
-    valueTons: Double,
-    color: Color
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Icon(
-                imageVector = iconForLabel(label),
-                contentDescription = label,
-                tint = color
-            )
-            Text(text = label, style = MaterialTheme.typography.titleLarge)
-        }
-
-        Text(text = "${valueTons.roundTo2()} ton", style = MaterialTheme.typography.titleLarge)
-    }
-}
+/* ICONS */
 
 private fun iconForLabel(label: String) = when (label) {
     "Bus" -> Icons.Filled.DirectionsBus
@@ -214,14 +150,10 @@ private fun iconForLabel(label: String) = when (label) {
     else -> Icons.Filled.DirectionsCar
 }
 
-private fun Double.roundTo1(): String = ((this * 10.0).roundToInt() / 10.0).toString()
-private fun Double.roundTo2(): String = ((this * 100.0).roundToInt() / 100.0).toString()
+/* FORMAT */
 
-@Preview(showBackground = true)
-@Composable
-fun OverviewPreview() {
-    val navController = rememberNavController()
-    MaterialTheme {
-        OverviewScreen(navController = navController)
-    }
-}
+private fun Double.roundTo1(): String =
+    ((this * 10.0).roundToInt() / 10.0).toString()
+
+private fun Double.roundTo2(): String =
+    ((this * 100.0).roundToInt() / 100.0).toString()
