@@ -5,26 +5,30 @@ import android.content.Intent
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import fi.metropolia.canopy.domain.model.TrackingState
+import fi.metropolia.canopy.data.repository.TripRepository
 import fi.metropolia.canopy.data.source.CanopyDatabase
-import fi.metropolia.canopy.data.source.LocationEntity
+import fi.metropolia.canopy.domain.model.TrackingState
 import fi.metropolia.canopy.service.TrackingService
-import fi.metropolia.canopy.utils.CarbonHelper
 import kotlinx.coroutines.launch
-
 
 class TripViewModel(context: Context) : ViewModel() {
 
-    private val db = CanopyDatabase.getInstance(context)
+    private val repository: TripRepository
 
-    // Exposure of global state to the UI
+    init {
+        val db = CanopyDatabase.getInstance(context)
+        repository = TripRepository(db.locationDao())
+    }
+
+    // Expose live tracking data to the UI
     val isTracking get() = TrackingState.isTracking
     val totalDistanceMeters get() = TrackingState.totalDistanceMeters
     val currentSpeedMps get() = TrackingState.currentSpeedMps
     val modeDistances get() = TrackingState.modeDistances
+    val modeEmissions get() = TrackingState.modeEmissions
 
     fun startTracking(context: Context) {
-        prepareForNewTrip()
+        TrackingState.reset()
         val intent = Intent(context, TrackingService::class.java).apply {
             action = TrackingService.ACTION_START
         }
@@ -36,39 +40,10 @@ class TripViewModel(context: Context) : ViewModel() {
             action = TrackingService.ACTION_STOP
         }
         context.startService(intent)
-        stopTracking()
-    }
-
-    private fun prepareForNewTrip() {
-        TrackingState.reset()
-    }
-
-
-    private fun stopTracking() {
-        val distance = TrackingState.totalDistanceMeters
-        val modesList = TrackingState.usedTransportModes.toList()
-        val modesString = modesList.joinToString(",")
-
-        // Calculate total carbon footprint using the helper
-        var totalEmissionsGrams = 0.0
-
-        // Calculate per-mode emissions using the map of distances
-        TrackingState.modeDistances.forEach { (mode, modeDistance) ->
-            totalEmissionsGrams += CarbonHelper.calculate(modeDistance, mode) * 1000 // Convert kg to grams
-        }
-
-        // Save trip summary to database
+        
         viewModelScope.launch {
-            db.locationDao().insertLocation(
-                LocationEntity(
-                    latitude = TrackingState.lastLatitude ?: 0.0,
-                    longitude = TrackingState.lastLongitude ?: 0.0,
-                    transportModes = modesString,
-                    carbonEmissionGrams = totalEmissionsGrams.toFloat()
-                )
-            )
+            repository.saveTripSummary()
+            TrackingState.isTracking = false
         }
-
-        TrackingState.isTracking = false
     }
 }

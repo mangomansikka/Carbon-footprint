@@ -21,6 +21,7 @@ data class LocationEntity(
     val emissionPetrolCarKg: Double = 0.0,
     val emissionDieselCarKg: Double = 0.0,
     val emissionHybridCarKg: Double = 0.0,
+    val emissionUnknownCarKg: Double = 0.0,
     val emissionElectricCarKg: Double = 0.0,
     val emissionMopedKg: Double = 0.0
 )

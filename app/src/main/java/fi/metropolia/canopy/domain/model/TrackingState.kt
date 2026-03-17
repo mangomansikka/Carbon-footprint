@@ -25,6 +25,9 @@ object TrackingState {
 
     // Track distance per mode
     val modeDistances = mutableStateMapOf<String, Double>()
+    
+    // Track emissions per mode
+    val modeEmissions = mutableStateMapOf<String, Double>()
 
     var currentConfirmedMode by mutableStateOf("still")
 
@@ -43,6 +46,7 @@ object TrackingState {
         speedHistory.clear()
         usedTransportModes.clear()
         modeDistances.clear()
+        modeEmissions.clear()
         currentConfirmedMode = "still"
         currentActivityByConfidence = "None"
         currentConfidence = 0
@@ -50,9 +54,12 @@ object TrackingState {
         lastLongitude = null
     }
 
-    fun addDistanceToMode(mode: String, distance: Double) {
+    fun addDistanceToMode(mode: String, distance: Double, emission: Double) {
         val currentDist = modeDistances[mode] ?: 0.0
         modeDistances[mode] = currentDist + distance
+        
+        val currentEmission = modeEmissions[mode] ?: 0.0
+        modeEmissions[mode] = currentEmission + emission
 
         if (mode != "still" && !usedTransportModes.contains(mode)) {
             usedTransportModes.add(mode)
