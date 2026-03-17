@@ -107,30 +107,14 @@ fun HomeScreen(
                 Text("Apr", color = Color.White)
             }
 
-            Spacer(Modifier.height(40.dp))
+            Spacer(Modifier.height(30.dp))
 
-            Button(
-                onClick = onGoLocation,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF4B5FA4)
-                )
-            ) {
-                Icon(Icons.Default.PlayArrow, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text("Start tracking")
-            }
-
-            Spacer(Modifier.height(20.dp))
-
-            /* 🌿 AALTO + KUVA */
+            /* 🌿 AALTO + KUVA (SUUREMPI) */
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(220.dp)
+                    .height(320.dp)
             ) {
 
                 Canvas(modifier = Modifier.fillMaxSize()) {
@@ -169,7 +153,7 @@ fun HomeScreen(
                     contentDescription = "Plant girl",
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .height(180.dp)
+                        .height(260.dp)
                 )
             }
 
@@ -183,21 +167,33 @@ fun HomeScreen(
             }
         }
 
-        /* 🌟 BOTTOM NAVIGATION */
+        /* -------- BOTTOM NAVIGATION -------- */
 
         NavigationBar(
             containerColor = Color(0xFF3A2F2F)
         ) {
 
             NavigationBarItem(
+                selected = false,
+                onClick = { },
+                icon = {
+                    Icon(Icons.Default.Home, contentDescription = "home", tint = AccentGreen)
+                }
+            )
+
+            NavigationBarItem(
+                selected = false,
+                onClick = onGoOverview,
+                icon = {
+                    Icon(Icons.Default.EmojiEvents, contentDescription = "trophy", tint = AccentGreen)
+                }
+            )
+
+            NavigationBarItem(
                 selected = true,
                 onClick = { },
                 icon = {
-                    Icon(
-                        Icons.Default.Home,
-                        contentDescription = "home",
-                        tint = AccentGreen
-                    )
+                    Icon(Icons.Default.ShowChart, contentDescription = "chart", tint = AccentGreen)
                 }
             )
 
@@ -205,35 +201,7 @@ fun HomeScreen(
                 selected = false,
                 onClick = { },
                 icon = {
-                    Icon(
-                        Icons.Default.EmojiEvents,
-                        contentDescription = "trophy",
-                        tint = AccentGreen
-                    )
-                }
-            )
-
-            NavigationBarItem(
-                selected = false,
-                onClick = { },
-                icon = {
-                    Icon(
-                        Icons.Default.ShowChart,
-                        contentDescription = "stats",
-                        tint = AccentGreen
-                    )
-                }
-            )
-
-            NavigationBarItem(
-                selected = false,
-                onClick = { },
-                icon = {
-                    Icon(
-                        Icons.Default.Public,
-                        contentDescription = "globe",
-                        tint = AccentGreen
-                    )
+                    Icon(Icons.Default.Eco, contentDescription = "eco", tint = AccentGreen)
                 }
             )
         }
@@ -260,7 +228,6 @@ fun LineChart() {
             val start = Offset(space * i, size.height - points[i])
             val end = Offset(space * (i + 1), size.height - points[i + 1])
 
-            // glow
             drawLine(
                 color = AccentGreen.copy(alpha = 0.3f),
                 start = start,
@@ -268,7 +235,6 @@ fun LineChart() {
                 strokeWidth = 16f
             )
 
-            // main line
             drawLine(
                 color = AccentGreen,
                 start = start,
@@ -276,7 +242,6 @@ fun LineChart() {
                 strokeWidth = 6f
             )
 
-            // datapiste
             drawCircle(
                 color = AccentGreen,
                 radius = 8f,

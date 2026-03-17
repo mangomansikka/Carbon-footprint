@@ -1,6 +1,10 @@
 package fi.metropolia.canopy.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Text
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -13,8 +17,10 @@ import fi.metropolia.canopy.viewmodels.TripViewModel
 
 object Routes {
     const val HOME = "home"
+    const val FOOTPRINT = "footprint"
     const val LOCATION = "location"
     const val OVERVIEW = "overview"
+    const val ECO = "eco"
 }
 
 @Composable
@@ -22,25 +28,34 @@ fun AppNavGraph(
     navController: NavHostController,
     fusedLocationClient: FusedLocationProviderClient,
     setCallback: (LocationCallback) -> Unit,
-    viewModel: TripViewModel,
-    startDestination: String = Routes.HOME
+    viewModel: TripViewModel
 ) {
 
     NavHost(
         navController = navController,
-        startDestination = startDestination
+        startDestination = Routes.FOOTPRINT
     ) {
 
-        // HOME SCREEN
-        composable(Routes.HOME) {
+        /* CHART / FOOTPRINT PAGE */
+
+        composable(Routes.FOOTPRINT) {
+
             HomeScreen(
                 onGoLocation = { navController.navigate(Routes.LOCATION) },
                 onGoOverview = { navController.navigate(Routes.OVERVIEW) }
             )
         }
 
-        // LOCATION SCREEN
+        /* TROPHY PAGE */
+
+        composable(Routes.OVERVIEW) {
+            OverviewScreen(navController = navController)
+        }
+
+        /* LOCATION TRACKING */
+
         composable(Routes.LOCATION) {
+
             LocationScreen(
                 fusedLocationClient = fusedLocationClient,
                 setCallback = setCallback,
@@ -49,9 +64,28 @@ fun AppNavGraph(
             )
         }
 
-        // OVERVIEW SCREEN
-        composable(Routes.OVERVIEW) {
-            OverviewScreen()
+        /* HOME PLACEHOLDER */
+
+        composable(Routes.HOME) {
+
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Home page coming later")
+            }
+        }
+
+        /* ECO PLACEHOLDER */
+
+        composable(Routes.ECO) {
+
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Eco page coming later")
+            }
         }
     }
 }
