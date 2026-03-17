@@ -17,7 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.core.view.WindowCompat
 import fi.metropolia.canopy.ui.theme.CanopyMinnoTheme
-import fi.metropolia.canopy.ui.home.HomeScreen
+import fi.metropolia.canopy.ui.homeview.HomeScreen
 import fi.metropolia.canopy.ui.homeview.LandingScreen
 import fi.metropolia.canopy.ui.overview.OverviewScreen
 import fi.metropolia.canopy.ui.screens.LocationScreen
@@ -50,7 +50,7 @@ fun AppNavGraph() {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
 
-    val AccentGreen = Color(0xFF58F0B1)
+    val accentGreen = Color(0xFF58F0B1)
 
     Scaffold(
         bottomBar = {
@@ -68,7 +68,7 @@ fun AppNavGraph() {
                 ) {
 
                     val iconColor = { route: String ->
-                        if (currentRoute == route) AccentGreen else Color.Gray
+                        if (currentRoute == route) accentGreen else Color.Gray
                     }
 
                     /* HOME */
@@ -107,7 +107,7 @@ fun AppNavGraph() {
                     }
                 }
 
-                /* KESKINAPPI (GLOW) */
+                /* MIDDLE BUTTON (GLOW) */
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
@@ -116,20 +116,22 @@ fun AppNavGraph() {
                     contentAlignment = Alignment.Center
                 ) {
 
-                    /* glow efekti */
+                    /* glow effect */
                     Box(
                         modifier = Modifier
                             .size(70.dp)
                             .background(
-                                color = AccentGreen.copy(alpha = 0.2f),
+                                color = accentGreen.copy(alpha = 0.2f),
                                 shape = CircleShape
                             )
                     )
 
-                    /* nappi */
+                    /* button */
                     FloatingActionButton(
                         onClick = {
-                            // tänne myöhemmin uusi screen
+                            navController.navigate("locationScreen") {
+                                launchSingleTop = true
+                            }
                         },
                         containerColor = Color(0xFF4E7D5A)
                     ) {

@@ -1,4 +1,4 @@
-package fi.metropolia.canopy.ui.home
+package fi.metropolia.canopy.ui.homeview
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
