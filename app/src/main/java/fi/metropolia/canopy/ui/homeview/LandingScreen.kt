@@ -1,4 +1,5 @@
 package fi.metropolia.canopy.ui.homeview
+import android.hardware.camera2.params.BlackLevelPattern
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -18,35 +19,45 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import fi.metropolia.canopy.R
 
+import fi.metropolia.canopy.ui.overview.OverviewColors
+import fi.metropolia.canopy.ui.theme.Darkbutton
+
 @Composable
 fun LandingScreen(navController: NavController) {
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFEAF6E6)),
+            .background(OverviewColors.BgGreen)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
 
         Image(
-            painter = painterResource(R.drawable.canopy),
+            painter = painterResource(R.drawable.tree),
             contentDescription = "Community tree",
+            alignment = Alignment.Center,
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(300.dp)
+                .height(400.dp)
+                .padding(10.dp)
+
+
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
 
         Text(
-            text = "Track your carbon footprint and grow your community tree",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
+            text = "Track your carbon footprint",
+            style = MaterialTheme.typography.headlineLarge,
+            fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
+
             textAlign = TextAlign.Center,
-            color = Color(0xFF2F5A3C),
+            color = Color.Black,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 10.dp)
@@ -54,14 +65,6 @@ fun LandingScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-
-        Text(
-            text = "Your daily travel choices help the tree grow greener.",
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-            color = Color.DarkGray,
-            modifier = Modifier.padding(horizontal = 40.dp)
-        )
 
         Spacer(modifier = Modifier.weight(1f))
 
@@ -74,24 +77,28 @@ fun LandingScreen(navController: NavController) {
                 .height(56.dp),
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF3F6F4F),
+                containerColor = Darkbutton,
                 contentColor = Color.White
             )
         ) {
             Text(
                 text = "Start Tracking",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
+                style = MaterialTheme.typography.titleLarge,
+
+
+
+                )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(90.dp))
 
         Image(
             painter = painterResource(id = R.drawable.metropolia),
             contentDescription = "App Logo",
             modifier = Modifier
                 .size(80.dp)
+
         )
     }
 }

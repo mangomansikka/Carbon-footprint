@@ -1,11 +1,20 @@
 package fi.metropolia.canopy.viewmodels
 
 import android.content.Context
+<<<<<<< HEAD
+=======
+import android.content.Intent
+import androidx.core.content.ContextCompat
+>>>>>>> origin/main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fi.metropolia.canopy.domain.model.TrackingState
 import fi.metropolia.canopy.data.source.CanopyDatabase
 import fi.metropolia.canopy.data.source.LocationEntity
+<<<<<<< HEAD
+=======
+import fi.metropolia.canopy.service.TrackingService
+>>>>>>> origin/main
 import fi.metropolia.canopy.utils.CarbonHelper
 import kotlinx.coroutines.launch
 
@@ -20,6 +29,7 @@ class TripViewModel(context: Context) : ViewModel() {
     val currentSpeedMps get() = TrackingState.currentSpeedMps
     val modeDistances get() = TrackingState.modeDistances
 
+<<<<<<< HEAD
 
     fun prepareForNewTrip() {
         TrackingState.reset()
@@ -27,6 +37,30 @@ class TripViewModel(context: Context) : ViewModel() {
 
 
     fun stopTracking() {
+=======
+    fun startTracking(context: Context) {
+        prepareForNewTrip()
+        val intent = Intent(context, TrackingService::class.java).apply {
+            action = TrackingService.ACTION_START
+        }
+        ContextCompat.startForegroundService(context, intent)
+    }
+
+    fun endTrip(context: Context) {
+        val intent = Intent(context, TrackingService::class.java).apply {
+            action = TrackingService.ACTION_STOP
+        }
+        context.startService(intent)
+        stopTracking()
+    }
+
+    private fun prepareForNewTrip() {
+        TrackingState.reset()
+    }
+
+
+    private fun stopTracking() {
+>>>>>>> origin/main
         val distance = TrackingState.totalDistanceMeters
         val modesList = TrackingState.usedTransportModes.toList()
         val modesString = modesList.joinToString(",")

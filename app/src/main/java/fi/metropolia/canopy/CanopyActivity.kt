@@ -57,7 +57,7 @@ fun AppNavGraph() {
 
             Box {
 
-                /*  NAV BAR */
+                /* 🔥 NAV BAR */
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -71,7 +71,7 @@ fun AppNavGraph() {
                         if (currentRoute == route) AccentGreen else Color.Gray
                     }
 
-                    /*  HOME */
+                    /* HOME */
                     IconButton(onClick = {
                         navController.navigate("landingScreen") {
                             popUpTo("landingScreen")
@@ -81,7 +81,7 @@ fun AppNavGraph() {
                         Icon(Icons.Default.Home, null, tint = iconColor("landingScreen"))
                     }
 
-                    /*  OVERVIEW */
+                    /* OVERVIEW */
                     IconButton(onClick = {
                         navController.navigate("overviewScreen") {
                             launchSingleTop = true
@@ -92,7 +92,7 @@ fun AppNavGraph() {
 
                     Spacer(modifier = Modifier.width(60.dp))
 
-                    /*  FOOTPRINT */
+                    /* FOOTPRINT */
                     IconButton(onClick = {
                         navController.navigate("homeScreen") {
                             launchSingleTop = true
@@ -107,7 +107,7 @@ fun AppNavGraph() {
                     }
                 }
 
-                /*  KESKINAPPI (GLOW) */
+                /* KESKINAPPI (GLOW) */
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
@@ -129,7 +129,7 @@ fun AppNavGraph() {
                     /* nappi */
                     FloatingActionButton(
                         onClick = {
-                            //  tänne myöhemmin uusi screen
+                            // tänne myöhemmin uusi screen
                         },
                         containerColor = Color(0xFF4E7D5A)
                     ) {

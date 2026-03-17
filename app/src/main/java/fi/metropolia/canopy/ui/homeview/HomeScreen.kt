@@ -109,7 +109,7 @@ fun HomeScreen(
 
             Spacer(Modifier.height(30.dp))
 
-            /* 🌿 KUVA */
+            /* 🌿 AALTO + KUVA */
 
             Box(
                 modifier = Modifier
@@ -142,12 +142,15 @@ fun HomeScreen(
                         close()
                     }
 
-                    drawPath(path = path, color = LightGreen)
+                    drawPath(
+                        path = path,
+                        color = LightGreen
+                    )
                 }
 
                 Image(
                     painter = painterResource(R.drawable.plant_girl),
-                    contentDescription = "Plant girl",
+                    contentDescription = null,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .height(260.dp)
@@ -155,7 +158,6 @@ fun HomeScreen(
             }
 
             Spacer(Modifier.height(12.dp))
-
 
         }
     }

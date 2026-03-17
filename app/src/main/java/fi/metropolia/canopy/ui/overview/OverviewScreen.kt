@@ -30,19 +30,18 @@ fun OverviewScreen(navController: NavController) {
             .background(OverviewColors.BgGreen)
     ) {
 
-        /* 🔥 STATUS BAR SPACING */
+        /* STATUS BAR SPACING */
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
             text = "Overview",
             style = MaterialTheme.typography.titleLarge,
-            color = Color.White,
-            modifier = Modifier.padding(start = 20.dp)
+            color = Color.White
         )
 
         Spacer(Modifier.height(24.dp))
 
-        /*  DONUT + PROSENTIT */
+        /* DONUT + PROSENTIT */
 
         Row(
             modifier = Modifier
@@ -89,7 +88,7 @@ fun OverviewScreen(navController: NavController) {
 
         Spacer(Modifier.height(30.dp))
 
-        /*  VALKOINEN CARD */
+        /* VALKOINEN CARD */
 
         Column(
             modifier = Modifier
