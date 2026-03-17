@@ -27,6 +27,9 @@ interface LocationDAO {
     @Query("SELECT COALESCE(SUM(emissionElectricCarKg), 0.0) FROM locations")
     suspend fun getTotalElectricCarEmissions(): Double
 
+    @Query("SELECT COALESCE(SUM(emissionUnknownCarKg), 0.0) FROM locations")
+    suspend fun getTotalUnknownCarEmissions(): Double
+
     @Query("SELECT COALESCE(SUM(emissionMopedKg), 0.0) FROM locations")
     suspend fun getTotalMopedEmissions(): Double
 
