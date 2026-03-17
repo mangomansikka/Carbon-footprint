@@ -155,6 +155,31 @@ fun LocationScreen(navController: NavController) {
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
+            items(viewModel.modeEmissions.entries.toList()) { entry ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = entry.key.replaceFirstChar { it.uppercase() },
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(text = "${"%.4f".format(entry.value)} kg CO₂")
+                    }
+                }
+            }
+            if (viewModel.modeEmissions.isEmpty()) {
+                item {
+                    Text("Start moving to see emission data...",
+                        style = MaterialTheme.typography.bodyMedium)
+                }
+            }
         }
 
         Button(

@@ -2,10 +2,8 @@ package fi.metropolia.canopy.service
 
 import android.annotation.SuppressLint
 import android.app.*
-import android.content.Context
 import android.content.Intent
 import android.location.Location
-import android.os.Build
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
@@ -20,6 +18,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import fi.metropolia.canopy.utils.CarbonHelper
+
 
 
 class TrackingService : Service() {
@@ -96,14 +96,12 @@ class TrackingService : Service() {
         val lastLon = TrackingState.lastLongitude
 
         TrackingState.currentSpeedMps = location.speed
-
-        // Update rolling average speed
         TrackingState.updateRollingAverage(location.speed)
 
         val speedKmh = location.speed * 3.6
-
-        // Mode logic
         val mode = determineTransportMode(speedKmh)
+
+        var deltaEmission = 0.0
 
         if (lastLat != null && lastLon != null) {
             val results = FloatArray(1)
@@ -111,9 +109,9 @@ class TrackingService : Service() {
             val deltaDistance = results[0].toDouble()
 
             // GPS Drift Filtering
-            // distance > 8 meters AND accuracy < 15 meters AND speed > 0.5 m/s
             if (deltaDistance > 8.0 && location.accuracy < 15f && location.speed > 0.5f) {
-                TrackingState.addDistanceToMode(mode, deltaDistance)
+                deltaEmission = CarbonHelper.calculate(deltaDistance, mode)
+                TrackingState.addDistanceToMode(mode, deltaDistance, deltaEmission)
                 TrackingState.totalDistanceMeters += deltaDistance
             }
         }
@@ -122,10 +120,17 @@ class TrackingService : Service() {
         TrackingState.lastLongitude = location.longitude
 
         // Database persistence
-        // TODO add mode to database and Co2 footprint
         serviceScope.launch {
             db.locationDao().insertLocation(
-                LocationEntity(latitude = location.latitude, longitude = location.longitude)
+                LocationEntity(
+                    latitude = location.latitude,
+                    longitude = location.longitude,
+                    // Use a simple mapping to fill specific columns for the Overview summation
+                    emissionBussKg = if (mode == "bus") deltaEmission else 0.0,
+                    emissionMopedKg = if (mode == "moped_scooter") deltaEmission else 0.0,
+                    emissionUnknownCarKg = if (mode == "car") deltaEmission else 0.0,
+                    // Note: Activity recognition doesn't distinguish fuel type yet, defaulting to unknown
+                )
             )
         }
     }
@@ -135,14 +140,14 @@ class TrackingService : Service() {
             TrackingState.currentConfirmedMode != "still" &&
                     TrackingState.currentConfirmedMode != "unknown" &&
                     TrackingState.currentConfirmedMode != "none" &&
-                    TrackingState.currentConfirmedMode != "Tilting" -> {
+                    TrackingState.currentConfirmedMode != "tilting" -> {
                 TrackingState.currentConfirmedMode.lowercase()
             }
             speedKmh < 3.0 -> "still"
-            speedKmh < 10.0 -> "on foot"
-            speedKmh < 25.0 -> "cycling"
-            speedKmh < 120.0 -> "car/bus"
-            else -> "train/high-speed"
+            speedKmh < 10.0 -> "walking"     // Fixed from "on foot"
+            speedKmh < 25.0 -> "bicycle"     // Fixed from "cycling"
+            speedKmh < 120.0 -> "car"        // Fixed from "car/bus"
+            else -> "train"                  // Fixed from "train/high-speed"
         }
     }
 

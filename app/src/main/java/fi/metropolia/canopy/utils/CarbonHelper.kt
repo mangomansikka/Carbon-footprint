@@ -16,30 +16,26 @@ object CarbonHelper {
         var emissions : Double
         val distanceInKm : Double = distance / 1000
 
-        when (transportMode.lowercase()) {
-            "bus" -> {
-                emissions = distanceInKm * BUS
+        // Inside CarbonHelper.kt
+        emissions = when (transportMode.lowercase().trim()) {
+            "bus", "car/bus" -> {
+                distanceInKm * BUS
             }
-            "train" -> {
-                emissions = distanceInKm * TRAIN
+
+            "car", "in vehicle" -> {
+                distanceInKm * CAR_UNKNOWN
             }
-            "tram" -> {
-                emissions = distanceInKm * TRAM
+
+            "train", "train/high-speed" -> {
+                distanceInKm * TRAIN
             }
-            "metro" -> {
-                emissions = distanceInKm * METRO
+
+            "walking", "running", "bicycle", "still" -> {
+                0.0
             }
-            "moped_scooter" -> {
-                emissions = distanceInKm * MOPED_SCOOTER
-            }
-            "car" -> {
-                emissions = distanceInKm * CAR_UNKNOWN
-            }
-            "in vehicle" -> {
-                emissions = distanceInKm * CAR_UNKNOWN
-            }
+
             else -> {
-                emissions = 0.0
+                0.0
             }
         }
 
