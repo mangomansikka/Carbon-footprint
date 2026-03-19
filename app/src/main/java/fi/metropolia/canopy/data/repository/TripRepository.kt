@@ -3,16 +3,20 @@ package fi.metropolia.canopy.data.repository
 import fi.metropolia.canopy.data.source.LocationDAO
 import fi.metropolia.canopy.data.source.LocationEntity
 import fi.metropolia.canopy.domain.model.TrackingState
+import fi.metropolia.canopy.utils.CarbonHelper
 
 class TripRepository(private val dao: LocationDAO) {
 
     suspend fun saveTripSummary() {
+
+
         val modesString = TrackingState.usedTransportModes.joinToString(",")
 
-        // Calculate total trip emissions in grams for the database
         var totalEmissionsGrams = 0.0
-        TrackingState.modeEmissions.forEach { (_, emissionKg) ->
-            totalEmissionsGrams += emissionKg * 1000
+
+        TrackingState.modeDistances.forEach { (mode, distance) ->
+            totalEmissionsGrams +=
+                CarbonHelper.calculate(distance, mode) * 1000
         }
 
         dao.insertLocation(
