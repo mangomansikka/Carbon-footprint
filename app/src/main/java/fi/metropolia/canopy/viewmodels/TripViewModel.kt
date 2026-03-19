@@ -18,13 +18,16 @@ class TripViewModel(context: Context) : ViewModel() {
 
     private val repository: TripRepository
 
-
     private val _trips = MutableStateFlow<List<LocationEntity>>(emptyList())
+    private val _emissions = MutableStateFlow<Map<String, Double>>(emptyMap())
+
     val trips: StateFlow<List<LocationEntity>> = _trips
+    val emissions: StateFlow<Map<String, Double>> = _emissions
 
     init {
         val db = CanopyDatabase.getInstance(context)
         repository = TripRepository(db.locationDao())
+        loadEmissions()
     }
 
     val isTracking get() = TrackingState.isTracking
@@ -41,10 +44,16 @@ class TripViewModel(context: Context) : ViewModel() {
         ContextCompat.startForegroundService(context, intent)
     }
 
-
     fun loadTrips() {
         viewModelScope.launch {
             _trips.value = repository.getAllTrips()
+        }
+    }
+
+    // Load lifetime emissions
+    fun loadEmissions() {
+        viewModelScope.launch {
+            _emissions.value = repository.getEmissionsByMode()
         }
     }
 
@@ -57,6 +66,7 @@ class TripViewModel(context: Context) : ViewModel() {
         viewModelScope.launch {
             repository.saveTripSummary()
             TrackingState.isTracking = false
+            loadEmissions() // Refresh lifetime totals after saving the trip
         }
     }
 }

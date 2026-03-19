@@ -32,4 +32,18 @@ class TripRepository(private val dao: LocationDAO) {
     suspend fun getAllTrips(): List<LocationEntity> {
         return dao.getAllLocations()
     }
+
+    suspend fun getEmissionsByMode(): Map<String, Double> {
+        val summary = dao.getEmissionsSummary()
+        return mapOf(
+            "bus" to summary.bus,
+            "metro" to summary.metro,
+            "petrol" to summary.petrol,
+            "diesel" to summary.diesel,
+            "hybrid" to summary.hybrid,
+            "electric" to summary.electric,
+            "car unknown" to summary.unknown,
+            "moped" to summary.moped
+        )
+    }
 }
