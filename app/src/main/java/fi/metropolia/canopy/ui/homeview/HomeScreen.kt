@@ -51,7 +51,8 @@ fun HomeScreen(
             Text(
                 text = "My Footprint",
                 style = MaterialTheme.typography.titleLarge,
-                color = Color.White
+                color = Color.White,
+                modifier = Modifier.padding(start = 20.dp)
             )
 
             Spacer(Modifier.height(16.dp))
@@ -109,7 +110,7 @@ fun HomeScreen(
 
             Spacer(Modifier.height(30.dp))
 
-            /* 🌿 AALTO + KUVA */
+            /*  AALTO + KUVA */
 
             Box(
                 modifier = Modifier
