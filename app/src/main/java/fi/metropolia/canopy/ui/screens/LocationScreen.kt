@@ -26,6 +26,12 @@ fun LocationScreen(navController: NavController) {
         factory = TripViewModelFactory(context)
     )
 
+    val totalEmissions by viewModel.emissions.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadEmissions()
+    }
+
     val permissionLauncher =
         rememberLauncherForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
@@ -48,7 +54,7 @@ fun LocationScreen(navController: NavController) {
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-
+        // Fixed Buttons at the top
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(
                 onClick = {
@@ -81,114 +87,159 @@ fun LocationScreen(navController: NavController) {
             }
         }
 
-        // Live Debug & Detection Section
-        if (viewModel.isTracking) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
-            ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Text("Live Detection", style = MaterialTheme.typography.titleSmall)
-                    Text("Current: ${TrackingState.currentActivityByConfidence}")
-                    
-                    Spacer(modifier = Modifier.height(4.dp))
-                    
-                    Text(
-                        text = "Average speed (last ${TrackingState.speedHistorySize} points): ${"%.1f".format(TrackingState.averageSpeedMps)} m/s",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    
-                    LinearProgressIndicator(
-                        progress = { TrackingState.currentConfidence / 100f },
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-                    )
-                }
-            }
-        }
-
-        Text("Total Distance: ${"%.2f".format(viewModel.totalDistanceMeters)} m")
-        Text("Current Speed: ${"%.2f".format(viewModel.currentSpeedMps)} m/s")
-
-        HorizontalDivider()
-
-        Text("Distance per Mode:", style = MaterialTheme.typography.titleMedium)
-        
+        // Scrollable Content
         LazyColumn(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            items(viewModel.modeDistances.entries.toList()) { entry ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+            // Live Debug & Detection Section
+            if (viewModel.isTracking) {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
                     ) {
-                        Text(
-                            text = entry.key.replaceFirstChar { it.uppercase() },
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "${"%.1f".format(entry.value)} m",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text("Live Detection", style = MaterialTheme.typography.titleSmall)
+                            Text("Current: ${TrackingState.currentActivityByConfidence}")
+                            
+                            Spacer(modifier = Modifier.height(4.dp))
+                            
+                            Text(
+                                text = "Average speed (last ${TrackingState.speedHistorySize} points): ${"%.1f".format(TrackingState.averageSpeedMps)} m/s",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                            
+                            LinearProgressIndicator(
+                                progress = { TrackingState.currentConfidence / 100f },
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                            )
+                        }
                     }
                 }
             }
-            if (viewModel.modeDistances.isEmpty()) {
+
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Total Distance: ${"%.2f".format(viewModel.totalDistanceMeters)} m")
+                    Text("Current Speed: ${"%.2f".format(viewModel.currentSpeedMps)} m/s")
+                    HorizontalDivider()
+                    Text("Distance per Mode:", style = MaterialTheme.typography.titleMedium)
+                }
+            }
+
+            val distances = viewModel.modeDistances.entries.toList()
+            if (distances.isEmpty()) {
                 item {
                     Text("No distance recorded yet", style = MaterialTheme.typography.bodyMedium)
                 }
-            }
-        }
-
-        HorizontalDivider()
-
-        Text("Emissions per Mode:", style = MaterialTheme.typography.titleMedium)
-
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            items(viewModel.modeEmissions.entries.toList()) { entry ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = entry.key.replaceFirstChar { it.uppercase() },
-                            fontWeight = FontWeight.Bold
+            } else {
+                items(distances) { entry ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
                         )
-                        Text(text = "${"%.4f".format(entry.value)} kg CO₂")
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = entry.key.replaceFirstChar { it.uppercase() },
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "${"%.1f".format(entry.value)} m",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
                     }
                 }
             }
-            if (viewModel.modeEmissions.isEmpty()) {
+
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    HorizontalDivider()
+                    Text("Emissions per Mode (Current Trip):", style = MaterialTheme.typography.titleMedium)
+                }
+            }
+
+            val currentEmissions = viewModel.modeEmissions.entries.toList()
+            if (currentEmissions.isEmpty()) {
                 item {
                     Text("Start moving to see emission data...",
                         style = MaterialTheme.typography.bodyMedium)
                 }
+            } else {
+                items(currentEmissions) { entry ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = entry.key.replaceFirstChar { it.uppercase() },
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(text = "${"%.4f".format(entry.value)} kg CO₂")
+                        }
+                    }
+                }
             }
-        }
 
-        Button(
-            onClick = {
-                navController.navigate("overviewScreen")
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Go to Overview")
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    HorizontalDivider()
+                    Text("Lifetime Total Emissions per Mode:", style = MaterialTheme.typography.titleMedium)
+                }
+            }
+
+            val lifetimeEmissionsList = totalEmissions.entries.toList()
+            if (lifetimeEmissionsList.isEmpty()) {
+                item {
+                    Text("No historical data available",
+                        style = MaterialTheme.typography.bodyMedium)
+                }
+            } else {
+                items(lifetimeEmissionsList) { entry ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = entry.key.replaceFirstChar { it.uppercase() },
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(text = "${"%.4f".format(entry.value)} kg CO₂")
+                        }
+                    }
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = {
+                        navController.navigate("overviewScreen")
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Go to Overview")
+                }
+            }
         }
     }
 }
