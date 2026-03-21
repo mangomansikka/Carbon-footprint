@@ -24,17 +24,32 @@ import kotlin.math.roundToInt
 
 @Composable
 fun OverviewScreen(navController: NavController) {
-
     val context = LocalContext.current
-
     val viewModel: TripViewModel = viewModel(
         factory = TripViewModelFactory(context)
     )
 
-    val emissions by viewModel.emissions.collectAsState()
+    val rawEmissions by viewModel.emissions.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadEmissions()
+    }
+
+    // Group emissions into categories (e.g., all car types into "Car")
+    val emissions = remember(rawEmissions) {
+        val grouped = mutableMapOf<String, Double>()
+        rawEmissions.forEach { (mode, value) ->
+            val category = when (mode.lowercase().trim()) {
+                "petrol", "diesel", "hybrid", "electric", "car unknown", "car" -> "Car"
+                "bus", "car/bus" -> "Bus"
+                "metro" -> "Metro"
+                "train", "train/high-speed" -> "Train"
+                "moped" -> "Moped"
+                else -> mode.replaceFirstChar { it.uppercase() }
+            }
+            grouped[category] = (grouped[category] ?: 0.0) + value
+        }
+        grouped
     }
 
     val totalEmission = emissions.values.sum()
@@ -53,11 +68,11 @@ fun OverviewScreen(navController: NavController) {
         } else {
             emissions
                 .filter { it.value > 0 }
-                .map { (mode, value) ->
+                .map { (category, value) ->
                     EmissionSlice(
-                        label = mode,
+                        label = category,
                         value = value,
-                        color = colorForMode(mode)
+                        color = colorForMode(category)
                     )
                 }
         }
@@ -67,7 +82,6 @@ fun OverviewScreen(navController: NavController) {
             .fillMaxSize()
             .background(OverviewColors.BgGreen)
     ) {
-
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
@@ -86,7 +100,6 @@ fun OverviewScreen(navController: NavController) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-
             DonutChart(
                 centerText = if (hasData)
                     "${totalEmission.roundTo1()} g"
@@ -98,33 +111,29 @@ fun OverviewScreen(navController: NavController) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-
-                val modes = listOf(
-                    "petrol" to Icons.Default.DirectionsCar,
-                    "bus" to Icons.Default.DirectionsBus,
-                    "train" to Icons.Default.Train,
-                    "metro" to Icons.Default.DirectionsSubway
+                // Percentage Summary Section
+                val summaryModes = listOf(
+                    "Car" to Icons.Default.DirectionsCar,
+                    "Bus" to Icons.Default.DirectionsBus,
+                    "Train" to Icons.Default.Train,
+                    "Metro" to Icons.Default.DirectionsSubway
                 )
 
-                modes.forEach { (mode, icon) ->
-
-                    val value = emissions[mode] ?: 0.0
+                summaryModes.forEach { (category, icon) ->
+                    val value = emissions[category] ?: 0.0
                     val pct = if (hasData) {
                         (value / total * 100).roundToInt()
                     } else 0
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-
                         Icon(
                             imageVector = icon,
                             contentDescription = null,
                             tint = Color.White
                         )
-
                         Spacer(Modifier.width(8.dp))
-
                         Text(
-                            text = "${formatLabel(mode)} $pct%",
+                            text = "$category $pct%",
                             color = Color.White,
                             style = MaterialTheme.typography.titleMedium
                         )
@@ -142,7 +151,6 @@ fun OverviewScreen(navController: NavController) {
                 .background(Color(0xFFF5F5F5))
                 .padding(20.dp)
         ) {
-
             Text(
                 text = "${totalEmission.roundTo1()} g CO2 total",
                 style = MaterialTheme.typography.headlineMedium
@@ -152,42 +160,34 @@ fun OverviewScreen(navController: NavController) {
 
             emissions
                 .filter { it.value > 0 }
-                .forEach { (mode, value) ->
-
+                .forEach { (category, value) ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-
                         Row(verticalAlignment = Alignment.CenterVertically) {
-
                             Icon(
-                                imageVector = iconForLabel(mode),
+                                imageVector = iconForLabel(category),
                                 contentDescription = null,
                                 tint = Color.Black
                             )
-
                             Spacer(Modifier.width(10.dp))
-
                             Text(
-                                text = formatLabel(mode),
+                                text = category,
                                 style = MaterialTheme.typography.titleLarge
                             )
                         }
-
                         Text(
                             text = "${value.roundTo1()} g",
                             style = MaterialTheme.typography.titleLarge
                         )
                     }
-
                     Spacer(Modifier.height(12.dp))
                 }
 
             if (!hasData) {
                 Spacer(Modifier.height(16.dp))
-
                 Text(
                     text = "Start a trip to see your emissions",
                     color = Color.Gray,
@@ -198,7 +198,6 @@ fun OverviewScreen(navController: NavController) {
     }
 }
 
-
 private fun iconForLabel(label: String) = when (label.lowercase()) {
     "bus" -> Icons.Filled.DirectionsBus
     "metro" -> Icons.Filled.DirectionsSubway
@@ -206,20 +205,13 @@ private fun iconForLabel(label: String) = when (label.lowercase()) {
     else -> Icons.Filled.DirectionsCar
 }
 
-
 private fun colorForMode(mode: String) = when (mode.lowercase()) {
     "bus" -> Color(0xFF27AE60)
     "metro" -> Color(0xFFA8E6CF)
-    "petrol", "diesel", "hybrid", "electric", "car unknown" -> Color(0xFF6FCF97)
+    "car", "petrol", "diesel", "hybrid", "electric", "car unknown" -> Color(0xFF6FCF97)
     "moped" -> Color(0xFF2F4F2F)
     else -> Color.Gray
 }
-
-private fun formatLabel(label: String): String = when (label.lowercase()) {
-    "petrol", "diesel", "hybrid", "electric", "car unknown" -> "Car"
-    else -> label.replaceFirstChar { it.uppercase() }
-}
-
 
 private fun Double.roundTo1(): String =
     ((this * 10.0).roundToInt() / 10.0).toString()
