@@ -223,7 +223,7 @@ fun LocationScreen(navController: NavController) {
                                 text = entry.key.replaceFirstChar { it.uppercase() },
                                 fontWeight = FontWeight.Bold
                             )
-                            Text(text = "${"%.4f".format(entry.value)} kg CO₂")
+                            Text(text = "${"%.4f".format(entry.value)} g CO₂")
                         }
                     }
                 }
