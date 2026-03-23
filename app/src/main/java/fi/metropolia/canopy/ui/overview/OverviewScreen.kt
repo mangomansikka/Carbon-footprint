@@ -4,7 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DirectionsBus
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.DirectionsSubway
+import androidx.compose.material.icons.filled.Train
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,44 +20,68 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import fi.metropolia.canopy.utils.viewModelFactories.TripViewModelFactory
 import fi.metropolia.canopy.viewmodels.TripViewModel
-import fi.metropolia.canopy.ui.overview.DonutChart
-import fi.metropolia.canopy.ui.overview.EmissionSlice
 import kotlin.math.roundToInt
 
 @Composable
 fun OverviewScreen(navController: NavController) {
-
     val context = LocalContext.current
-
     val viewModel: TripViewModel = viewModel(
         factory = TripViewModelFactory(context)
     )
 
-    val trips by viewModel.trips.collectAsState()
+    val rawEmissions by viewModel.emissions.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.loadTrips()
+        viewModel.loadEmissions()
     }
 
+    // Group emissions into categories (e.g., all car types into "Car")
+    val emissions = remember(rawEmissions) {
+        val grouped = mutableMapOf<String, Double>()
+        rawEmissions.forEach { (mode, value) ->
+            val category = when (mode.lowercase().trim()) {
+                "petrol", "diesel", "hybrid", "electric", "car unknown", "car" -> "Car"
+                "bus", "car/bus" -> "Bus"
+                "metro" -> "Metro"
+                "train", "train/high-speed" -> "Train"
+                "moped" -> "Moped"
+                else -> mode.replaceFirstChar { it.uppercase() }
+            }
+            grouped[category] = (grouped[category] ?: 0.0) + value
+        }
+        grouped
+    }
 
-    val totalEmission = trips.sumOf { it.carbonEmissionGrams.toDouble() }
-    val total = totalEmission.coerceAtLeast(0.000001)
+    val totalEmission = emissions.values.sum()
+    val hasData = totalEmission > 0
+    val total = if (totalEmission == 0.0) 1.0 else totalEmission
 
-
-    val slices: List<EmissionSlice> = listOf(
-        EmissionSlice(
-            label = "Total",
-            value = totalEmission,
-            color = Color(0xFF6FCF97)
-        )
-    )
+    val slices: List<EmissionSlice> =
+        if (!hasData) {
+            listOf(
+                EmissionSlice(
+                    label = "No data",
+                    value = 1.0,
+                    color = Color(0xFF6FCF97)
+                )
+            )
+        } else {
+            emissions
+                .filter { it.value > 0 }
+                .map { (category, value) ->
+                    EmissionSlice(
+                        label = category,
+                        value = value,
+                        color = colorForMode(category)
+                    )
+                }
+        }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(OverviewColors.BgGreen)
     ) {
-
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
@@ -64,78 +91,127 @@ fun OverviewScreen(navController: NavController) {
             modifier = Modifier.padding(start = 20.dp)
         )
 
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(24.dp))
 
-        /*  DONUT + TEKSTI */
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
+            horizontalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-
             DonutChart(
-                centerText = "${totalEmission.roundTo1()} g",
+                centerText = if (hasData)
+                    "${totalEmission.roundTo1()} g"
+                else
+                    "No Data",
                 slices = slices
             )
 
-            Spacer(Modifier.width(32.dp))
-
-            Column {
-                Text(
-                    text = "Total 100%",
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleMedium
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Percentage Summary Section
+                val summaryModes = listOf(
+                    "Car" to Icons.Default.DirectionsCar,
+                    "Bus" to Icons.Default.DirectionsBus,
+                    "Train" to Icons.Default.Train,
+                    "Metro" to Icons.Default.DirectionsSubway
                 )
+
+                summaryModes.forEach { (category, icon) ->
+                    val value = emissions[category] ?: 0.0
+                    val pct = if (hasData) {
+                        (value / total * 100).roundToInt()
+                    } else 0
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = "$category $pct%",
+                            color = Color.White,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                }
             }
         }
 
-        Spacer(Modifier.height(30.dp))
+        Spacer(Modifier.height(32.dp))
 
-        /*  LISTA */
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
-                .background(Color(0xFFEFEFEF))
+                .background(Color(0xFFF5F5F5))
                 .padding(20.dp)
         ) {
-
             Text(
                 text = "${totalEmission.roundTo1()} g CO2 total",
                 style = MaterialTheme.typography.headlineMedium
             )
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(20.dp))
 
-            trips
-                .filter { it.carbonEmissionGrams > 0 }
-                .forEachIndexed { index, trip ->
-
+            emissions
+                .filter { it.value > 0 }
+                .forEach { (category, value) ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = iconForLabel(category),
+                                contentDescription = null,
+                                tint = Color.Black
+                            )
+                            Spacer(Modifier.width(10.dp))
+                            Text(
+                                text = category,
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                        }
                         Text(
-                            text = "Trip #${index + 1}",
-                            style = MaterialTheme.typography.titleLarge
-                        )
-
-                        Text(
-                            text = "${trip.carbonEmissionGrams} g",
+                            text = "${value.roundTo1()} g",
                             style = MaterialTheme.typography.titleLarge
                         )
                     }
-
                     Spacer(Modifier.height(12.dp))
                 }
+
+            if (!hasData) {
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    text = "Start a trip to see your emissions",
+                    color = Color.Gray,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
         }
     }
 }
 
-/* FORMAT */
+private fun iconForLabel(label: String) = when (label.lowercase()) {
+    "bus" -> Icons.Filled.DirectionsBus
+    "metro" -> Icons.Filled.DirectionsSubway
+    "train" -> Icons.Filled.Train
+    else -> Icons.Filled.DirectionsCar
+}
+
+private fun colorForMode(mode: String) = when (mode.lowercase()) {
+    "bus" -> Color(0xFF27AE60)
+    "metro" -> Color(0xFFA8E6CF)
+    "car", "petrol", "diesel", "hybrid", "electric", "car unknown" -> Color(0xFF6FCF97)
+    "moped" -> Color(0xFF2F4F2F)
+    else -> Color.Gray
+}
 
 private fun Double.roundTo1(): String =
     ((this * 10.0).roundToInt() / 10.0).toString()

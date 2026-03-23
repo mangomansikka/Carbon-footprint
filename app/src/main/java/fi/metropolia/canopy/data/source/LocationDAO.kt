@@ -36,6 +36,20 @@ interface LocationDAO {
     @Query("SELECT * FROM locations ORDER BY timestamp DESC")
     suspend fun getAllLocations(): List<LocationEntity>
 
+    @Query("""
+    SELECT 
+        COALESCE(SUM(emissionBussKg), 0.0) as bus,
+        COALESCE(SUM(emissionMetroKg), 0.0) as metro,
+        COALESCE(SUM(emissionPetrolCarKg), 0.0) as petrol,
+        COALESCE(SUM(emissionDieselCarKg), 0.0) as diesel,
+        COALESCE(SUM(emissionHybridCarKg), 0.0) as hybrid,
+        COALESCE(SUM(emissionElectricCarKg), 0.0) as electric,
+        COALESCE(SUM(emissionUnknownCarKg), 0.0) as unknown,
+        COALESCE(SUM(emissionMopedKg), 0.0) as moped
+    FROM locations
+""")
+    suspend fun getEmissionsSummary(): EmissionsSummary
+
     @Query("DELETE FROM locations")
     suspend fun deleteAllLocations()
 }
