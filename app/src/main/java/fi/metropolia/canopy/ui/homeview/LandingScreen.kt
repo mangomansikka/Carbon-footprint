@@ -3,6 +3,7 @@ import android.hardware.camera2.params.BlackLevelPattern
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -32,8 +33,11 @@ fun LandingScreen(navController: NavController) {
             .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+       
+    )
+    {
 
+        Spacer(modifier = Modifier.height(60.dp))
 
         Image(
             painter = painterResource(R.drawable.tree),
@@ -48,7 +52,7 @@ fun LandingScreen(navController: NavController) {
 
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(40.dp))
 
 
         Text(
@@ -63,10 +67,10 @@ fun LandingScreen(navController: NavController) {
                 .padding(horizontal = 10.dp)
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
 
-        Spacer(modifier = Modifier.weight(1f))
+        
 
 
         Button(
@@ -75,7 +79,7 @@ fun LandingScreen(navController: NavController) {
                 .padding(horizontal = 24.dp)
                 .fillMaxWidth()
                 .height(56.dp),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(80.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Darkbutton,
                 contentColor = Color.White
@@ -91,7 +95,7 @@ fun LandingScreen(navController: NavController) {
                 )
         }
 
-        Spacer(modifier = Modifier.height(90.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         Image(
             painter = painterResource(id = R.drawable.metropolia),
