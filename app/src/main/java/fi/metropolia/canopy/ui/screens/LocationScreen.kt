@@ -26,8 +26,6 @@ fun LocationScreen(navController: NavController) {
         factory = TripViewModelFactory(context)
     )
 
-    val totalEmissions by viewModel.emissions.collectAsState()
-
     LaunchedEffect(Unit) {
         viewModel.loadEmissions()
     }
@@ -51,7 +49,7 @@ fun LocationScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(24.dp, 60.dp, 24.dp, 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Fixed Buttons at the top
@@ -195,50 +193,10 @@ fun LocationScreen(navController: NavController) {
             }
 
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    HorizontalDivider()
-                    Text("Lifetime Total Emissions per Mode:", style = MaterialTheme.typography.titleMedium)
-                }
-            }
-
-            val lifetimeEmissionsList = totalEmissions.entries.toList()
-            if (lifetimeEmissionsList.isEmpty()) {
-                item {
-                    Text("No historical data available",
-                        style = MaterialTheme.typography.bodyMedium)
-                }
-            } else {
-                items(lifetimeEmissionsList) { entry ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = entry.key.replaceFirstChar { it.uppercase() },
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(text = "${"%.4f".format(entry.value)} g CO₂")
-                        }
-                    }
-                }
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = {
-                        navController.navigate("overviewScreen")
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Go to Overview")
-                }
+                HorizontalDivider()
+                Text("To see your total emissions, go to the Overview screen",
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
         }
     }

@@ -54,6 +54,7 @@ dependencies {
     implementation ("com.google.android.gms:play-services-maps:20.0.0")
     implementation(libs.androidx.room.common.jvm)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.compose.foundation.layout)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
