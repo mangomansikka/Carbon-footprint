@@ -51,7 +51,7 @@ fun LocationScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(24.dp, 60.dp, 24.dp, 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Fixed Buttons at the top
