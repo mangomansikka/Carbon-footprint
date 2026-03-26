@@ -37,6 +37,15 @@ interface LocationDAO {
     suspend fun getAllLocations(): List<LocationEntity>
 
     @Query("""
+        SELECT strftime('%m', timestamp / 1000, 'unixepoch') as month, 
+               SUM(carbonEmissionGrams) as totalEmissionsGrams 
+        FROM locations 
+        GROUP BY month 
+        ORDER BY month ASC
+    """)
+    suspend fun getMonthlyEmissions(): List<MonthlyEmission>
+
+    @Query("""
     SELECT 
         COALESCE(SUM(emissionBussKg), 0.0) as bus,
         COALESCE(SUM(emissionMetroKg), 0.0) as metro,

@@ -62,4 +62,8 @@ class TripRepository(private val dao: LocationDAO) {
             "moped" to summary.moped * 1000
         )
     }
+
+    suspend fun getEmissionsByMonth(): Map<String, Double> {
+        return dao.getMonthlyEmissions().associate { it.month to it.totalEmissionsGrams }
+    }
 }
