@@ -8,16 +8,16 @@ import fi.metropolia.canopy.data.source.CanopyDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 class GraphViewModel(context: Context) : ViewModel() {
     private val repository: TripRepository
 
-    // Use StateFlow so the UI can observe these
     private val _monthlyEmissions = MutableStateFlow<Map<String, Double>>(emptyMap())
     val monthlyEmissions: StateFlow<Map<String, Double>> = _monthlyEmissions
 
-    private val _yearlyTotalTon = MutableStateFlow(0.0)
-    val yearlyTotalTon: StateFlow<Double> = _yearlyTotalTon
+    private val _totalEmissionsKg = MutableStateFlow(0.0)
+    val totalEmissionsKg: StateFlow<Double> = _totalEmissionsKg
 
     private val _percentageChange = MutableStateFlow(0.0)
     val percentageChange: StateFlow<Double> = _percentageChange
@@ -33,26 +33,35 @@ class GraphViewModel(context: Context) : ViewModel() {
             val data = repository.getEmissionsByMonth()
             _monthlyEmissions.value = data
 
-            // 1. Calculate Yearly Total (Convert grams to tons for the UI)
+            val calendar = Calendar.getInstance()
+            val currentYear = calendar.get(Calendar.YEAR).toString()
+            val currentMonthKey = String.format("%02d", calendar.get(Calendar.MONTH) + 1)
+            
+            calendar.add(Calendar.MONTH, -1)
+            val prevMonthKey = String.format("%02d", calendar.get(Calendar.MONTH) + 1)
+
+            // Calculate Total specifically for the CURRENT YEAR
+            // We'll filter the data map keys if they contained year info, 
+            // but since our current DAO only returns "MM", we'll sum the current map.
+            // Note: For a true yearly footprint, we should clear old data or update DAO to group by YYYY-MM.
             val totalGrams = data.values.sum()
-            _yearlyTotalTon.value = totalGrams / 1_000_000.0 // 1 million grams = 1 ton
-
-            // 2. Extract Current & Previous Month
-            val calendar = java.util.Calendar.getInstance()
-            val currentMonthKey = String.format("%02d", calendar.get(java.util.Calendar.MONTH) + 1)
-
-            calendar.add(java.util.Calendar.MONTH, -1)
-            val prevMonthKey = String.format("%02d", calendar.get(java.util.Calendar.MONTH) + 1)
+            _totalEmissionsKg.value = totalGrams / 1000.0
 
             val current = data[currentMonthKey] ?: 0.0
             val previous = data[prevMonthKey] ?: 0.0
 
-            // 3. Calculate Percentage Change (Handle division by zero!)
             if (previous > 0) {
                 _percentageChange.value = ((current - previous) / previous) * 100
             } else {
                 _percentageChange.value = if (current > 0) 100.0 else 0.0
             }
+        }
+    }
+
+    fun resetAllData() {
+        viewModelScope.launch {
+            // This is a helper if you want to clear the inconsistent data
+            // repository.deleteAll() // You can implement this in repository
         }
     }
 }

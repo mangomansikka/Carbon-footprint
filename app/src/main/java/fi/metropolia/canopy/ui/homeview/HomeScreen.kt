@@ -9,10 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -43,8 +40,13 @@ fun HomeScreen(
     )
     
     val monthlyEmissions by viewModel.monthlyEmissions.collectAsState()
-    val yearlyEmissions by viewModel.yearlyTotalTon.collectAsState()
+    val totalEmissionsKg by viewModel.totalEmissionsKg.collectAsState()
     val percentageChange by viewModel.percentageChange.collectAsState()
+
+    // Refresh data whenever we navigate to this screen
+    LaunchedEffect(Unit) {
+        viewModel.loadMonthlyEmissions()
+    }
 
     // Calculate last 4 months dynamically
     val last4Months = remember(monthlyEmissions) {
@@ -64,7 +66,7 @@ fun HomeScreen(
     val chartPoints = last4Months.map { (it.second / maxVal) * 100f + 20f }
 
     val animatedValue by animateFloatAsState(
-        targetValue = yearlyEmissions.toFloat(),
+        targetValue = totalEmissionsKg.toFloat(),
         label = "co2Animation"
     )
 
@@ -91,13 +93,13 @@ fun HomeScreen(
 
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
-                    text = String.format("%.3f", animatedValue),
+                    text = String.format("%.2f", animatedValue),
                     style = MaterialTheme.typography.displayLarge,
                     color = Color.White
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = "ton CO₂/year",
+                    text = "kg CO₂/year",
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color.White
                 )

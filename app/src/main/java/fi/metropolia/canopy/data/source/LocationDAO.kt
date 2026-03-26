@@ -38,7 +38,9 @@ interface LocationDAO {
 
     @Query("""
         SELECT strftime('%m', timestamp / 1000, 'unixepoch') as month, 
-               SUM(carbonEmissionGrams) as totalEmissionsGrams 
+               SUM(emissionBussKg + emissionMetroKg + emissionPetrolCarKg + 
+                   emissionDieselCarKg + emissionHybridCarKg + emissionUnknownCarKg + 
+                   emissionElectricCarKg + emissionMopedKg) * 1000 as totalEmissionsGrams
         FROM locations 
         GROUP BY month 
         ORDER BY month ASC
