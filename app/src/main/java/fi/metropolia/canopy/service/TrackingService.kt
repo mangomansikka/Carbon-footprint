@@ -108,8 +108,22 @@ class TrackingService : Service() {
             Location.distanceBetween(lastLat, lastLon, location.latitude, location.longitude, results)
             val deltaDistance = results[0].toDouble()
 
-            // GPS Drift Filtering
-            if (deltaDistance > 8.0 && location.accuracy < 15f && location.speed > 0.5f) {
+            // Improved GPS Drift Filtering
+            // If activity is not STILL, we trust the movement and remove the filtering.
+            // If activity is STILL, we keep strict filters to prevent distance accumulation from GPS noise.
+            val isConfirmedMoving = TrackingState.currentConfirmedMode != "still" && 
+                                    TrackingState.currentConfirmedMode != "unknown" &&
+                                    TrackingState.currentConfirmedMode != "none"
+            
+            val shouldAccumulate = if (isConfirmedMoving) {
+                // we allow any valid distance as long as accuracy is reasonable
+                location.accuracy < 25f && deltaDistance > 0.0
+            } else {
+                // When stationary STILL or activity is unknown, filter to block GPS drift.
+                deltaDistance > 8.0 && location.accuracy < 15f && location.speed > 0.5f
+            }
+
+            if (shouldAccumulate) {
                 deltaEmission = CarbonHelper.calculate(deltaDistance, mode)
                 TrackingState.addDistanceToMode(mode, deltaDistance, deltaEmission)
                 TrackingState.totalDistanceMeters += deltaDistance
@@ -139,13 +153,11 @@ class TrackingService : Service() {
         return when {
             TrackingState.currentConfirmedMode != "still" &&
                     TrackingState.currentConfirmedMode != "unknown" &&
-                    TrackingState.currentConfirmedMode != "none" &&
-                    TrackingState.currentConfirmedMode != "tilting" -> {
+                    TrackingState.currentConfirmedMode != "none" -> {
                 TrackingState.currentConfirmedMode.lowercase()
             }
             speedKmh < 3.0 -> "still"
             speedKmh < 10.0 -> "walking"     // Fixed from "on foot"
-            speedKmh < 25.0 -> "bicycle"     // Fixed from "cycling"
             speedKmh < 120.0 -> "car"        // Fixed from "car/bus"
             else -> "train"                  // Fixed from "train/high-speed"
         }
