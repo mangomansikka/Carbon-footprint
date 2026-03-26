@@ -126,7 +126,8 @@ fun LocationScreen(navController: NavController) {
                 }
             }
 
-            val distances = viewModel.modeDistances.entries.toList()
+            // Filtering out "still" from distances display
+            val distances = viewModel.modeDistances.entries.filter { it.key != "still" }.toList()
             if (distances.isEmpty()) {
                 item {
                     Text("No distance recorded yet", style = MaterialTheme.typography.bodyMedium)
@@ -164,7 +165,7 @@ fun LocationScreen(navController: NavController) {
                 }
             }
 
-            val currentEmissions = viewModel.modeEmissions.entries.toList()
+            val currentEmissions = viewModel.modeEmissions.entries.filter { it.key != "still" }.toList()
             if (currentEmissions.isEmpty()) {
                 item {
                     Text("Start moving to see emission data...",
