@@ -27,7 +27,6 @@ class ActivityRecognitionReceiver : BroadcastReceiver() {
             DetectedActivity.RUNNING -> "running"
             DetectedActivity.ON_FOOT -> "walking"
             DetectedActivity.STILL -> "still"
-            DetectedActivity.TILTING -> "tilting"
             else -> "unknown"
         }
 
@@ -41,7 +40,7 @@ class ActivityRecognitionReceiver : BroadcastReceiver() {
             val modeKey = activityName.lowercase()
             TrackingState.currentConfirmedMode = modeKey
 
-            if (modeKey != "still" && modeKey != "tilting" && modeKey != "unknown") {
+            if (modeKey != "still" && modeKey != "unknown") {
                 if (!TrackingState.usedTransportModes.contains(modeKey)) {
                     TrackingState.usedTransportModes.add(modeKey)
                 }

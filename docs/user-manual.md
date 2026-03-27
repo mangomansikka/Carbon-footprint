@@ -45,8 +45,13 @@ The main purpose of the application is to track commuting distance and estimate 
 
 ### 5.1 Starting Location Tracking
 1. Open the application.
-2. Press the **Start tracking** button.
-3. The application will begin detecting your location.
+   
+<img width="406" height="912" alt="Screenshot 2026-03-26 192109" src="https://github.com/user-attachments/assets/ceb6870c-5a26-48eb-bfa9-61f4bee368b9" />
+
+2. Press the **Start tracking** button or the **green button** in the middle to open the tracking page.
+3. To start your trip press the **Start Trip** button.
+   
+<img width="406" height="909" alt="Screenshot 2026-03-26 192157" src="https://github.com/user-attachments/assets/a788faa1-c57b-4c86-bd8c-5d370b7dfba3" />
 
 While tracking is active, the application calculates:
 * Movement distance
@@ -54,13 +59,23 @@ While tracking is active, the application calculates:
 * Estimated carbon emissions
 
 ### 5.2 Stopping Tracking
-1. Press the **Stop tracking** button.
-2. The trip will be saved to the local database.
+1. Press the **End trip** button.
+
+<img width="405" height="909" alt="Screenshot 2026-03-26 192225" src="https://github.com/user-attachments/assets/dadca799-6575-4719-b07a-80bb8cd73bcf" />
+
+2. The trip will be saved and you will see your trips statistics.
+
+<img width="409" height="910" alt="Screenshot 2026-03-26 192244" src="https://github.com/user-attachments/assets/830b4231-feeb-4e0f-9017-02d352a4aee2" />
 
 ### 5.3 Viewing Environmental Impact
 The application visualizes commuting impact through:
-* **A virtual tree:** Grows or changes based on your carbon footprint.
-* **Graphs:** Showing carbon footprint statistics.
+* **Diagrams:** to see your emissions per vehicle type, press the **trophy button** in the bottom bar
+
+<img width="407" height="911" alt="Screenshot 2026-03-26 192128" src="https://github.com/user-attachments/assets/8de1e739-d212-4d29-8a22-15369a97f63f" />
+
+* **Graphs:** to see your monthly/yearly emissions, press the **Graphs button** in the bottom bar
+
+<img width="410" height="910" alt="Screenshot 2026-03-26 192258" src="https://github.com/user-attachments/assets/24625a0d-2be7-432f-8b56-4f3b4366227a" />
 
 ---
 
