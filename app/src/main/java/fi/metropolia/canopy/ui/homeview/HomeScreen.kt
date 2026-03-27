@@ -110,7 +110,7 @@ fun HomeScreen(
 
             Spacer(Modifier.height(30.dp))
 
-            /*  AALTO + KUVA */
+
 
             Box(
                 modifier = Modifier

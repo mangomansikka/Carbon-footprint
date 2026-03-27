@@ -10,9 +10,9 @@ import fi.metropolia.canopy.data.source.CanopyDatabase
 import fi.metropolia.canopy.data.source.LocationEntity
 import fi.metropolia.canopy.domain.model.TrackingState
 import fi.metropolia.canopy.service.TrackingService
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class TripViewModel(context: Context) : ViewModel() {
 
@@ -36,6 +36,7 @@ class TripViewModel(context: Context) : ViewModel() {
     val modeDistances get() = TrackingState.modeDistances
     val modeEmissions get() = TrackingState.modeEmissions
 
+    /* 🔹 START TRACKING */
     fun startTracking(context: Context) {
         TrackingState.reset()
         val intent = Intent(context, TrackingService::class.java).apply {
@@ -50,10 +51,16 @@ class TripViewModel(context: Context) : ViewModel() {
         }
     }
 
-    // Load lifetime emissions
     fun loadEmissions() {
         viewModelScope.launch {
             _emissions.value = repository.getEmissionsByMode()
+        }
+    }
+
+    fun saveManualTrip(distance: Double, mode: String) {
+        viewModelScope.launch {
+            repository.saveManualTrip(distance, mode)
+            loadEmissions()
         }
     }
 
@@ -66,7 +73,7 @@ class TripViewModel(context: Context) : ViewModel() {
         viewModelScope.launch {
             repository.saveTripSummary()
             TrackingState.isTracking = false
-            loadEmissions() // Refresh lifetime totals after saving the trip
+            loadEmissions()
         }
     }
 }
