@@ -1,13 +1,11 @@
 package fi.metropolia.canopy.ui.overview
 
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DirectionsBus
-import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.DirectionsSubway
-import androidx.compose.material.icons.filled.Train
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,6 +22,7 @@ import kotlin.math.roundToInt
 
 @Composable
 fun OverviewScreen(navController: NavController) {
+
     val context = LocalContext.current
     val viewModel: TripViewModel = viewModel(
         factory = TripViewModelFactory(context)
@@ -35,7 +34,7 @@ fun OverviewScreen(navController: NavController) {
         viewModel.loadEmissions()
     }
 
-    // Group emissions into categories (e.g., all car types into "Car")
+    /* GROUP DATA */
     val emissions = remember(rawEmissions) {
         val grouped = mutableMapOf<String, Double>()
         rawEmissions.forEach { (mode, value) ->
@@ -45,6 +44,8 @@ fun OverviewScreen(navController: NavController) {
                 "metro" -> "Metro"
                 "train", "train/high-speed" -> "Train"
                 "moped" -> "Moped"
+                "walking" -> "Walking"
+                "cycling" -> "Cycling"
                 else -> mode.replaceFirstChar { it.uppercase() }
             }
             grouped[category] = (grouped[category] ?: 0.0) + value
@@ -56,24 +57,17 @@ fun OverviewScreen(navController: NavController) {
     val hasData = totalEmission > 0
     val total = if (totalEmission == 0.0) 1.0 else totalEmission
 
+    /* DONUT */
     val slices: List<EmissionSlice> =
         if (!hasData) {
             listOf(
-                EmissionSlice(
-                    label = "No data",
-                    value = 1.0,
-                    color = Color(0xFF6FCF97)
-                )
+                EmissionSlice("No data", 1.0, Color(0xFF6FCF97))
             )
         } else {
             emissions
-                .filter { it.value > 0 }
+                .filter { it.value > 0 && it.key != "Walking" && it.key != "Cycling" }
                 .map { (category, value) ->
-                    EmissionSlice(
-                        label = category,
-                        value = value,
-                        color = colorForMode(category)
-                    )
+                    EmissionSlice(category, value, colorForMode(category))
                 }
         }
 
@@ -82,6 +76,7 @@ fun OverviewScreen(navController: NavController) {
             .fillMaxSize()
             .background(OverviewColors.BgGreen)
     ) {
+
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
@@ -100,6 +95,7 @@ fun OverviewScreen(navController: NavController) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(24.dp)
         ) {
+
             DonutChart(
                 centerText = if (hasData)
                     "${totalEmission.roundTo1()} g"
@@ -108,32 +104,38 @@ fun OverviewScreen(navController: NavController) {
                 slices = slices
             )
 
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Percentage Summary Section
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+
                 val summaryModes = listOf(
                     "Car" to Icons.Default.DirectionsCar,
                     "Bus" to Icons.Default.DirectionsBus,
                     "Train" to Icons.Default.Train,
-                    "Metro" to Icons.Default.DirectionsSubway
+                    "Metro" to Icons.Default.DirectionsSubway,
+                    "Moped" to Icons.Default.TwoWheeler,
+                    "Walking" to Icons.Default.DirectionsWalk,
+                    "Cycling" to Icons.Default.DirectionsBike
                 )
 
                 summaryModes.forEach { (category, icon) ->
+
                     val value = emissions[category] ?: 0.0
-                    val pct = if (hasData) {
-                        (value / total * 100).roundToInt()
-                    } else 0
+
+                    val textValue =
+                        if (category == "Walking" || category == "Cycling") {
+                            ""
+                        } else {
+                            val pct = if (hasData) (value / total * 100).roundToInt() else 0
+                            "$pct%"
+                        }
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = Color.White
-                        )
+
+                        Icon(icon, null, tint = Color.White)
+
                         Spacer(Modifier.width(8.dp))
+
                         Text(
-                            text = "$category $pct%",
+                            text = "$category $textValue",
                             color = Color.White,
                             style = MaterialTheme.typography.titleMedium
                         )
@@ -151,6 +153,7 @@ fun OverviewScreen(navController: NavController) {
                 .background(Color(0xFFF5F5F5))
                 .padding(20.dp)
         ) {
+
             Text(
                 text = "${totalEmission.roundTo1()} g CO2 total",
                 style = MaterialTheme.typography.headlineMedium
@@ -158,60 +161,77 @@ fun OverviewScreen(navController: NavController) {
 
             Spacer(Modifier.height(20.dp))
 
-            emissions
-                .filter { it.value > 0 }
-                .forEach { (category, value) ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = iconForLabel(category),
-                                contentDescription = null,
-                                tint = Color.Black
-                            )
-                            Spacer(Modifier.width(10.dp))
-                            Text(
-                                text = category,
-                                style = MaterialTheme.typography.titleLarge
-                            )
-                        }
-                        Text(
-                            text = "${value.roundTo1()} g",
-                            style = MaterialTheme.typography.titleLarge
+            val allModes = listOf(
+                "Car", "Bus", "Train", "Metro", "Moped", "Walking", "Cycling"
+            )
+
+            allModes.forEach { category ->
+
+                val value = emissions[category] ?: 0.0
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+
+                        Icon(
+                            imageVector = iconForLabel(category),
+                            contentDescription = null,
+                            tint = Color.Black
                         )
+
+                        Spacer(Modifier.width(10.dp))
+
+                        Text(category, style = MaterialTheme.typography.titleLarge)
                     }
-                    Spacer(Modifier.height(12.dp))
+
+                    Text(
+                        text = when (category) {
+                            "Walking", "Cycling" -> "No emissions"
+                            else -> "${value.roundTo1()} g"
+                        },
+                        style = MaterialTheme.typography.titleLarge
+                    )
                 }
+
+                Spacer(Modifier.height(12.dp))
+            }
 
             if (!hasData) {
                 Spacer(Modifier.height(16.dp))
                 Text(
                     text = "Start a trip to see your emissions",
-                    color = Color.Gray,
-                    style = MaterialTheme.typography.bodyMedium
+                    color = Color.Gray
                 )
             }
         }
     }
 }
 
+/* ICONS */
 private fun iconForLabel(label: String) = when (label.lowercase()) {
     "bus" -> Icons.Filled.DirectionsBus
     "metro" -> Icons.Filled.DirectionsSubway
     "train" -> Icons.Filled.Train
+    "walking" -> Icons.Filled.DirectionsWalk
+    "cycling" -> Icons.Filled.DirectionsBike
+    "moped" -> Icons.Filled.TwoWheeler
     else -> Icons.Filled.DirectionsCar
 }
 
+/* COLORS */
 private fun colorForMode(mode: String) = when (mode.lowercase()) {
+    "car" -> Color(0xFF6FCF97)
     "bus" -> Color(0xFF27AE60)
+    "train" -> Color(0xFF1B5E20)
     "metro" -> Color(0xFFA8E6CF)
-    "car", "petrol", "diesel", "hybrid", "electric", "car unknown" -> Color(0xFF6FCF97)
     "moped" -> Color(0xFF2F4F2F)
     else -> Color.Gray
 }
 
+/* FORMAT */
 private fun Double.roundTo1(): String =
     ((this * 10.0).roundToInt() / 10.0).toString()

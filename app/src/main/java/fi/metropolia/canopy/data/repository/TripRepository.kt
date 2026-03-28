@@ -66,4 +66,34 @@ class TripRepository(private val dao: LocationDAO) {
     suspend fun getEmissionsByMonth(): Map<String, Double> {
         return dao.getMonthlyEmissions().associate { it.month to it.totalEmissionsGrams }
     }
+
+    suspend fun saveManualTrip(distance: Double, mode: String) {
+
+        val emissionKg = CarbonHelper.calculate(distance, mode)
+
+        var busKg = 0.0
+        var metroKg = 0.0
+        var unknownCarKg = 0.0
+        var mopedKg = 0.0
+
+        when (mode.lowercase().trim()) {
+            "bus", "car/bus" -> busKg = emissionKg
+            "metro" -> metroKg = emissionKg
+            "car", "in vehicle" -> unknownCarKg = emissionKg
+            "moped" -> mopedKg = emissionKg
+        }
+
+        dao.insertLocation(
+            LocationEntity(
+                latitude = 0.0,
+                longitude = 0.0,
+                transportModes = mode,
+                carbonEmissionGrams = (emissionKg * 1000).toFloat(),
+                emissionBussKg = busKg,
+                emissionMetroKg = metroKg,
+                emissionUnknownCarKg = unknownCarKg,
+                emissionMopedKg = mopedKg
+            )
+        )
+    }
 }
