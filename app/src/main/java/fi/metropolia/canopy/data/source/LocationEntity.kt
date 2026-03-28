@@ -18,6 +18,7 @@ data class LocationEntity(
     // Existing fields for mode-specific totals
     val emissionBussKg: Double = 0.0,
     val emissionMetroKg: Double = 0.0,
+    val emissionTrainKg: Double = 0.0,
     val emissionPetrolCarKg: Double = 0.0,
     val emissionDieselCarKg: Double = 0.0,
     val emissionHybridCarKg: Double = 0.0,

@@ -15,6 +15,9 @@ interface LocationDAO {
     @Query("SELECT COALESCE(SUM(emissionMetroKg), 0.0) FROM locations")
     suspend fun getTotalMetroEmissions(): Double
 
+    @Query("SELECT COALESCE(SUM(emissionTrainKg), 0.0) FROM locations")
+    suspend fun getTotalTrainEmissions(): Double
+
     @Query("SELECT COALESCE(SUM(emissionPetrolCarKg), 0.0) FROM locations")
     suspend fun getTotalPetrolCarEmissions(): Double
 
@@ -38,8 +41,8 @@ interface LocationDAO {
 
     @Query("""
         SELECT strftime('%m', timestamp / 1000, 'unixepoch') as month, 
-               SUM(emissionBussKg + emissionMetroKg + emissionPetrolCarKg + 
-                   emissionDieselCarKg + emissionHybridCarKg + emissionUnknownCarKg + 
+               SUM(emissionBussKg + emissionMetroKg + emissionTrainKg + 
+                   emissionPetrolCarKg + emissionDieselCarKg + emissionHybridCarKg + emissionUnknownCarKg + 
                    emissionElectricCarKg + emissionMopedKg) * 1000 as totalEmissionsGrams
         FROM locations 
         GROUP BY month 
@@ -51,6 +54,7 @@ interface LocationDAO {
     SELECT 
         COALESCE(SUM(emissionBussKg), 0.0) as bus,
         COALESCE(SUM(emissionMetroKg), 0.0) as metro,
+        COALESCE(SUM(emissionTrainKg), 0.0) as train,
         COALESCE(SUM(emissionPetrolCarKg), 0.0) as petrol,
         COALESCE(SUM(emissionDieselCarKg), 0.0) as diesel,
         COALESCE(SUM(emissionHybridCarKg), 0.0) as hybrid,

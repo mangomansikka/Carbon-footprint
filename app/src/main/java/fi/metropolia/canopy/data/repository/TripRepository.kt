@@ -17,6 +17,7 @@ class TripRepository(private val dao: LocationDAO) {
         var metroKg = 0.0
         var unknownCarKg = 0.0
         var mopedKg = 0.0
+        var trainKg = 0.0
 
         TrackingState.modeDistances.forEach { (mode, distance) ->
             val emissionKg = CarbonHelper.calculate(distance, mode)
@@ -27,6 +28,7 @@ class TripRepository(private val dao: LocationDAO) {
                 "car", "in vehicle" -> unknownCarKg += emissionKg
                 "metro" -> metroKg += emissionKg
                 "moped" -> mopedKg += emissionKg
+                "train", "train/high-speed" -> trainKg += emissionKg
             }
         }
 
@@ -38,6 +40,7 @@ class TripRepository(private val dao: LocationDAO) {
                 carbonEmissionGrams = (totalEmissionsKg * 1000).toFloat(),
                 emissionBussKg = busKg,
                 emissionMetroKg = metroKg,
+                emissionTrainKg = trainKg,
                 emissionUnknownCarKg = unknownCarKg,
                 emissionMopedKg = mopedKg
             )
@@ -59,7 +62,8 @@ class TripRepository(private val dao: LocationDAO) {
             "hybrid" to summary.hybrid * 1000,
             "electric" to summary.electric * 1000,
             "car unknown" to summary.unknown * 1000,
-            "moped" to summary.moped * 1000
+            "moped" to summary.moped * 1000,
+            "train" to summary.train * 1000
         )
     }
 
@@ -73,6 +77,7 @@ class TripRepository(private val dao: LocationDAO) {
 
         var busKg = 0.0
         var metroKg = 0.0
+        var trainKg = 0.0
         var unknownCarKg = 0.0
         var mopedKg = 0.0
 
@@ -81,6 +86,7 @@ class TripRepository(private val dao: LocationDAO) {
             "metro" -> metroKg = emissionKg
             "car", "in vehicle" -> unknownCarKg = emissionKg
             "moped" -> mopedKg = emissionKg
+            "train", "train/high-speed" -> trainKg = emissionKg
         }
 
         dao.insertLocation(
@@ -91,6 +97,7 @@ class TripRepository(private val dao: LocationDAO) {
                 carbonEmissionGrams = (emissionKg * 1000).toFloat(),
                 emissionBussKg = busKg,
                 emissionMetroKg = metroKg,
+                emissionTrainKg = trainKg,
                 emissionUnknownCarKg = unknownCarKg,
                 emissionMopedKg = mopedKg
             )

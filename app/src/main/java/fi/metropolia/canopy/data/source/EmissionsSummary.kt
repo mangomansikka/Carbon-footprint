@@ -8,5 +8,6 @@ data class EmissionsSummary(
     val hybrid: Double,
     val electric: Double,
     val unknown: Double,
-    val moped: Double
+    val moped: Double,
+    val train: Double
 )
