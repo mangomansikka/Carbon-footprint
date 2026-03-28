@@ -2,6 +2,7 @@ package fi.metropolia.canopy.ui.overview
 
 
 import androidx.compose.foundation.background
+import fi.metropolia.canopy.ui.theme.Darkbutton
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -198,6 +199,18 @@ fun OverviewScreen(navController: NavController) {
                 }
 
                 Spacer(Modifier.height(12.dp))
+            }
+
+            Button(
+                onClick = { /* Logic for info text*/},
+                modifier = Modifier
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Darkbutton,
+                    contentColor = Color.White
+                )
+            ) {
+                Text("?")
             }
 
             if (!hasData) {
