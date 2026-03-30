@@ -36,6 +36,12 @@ interface LocationDAO {
     @Query("SELECT COALESCE(SUM(emissionMopedKg), 0.0) FROM locations")
     suspend fun getTotalMopedEmissions(): Double
 
+    @Query("SELECT COALESCE(SUM(walkingDistanceM), 0.0) FROM locations")
+    suspend fun getTotalWalkingDistance(): Double
+
+    @Query("SELECT COALESCE(SUM(cyclingDistanceM), 0.0) FROM locations")
+    suspend fun getTotalCyclingDistance(): Double
+
     @Query("SELECT * FROM locations ORDER BY timestamp DESC")
     suspend fun getAllLocations(): List<LocationEntity>
 

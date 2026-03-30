@@ -30,6 +30,8 @@ fun OverviewScreen(navController: NavController) {
     )
 
     val rawEmissions by viewModel.emissions.collectAsState()
+    val walkingDist by viewModel.walkingDistance.collectAsState()
+    val cyclingDist by viewModel.cyclingDistance.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadEmissions()
@@ -193,7 +195,8 @@ fun OverviewScreen(navController: NavController) {
 
                     Text(
                         text = when (category) {
-                            "Walking", "Cycling" -> "No emissions"
+                            "Walking" -> "${walkingDist.roundTo1()} m"
+                            "Cycling" -> "${cyclingDist.roundTo1()} m"
                             else -> "${value.roundTo1()} g"
                         },
                         style = MaterialTheme.typography.titleLarge

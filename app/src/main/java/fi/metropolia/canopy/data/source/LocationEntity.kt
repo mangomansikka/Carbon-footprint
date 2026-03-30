@@ -24,5 +24,9 @@ data class LocationEntity(
     val emissionHybridCarKg: Double = 0.0,
     val emissionUnknownCarKg: Double = 0.0,
     val emissionElectricCarKg: Double = 0.0,
-    val emissionMopedKg: Double = 0.0
+    val emissionMopedKg: Double = 0.0,
+
+    // New fields for walking and cycling distances
+    val walkingDistanceM: Double = 0.0,
+    val cyclingDistanceM: Double = 0.0
 )

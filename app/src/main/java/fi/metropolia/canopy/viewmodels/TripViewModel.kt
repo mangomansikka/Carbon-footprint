@@ -24,6 +24,12 @@ class TripViewModel(context: Context) : ViewModel() {
     val trips: StateFlow<List<LocationEntity>> = _trips
     val emissions: StateFlow<Map<String, Double>> = _emissions
 
+    private val _walkingDistance = MutableStateFlow(0.0)
+    val walkingDistance: StateFlow<Double> = _walkingDistance
+
+    private val _cyclingDistance = MutableStateFlow(0.0)
+    val cyclingDistance: StateFlow<Double> = _cyclingDistance
+
     init {
         val db = CanopyDatabase.getInstance(context)
         repository = TripRepository(db.locationDao())
@@ -54,6 +60,8 @@ class TripViewModel(context: Context) : ViewModel() {
     fun loadEmissions() {
         viewModelScope.launch {
             _emissions.value = repository.getEmissionsByMode()
+            _walkingDistance.value = repository.getTotalWalkingDistance()
+            _cyclingDistance.value = repository.getTotalCyclingDistance()
         }
     }
 

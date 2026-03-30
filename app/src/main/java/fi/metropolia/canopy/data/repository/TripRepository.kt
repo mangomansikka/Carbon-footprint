@@ -19,9 +19,21 @@ class TripRepository(private val dao: LocationDAO) {
         var mopedKg = 0.0
         var trainKg = 0.0
 
+        //Walking and cycling distances in meters
+        var walkingDistanceM = 0.0
+        var cyclingDistanceM = 0.0
+
+
         TrackingState.modeDistances.forEach { (mode, distance) ->
             val emissionKg = CarbonHelper.calculate(distance, mode)
             totalEmissionsKg += emissionKg
+
+            // Update walking and cycling distances
+            if (mode.lowercase().trim() == "walking") {
+                walkingDistanceM += distance
+            } else if (mode.lowercase().trim() == "cycling") {
+                cyclingDistanceM += distance
+            }
             
             when (mode.lowercase().trim()) {
                 "bus", "car/bus" -> busKg += emissionKg
@@ -42,7 +54,9 @@ class TripRepository(private val dao: LocationDAO) {
                 emissionMetroKg = metroKg,
                 emissionTrainKg = trainKg,
                 emissionUnknownCarKg = unknownCarKg,
-                emissionMopedKg = mopedKg
+                emissionMopedKg = mopedKg,
+                walkingDistanceM = walkingDistanceM,
+                cyclingDistanceM = cyclingDistanceM
             )
         )
     }
@@ -81,6 +95,9 @@ class TripRepository(private val dao: LocationDAO) {
         var unknownCarKg = 0.0
         var mopedKg = 0.0
 
+        var walkingDistanceM = 0.0
+        var cyclingDistanceM = 0.0
+
         when (mode.lowercase().trim()) {
             "bus", "car/bus" -> busKg = emissionKg
             "metro" -> metroKg = emissionKg
@@ -88,6 +105,13 @@ class TripRepository(private val dao: LocationDAO) {
             "moped" -> mopedKg = emissionKg
             "train", "train/high-speed" -> trainKg = emissionKg
         }
+
+        if (mode.lowercase().trim() == "walking") {
+            walkingDistanceM = distance
+        } else if (mode.lowercase().trim() == "cycling") {
+            cyclingDistanceM = distance
+        }
+
 
         dao.insertLocation(
             LocationEntity(
@@ -99,8 +123,13 @@ class TripRepository(private val dao: LocationDAO) {
                 emissionMetroKg = metroKg,
                 emissionTrainKg = trainKg,
                 emissionUnknownCarKg = unknownCarKg,
-                emissionMopedKg = mopedKg
+                emissionMopedKg = mopedKg,
+                walkingDistanceM = walkingDistanceM,
+                cyclingDistanceM = cyclingDistanceM
             )
         )
     }
+
+    suspend fun getTotalWalkingDistance(): Double = dao.getTotalWalkingDistance()
+    suspend fun getTotalCyclingDistance(): Double = dao.getTotalCyclingDistance()
 }
