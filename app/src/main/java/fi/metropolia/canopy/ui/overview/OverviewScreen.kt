@@ -58,6 +58,8 @@ fun OverviewScreen(navController: NavController) {
     val hasData = totalEmission > 0
     val total = if (totalEmission == 0.0) 1.0 else totalEmission
 
+    val showInfo = remember { mutableStateOf(false) }
+
     /* DONUT */
     val slices: List<EmissionSlice> =
         if (!hasData) {
@@ -202,7 +204,7 @@ fun OverviewScreen(navController: NavController) {
             }
 
             Button(
-                onClick = { /* Logic for info text*/},
+                onClick = { showInfo.value = true },
                 modifier = Modifier
                     .height(56.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -218,6 +220,27 @@ fun OverviewScreen(navController: NavController) {
                 Text(
                     text = "Start a trip to see your emissions",
                     color = Color.Gray
+                )
+            }
+
+            if (showInfo.value) {
+                AlertDialog(
+                    onDismissRequest = { showInfo.value = false },
+                    title = { Text("Emissions") },
+                    text = { Text("Each mode produces different amount of emissions. Metro produces none. " +
+                            "Favor transportation methods such as metro and train with smaller emissions." +
+                            "Walking and cycling is even better!") },
+                    confirmButton = {
+                        Button(
+                            onClick = { showInfo.value = false },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Darkbutton,
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text("OK")
+                        }
+                    }
                 )
             }
         }
