@@ -21,6 +21,7 @@ import fi.metropolia.canopy.ui.homeview.HomeScreen
 import fi.metropolia.canopy.ui.homeview.LandingScreen
 import fi.metropolia.canopy.ui.overview.OverviewScreen
 import fi.metropolia.canopy.ui.screens.LocationScreen
+import fi.metropolia.canopy.ui.screens.ManualInputScreen
 
 class CanopyActivity : ComponentActivity() {
 
@@ -57,18 +58,17 @@ fun AppNavGraph() {
 
             Box {
 
-                /* 🔥 NAV BAR */
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(70.dp)
                         .background(Color(0xFF3A2F2F)),
-                    horizontalArrangement = Arrangement.SpaceAround,
+                    horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
                     val iconColor = { route: String ->
-                        if (currentRoute == route) accentGreen else Color.Gray
+                        if (currentRoute == route) Color(0xFF58F0B1) else Color.Gray
                     }
 
                     /* HOME */
@@ -81,62 +81,41 @@ fun AppNavGraph() {
                         Icon(Icons.Default.Home, null, tint = iconColor("landingScreen"))
                     }
 
+                    /* MANUAL (✏️) */
+                    IconButton(onClick = {
+                        navController.navigate("manualScreen")
+                    }) {
+                        Icon(Icons.Default.Edit, null, tint = iconColor("manualScreen"))
+                    }
+
+                    Spacer(modifier = Modifier.width(40.dp))
+
                     /* OVERVIEW */
                     IconButton(onClick = {
-                        navController.navigate("overviewScreen") {
-                            launchSingleTop = true
-                        }
+                        navController.navigate("overviewScreen")
                     }) {
                         Icon(Icons.Default.EmojiEvents, null, tint = iconColor("overviewScreen"))
                     }
 
-                    Spacer(modifier = Modifier.width(60.dp))
-
                     /* FOOTPRINT */
                     IconButton(onClick = {
-                        navController.navigate("homeScreen") {
-                            launchSingleTop = true
-                        }
+                        navController.navigate("homeScreen")
                     }) {
                         Icon(Icons.Default.ShowChart, null, tint = iconColor("homeScreen"))
                     }
-
-                    /* 🌱 ECO */
-                    IconButton(onClick = { }) {
-                        Icon(Icons.Default.Eco, null, tint = Color.Gray)
-                    }
                 }
 
-                /* MIDDLE BUTTON (GLOW) */
-                Box(
+                /* 🔥 CENTER BUTTON */
+                FloatingActionButton(
+                    onClick = {
+                        navController.navigate("locationScreen")
+                    },
+                    containerColor = Color(0xFF4E7D5A),
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .offset(y = (-25).dp)
-                        .size(70.dp),
-                    contentAlignment = Alignment.Center
                 ) {
-
-                    /* glow effect */
-                    Box(
-                        modifier = Modifier
-                            .size(70.dp)
-                            .background(
-                                color = accentGreen.copy(alpha = 0.2f),
-                                shape = CircleShape
-                            )
-                    )
-
-                    /* button */
-                    FloatingActionButton(
-                        onClick = {
-                            navController.navigate("locationScreen") {
-                                launchSingleTop = true
-                            }
-                        },
-                        containerColor = Color(0xFF4E7D5A)
-                    ) {
-                        Icon(Icons.Default.Search, null, tint = Color.White)
-                    }
+                    Icon(Icons.Default.Add, null, tint = Color.White)
                 }
             }
         }
@@ -157,6 +136,10 @@ fun AppNavGraph() {
 
             composable("overviewScreen") {
                 OverviewScreen(navController)
+            }
+
+            composable("manualScreen") {
+                ManualInputScreen()
             }
 
             composable("homeScreen") {

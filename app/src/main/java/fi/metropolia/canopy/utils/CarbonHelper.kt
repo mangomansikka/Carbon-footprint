@@ -30,6 +30,14 @@ object CarbonHelper {
                 distanceInKm * TRAIN
             }
 
+            "metro" -> {
+                distanceInKm * METRO
+            }
+
+            "moped", "scooter" -> {
+                distanceInKm * MOPED_SCOOTER
+            }
+
             "walking", "running", "bicycle", "still" -> {
                 0.0
             }
