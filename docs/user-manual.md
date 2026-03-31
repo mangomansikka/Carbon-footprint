@@ -46,12 +46,12 @@ The main purpose of the application is to track commuting distance and estimate 
 ### 5.1 Starting Location Tracking
 1. Open the application.
    
-<img width="406" height="912" alt="Screenshot 2026-03-26 192109" src="https://github.com/user-attachments/assets/ceb6870c-5a26-48eb-bfa9-61f4bee368b9" />
+<img width="408" height="911" alt="Screenshot 2026-03-31 153634" src="https://github.com/user-attachments/assets/3a6ce82f-0449-4d06-b911-523853c2f323" />
 
 2. Press the **Start tracking** button or the **green button** in the middle to open the tracking page.
 3. To start your trip press the **Start Trip** button.
    
-<img width="406" height="909" alt="Screenshot 2026-03-26 192157" src="https://github.com/user-attachments/assets/a788faa1-c57b-4c86-bd8c-5d370b7dfba3" />
+<img width="409" height="910" alt="Screenshot 2026-03-31 154124" src="https://github.com/user-attachments/assets/b82125e0-6e85-4380-971c-04cf5e0fd5a5" />
 
 While tracking is active, the application calculates:
 * Movement distance
@@ -61,21 +61,33 @@ While tracking is active, the application calculates:
 ### 5.2 Stopping Tracking
 1. Press the **End trip** button.
 
-<img width="405" height="909" alt="Screenshot 2026-03-26 192225" src="https://github.com/user-attachments/assets/dadca799-6575-4719-b07a-80bb8cd73bcf" />
+<img width="410" height="911" alt="Screenshot 2026-03-31 154331" src="https://github.com/user-attachments/assets/0b710c8b-f7b1-4cc3-bd7a-fa9a4cbbbea1" />
 
 2. The trip will be saved and you will see your trips statistics.
 
-<img width="409" height="910" alt="Screenshot 2026-03-26 192244" src="https://github.com/user-attachments/assets/830b4231-feeb-4e0f-9017-02d352a4aee2" />
+<img width="409" height="914" alt="Screenshot 2026-03-31 154343" src="https://github.com/user-attachments/assets/c5b34920-c9b0-4bad-af25-5a1689c91939" />
 
-### 5.3 Viewing Environmental Impact
+### 5.3 Manual trip entry
+The application also allows manual trip entry, to do this:
+1. Press the **Pen button** in the bottom bar
+
+<img width="408" height="911" alt="Screenshot 2026-03-31 153119" src="https://github.com/user-attachments/assets/1187592d-3566-4394-8db4-88147da32809" />
+
+2. Select your transport mode and input your trips lenght as meters
+3. Press **Save trip** and your trip will be saved
+
+<img width="409" height="911" alt="Screenshot 2026-03-31 153208" src="https://github.com/user-attachments/assets/c764e3d5-56b1-4359-8ed2-2e51dd6f72db" />
+
+
+### 5.4 Viewing Environmental Impact
 The application visualizes commuting impact through:
-* **Diagrams:** to see your emissions per vehicle type, press the **trophy button** in the bottom bar
+* **Diagrams:** to see your emissions per vehicle type, press the **Trophy button** in the bottom bar
 
-<img width="407" height="911" alt="Screenshot 2026-03-26 192128" src="https://github.com/user-attachments/assets/8de1e739-d212-4d29-8a22-15369a97f63f" />
+<img width="408" height="912" alt="Screenshot 2026-03-31 153403" src="https://github.com/user-attachments/assets/708256a9-fccc-41a6-8b95-fc4e33b4dd46" />
 
 * **Graphs:** to see your monthly/yearly emissions, press the **Graphs button** in the bottom bar
 
-<img width="410" height="910" alt="Screenshot 2026-03-26 192258" src="https://github.com/user-attachments/assets/24625a0d-2be7-432f-8b56-4f3b4366227a" />
+<img width="410" height="914" alt="Screenshot 2026-03-31 153430" src="https://github.com/user-attachments/assets/c3649ce7-adf5-4c78-94f6-2ab0585fccc8" />
 
 ---
 
