@@ -82,8 +82,8 @@ cd Carbon-footprint
 ---
 
 ## 📚 Documentation
-- [User Manual](#docs/user-manual.md)
-- [Architecture Overview](#docs/Architecture-Overview.md)
+- [User Manual](docs/user-manual.md)
+- [Architecture Overview](docs/Architecture-Overview.md)
 
 ---
 
