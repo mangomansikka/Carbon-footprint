@@ -2,7 +2,9 @@ package fi.metropolia.canopy.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -22,6 +24,7 @@ import fi.metropolia.canopy.utils.viewModelFactories.TripViewModelFactory
 fun ManualInputScreen() {
 
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
 
     val viewModel: TripViewModel = viewModel(
         factory = TripViewModelFactory(context)
@@ -45,6 +48,8 @@ fun ManualInputScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
+            .verticalScroll(scrollState)
+            .navigationBarsPadding()
     ) {
 
         /* HEADER */
@@ -64,7 +69,7 @@ fun ManualInputScreen() {
         /* CONTENT */
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .padding(20.dp)
         ) {
 
@@ -101,7 +106,7 @@ fun ManualInputScreen() {
                     )
 
                     Spacer(Modifier.width(8.dp))
-                            RadioButton(
+                    RadioButton(
                         selected = selectedMode == mode,
                         onClick = { selectedMode = mode }
                     )
@@ -147,6 +152,10 @@ fun ManualInputScreen() {
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             }
+
+            // Extra space at the bottom to ensure the button can be scrolled
+            // well above the bottom navigation bar
+            Spacer(Modifier.height(80.dp))
         }
     }
 }

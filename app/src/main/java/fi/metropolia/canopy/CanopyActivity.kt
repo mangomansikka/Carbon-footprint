@@ -119,11 +119,12 @@ fun AppNavGraph() {
                 }
             }
         }
-    ) { _ ->
+    ) { innerPadding ->
 
         NavHost(
             navController = navController,
-            startDestination = "landingScreen"
+            startDestination = "landingScreen",
+            modifier = Modifier.padding(innerPadding)
         ) {
 
             composable("landingScreen") {

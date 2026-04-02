@@ -1,6 +1,8 @@
 package fi.metropolia.canopy.ui.homeview
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -43,6 +45,8 @@ fun HomeScreen(
     val totalEmissionsKg by viewModel.totalEmissionsKg.collectAsState()
     val percentageChange by viewModel.percentageChange.collectAsState()
 
+    val scrollState = rememberScrollState()
+
     // Refresh data whenever we navigate to this screen
     LaunchedEffect(Unit) {
         viewModel.loadMonthlyEmissions()
@@ -74,6 +78,7 @@ fun HomeScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(BgGreen)
+            .verticalScroll(scrollState)
     ) {
         Column(
             modifier = Modifier
