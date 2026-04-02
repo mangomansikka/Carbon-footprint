@@ -94,6 +94,7 @@ class TrackingService : Service() {
     private fun processLocationUpdate(location: Location, db: CanopyDatabase) {
         val lastLat = TrackingState.lastLatitude
         val lastLon = TrackingState.lastLongitude
+        val currentTime = System.currentTimeMillis()
 
         TrackingState.currentSpeedMps = location.speed
         TrackingState.updateRollingAverage(location.speed)
@@ -102,6 +103,11 @@ class TrackingService : Service() {
         val mode = determineTransportMode(speedKmh)
 
         var deltaEmission = 0.0
+
+        //Calculate time gap
+        val timeGapMs = if (TrackingState.lastUpdateTime > 0L) {
+            currentTime - TrackingState.lastUpdateTime
+        } else 0L
 
         if (lastLat != null && lastLon != null) {
             val results = FloatArray(1)
@@ -114,12 +120,18 @@ class TrackingService : Service() {
             val isConfirmedMoving = TrackingState.currentConfirmedMode != "still" && 
                                     TrackingState.currentConfirmedMode != "unknown" &&
                                     TrackingState.currentConfirmedMode != "none"
-            
-            val shouldAccumulate = if (isConfirmedMoving) {
-                // we allow any valid distance as long as accuracy is reasonable
+
+            //Detect a "tunnel gap" (more than 15 seconds since last GPS fix)
+            val isGapRecovery = timeGapMs > 15000L && isConfirmedMoving
+
+            val shouldAccumulate = if (isGapRecovery) {
+                // TUNNEL LOGIC: If we just regained signal after a gap and were moving,
+                // we accept the distance even if accuracy is slightly lower (up to 50m)
+                // because we need to "bridge" the tunnel entrance and exit.
+                location.accuracy < 50f && deltaDistance > 0.0
+            } else if (isConfirmedMoving) {
                 location.accuracy < 25f && deltaDistance > 0.0
             } else {
-                // When stationary STILL or activity is unknown, filter to block GPS drift.
                 deltaDistance > 8.0 && location.accuracy < 15f && location.speed > 0.5f
             }
 
@@ -127,11 +139,17 @@ class TrackingService : Service() {
                 deltaEmission = CarbonHelper.calculate(deltaDistance, mode)
                 TrackingState.addDistanceToMode(mode, deltaDistance, deltaEmission)
                 TrackingState.totalDistanceMeters += deltaDistance
+
+                if (isGapRecovery) {
+                    Log.d("TrackingService", "Bridged gap: ${deltaDistance}m over ${timeGapMs/1000}s")
+                }
             }
         }
 
         TrackingState.lastLatitude = location.latitude
         TrackingState.lastLongitude = location.longitude
+        TrackingState.lastUpdateTime = currentTime
+
 
         // Database persistence
         serviceScope.launch {

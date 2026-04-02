@@ -61,7 +61,7 @@ fun AppNavGraph() {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(70.dp)
+                        .height(100.dp)
                         .background(Color(0xFF3A2F2F)),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
