@@ -34,11 +34,15 @@ The application follows a **Clean Architecture** approach with MVVM (Model-View-
   - Saves trip summaries with emissions calculations
   - Retrieves historical trip data and emissions by mode/month
   - Supports manual trip entry
+- **UserRepository**: Handles user-related data operations
+  - Saves user preferences
 
 #### Data Source
 - **CanopyDatabase**: Room database for local persistence
   - **LocationEntity**: Stores location points with transport modes and emissions
+  - **UserEntity**: Stores user information
   - **LocationDAO**: Data access object for database operations
+  - **UserDAO**: Data access object for user-related operations
   - **EmissionsSummary**: Aggregated emissions data by transport type
   - **MonthlyEmission**: Time-based emissions aggregation
 
@@ -101,6 +105,10 @@ The application follows a **Clean Architecture** approach with MVVM (Model-View-
 - Transport modes: comma-separated string
 - Emissions: total grams + mode-specific kg values
 - Distances: walking/cycling meters
+
+### UserEntity Table
+- Primary key: 1 (singleton)
+- User role: default student or staff
 
 ## App Components
 

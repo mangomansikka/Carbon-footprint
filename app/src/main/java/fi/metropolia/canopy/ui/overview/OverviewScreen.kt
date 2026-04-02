@@ -2,6 +2,8 @@ package fi.metropolia.canopy.ui.overview
 
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import fi.metropolia.canopy.ui.theme.Darkbutton
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,6 +34,8 @@ fun OverviewScreen(navController: NavController) {
     val rawEmissions by viewModel.emissions.collectAsState()
     val walkingDist by viewModel.walkingDistance.collectAsState()
     val cyclingDist by viewModel.cyclingDistance.collectAsState()
+
+    val scrollState = rememberScrollState()
 
     LaunchedEffect(Unit) {
         viewModel.loadEmissions()
@@ -80,6 +84,7 @@ fun OverviewScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .background(OverviewColors.BgGreen)
+            .verticalScroll(scrollState)
     ) {
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -231,7 +236,7 @@ fun OverviewScreen(navController: NavController) {
                     onDismissRequest = { showInfo.value = false },
                     title = { Text("Emissions") },
                     text = { Text("Each mode produces different amount of emissions. Metro produces none. " +
-                            "Favor transportation methods such as metro and train with smaller emissions." +
+                            "Favor transportation methods such as a metro and a train with smaller emissions. " +
                             "Walking and cycling is even better!") },
                     confirmButton = {
                         Button(
