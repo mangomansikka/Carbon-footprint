@@ -105,7 +105,7 @@ fun AppNavGraph() {
                     }
                 }
 
-                /* 🔥 CENTER BUTTON */
+                /*  CENTER BUTTON */
                 FloatingActionButton(
                     onClick = {
                         navController.navigate("locationScreen")
