@@ -2,6 +2,9 @@ package fi.metropolia.canopy.ui.overview
 
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import fi.metropolia.canopy.ui.theme.Darkbutton
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -29,6 +32,10 @@ fun OverviewScreen(navController: NavController) {
     )
 
     val rawEmissions by viewModel.emissions.collectAsState()
+    val walkingDist by viewModel.walkingDistance.collectAsState()
+    val cyclingDist by viewModel.cyclingDistance.collectAsState()
+
+    val scrollState = rememberScrollState()
 
     LaunchedEffect(Unit) {
         viewModel.loadEmissions()
@@ -57,6 +64,8 @@ fun OverviewScreen(navController: NavController) {
     val hasData = totalEmission > 0
     val total = if (totalEmission == 0.0) 1.0 else totalEmission
 
+    val showInfo = remember { mutableStateOf(false) }
+
     /* DONUT */
     val slices: List<EmissionSlice> =
         if (!hasData) {
@@ -75,6 +84,7 @@ fun OverviewScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .background(OverviewColors.BgGreen)
+            .verticalScroll(scrollState)
     ) {
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -190,7 +200,8 @@ fun OverviewScreen(navController: NavController) {
 
                     Text(
                         text = when (category) {
-                            "Walking", "Cycling" -> "No emissions"
+                            "Walking" -> "${walkingDist.roundTo1()} m"
+                            "Cycling" -> "${cyclingDist.roundTo1()} m"
                             else -> "${value.roundTo1()} g"
                         },
                         style = MaterialTheme.typography.titleLarge
@@ -200,11 +211,44 @@ fun OverviewScreen(navController: NavController) {
                 Spacer(Modifier.height(12.dp))
             }
 
+            Button(
+                onClick = { showInfo.value = true },
+                modifier = Modifier
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Darkbutton,
+                    contentColor = Color.White
+                )
+            ) {
+                Text("?")
+            }
+
             if (!hasData) {
                 Spacer(Modifier.height(16.dp))
                 Text(
                     text = "Start a trip to see your emissions",
                     color = Color.Gray
+                )
+            }
+
+            if (showInfo.value) {
+                AlertDialog(
+                    onDismissRequest = { showInfo.value = false },
+                    title = { Text("Emissions") },
+                    text = { Text("Each mode produces different amount of emissions. Metro produces none. " +
+                            "Favor transportation methods such as a metro and a train with smaller emissions. " +
+                            "Walking and cycling is even better!") },
+                    confirmButton = {
+                        Button(
+                            onClick = { showInfo.value = false },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Darkbutton,
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text("OK")
+                        }
+                    }
                 )
             }
         }

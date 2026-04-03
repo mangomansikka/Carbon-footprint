@@ -6,6 +6,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,6 +27,8 @@ fun LocationScreen(navController: NavController) {
     val viewModel: TripViewModel = viewModel(
         factory = TripViewModelFactory(context)
     )
+
+    val scrollState = rememberScrollState()
 
     LaunchedEffect(Unit) {
         viewModel.loadEmissions()
@@ -49,7 +53,9 @@ fun LocationScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp, 60.dp, 24.dp, 24.dp),
+            .padding(24.dp, 60.dp, 24.dp, 24.dp)
+            .verticalScroll(scrollState)
+            .navigationBarsPadding(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Fixed Buttons at the top

@@ -16,7 +16,6 @@ object CarbonHelper {
         var emissions : Double
         val distanceInKm : Double = distance / 1000
 
-        // Inside CarbonHelper.kt
         emissions = when (transportMode.lowercase().trim()) {
             "bus", "car/bus" -> {
                 distanceInKm * BUS
@@ -28,6 +27,14 @@ object CarbonHelper {
 
             "train", "train/high-speed" -> {
                 distanceInKm * TRAIN
+            }
+
+            "metro" -> {
+                distanceInKm * METRO
+            }
+
+            "moped", "scooter" -> {
+                distanceInKm * MOPED_SCOOTER
             }
 
             "walking", "running", "bicycle", "still" -> {

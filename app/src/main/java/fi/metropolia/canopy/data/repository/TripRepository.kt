@@ -11,22 +11,36 @@ class TripRepository(private val dao: LocationDAO) {
         val modesString = TrackingState.usedTransportModes.joinToString(",")
 
         var totalEmissionsKg = 0.0
-
+        
         // Prepare individual mode totals
         var busKg = 0.0
         var metroKg = 0.0
         var unknownCarKg = 0.0
         var mopedKg = 0.0
+        var trainKg = 0.0
+
+        //Walking and cycling distances in meters
+        var walkingDistanceM = 0.0
+        var cyclingDistanceM = 0.0
+
 
         TrackingState.modeDistances.forEach { (mode, distance) ->
             val emissionKg = CarbonHelper.calculate(distance, mode)
             totalEmissionsKg += emissionKg
 
+            // Update walking and cycling distances
+            if (mode.lowercase().trim() == "walking") {
+                walkingDistanceM += distance
+            } else if (mode.lowercase().trim() == "cycling") {
+                cyclingDistanceM += distance
+            }
+            
             when (mode.lowercase().trim()) {
                 "bus", "car/bus" -> busKg += emissionKg
                 "car", "in vehicle" -> unknownCarKg += emissionKg
                 "metro" -> metroKg += emissionKg
                 "moped" -> mopedKg += emissionKg
+                "train", "train/high-speed" -> trainKg += emissionKg
             }
         }
 
@@ -38,8 +52,11 @@ class TripRepository(private val dao: LocationDAO) {
                 carbonEmissionGrams = (totalEmissionsKg * 1000).toFloat(),
                 emissionBussKg = busKg,
                 emissionMetroKg = metroKg,
+                emissionTrainKg = trainKg,
                 emissionUnknownCarKg = unknownCarKg,
-                emissionMopedKg = mopedKg
+                emissionMopedKg = mopedKg,
+                walkingDistanceM = walkingDistanceM,
+                cyclingDistanceM = cyclingDistanceM
             )
         )
     }
@@ -59,24 +76,42 @@ class TripRepository(private val dao: LocationDAO) {
             "hybrid" to summary.hybrid * 1000,
             "electric" to summary.electric * 1000,
             "car unknown" to summary.unknown * 1000,
-            "moped" to summary.moped * 1000
+            "moped" to summary.moped * 1000,
+            "train" to summary.train * 1000
         )
     }
+
+    suspend fun getEmissionsByMonth(): Map<String, Double> {
+        return dao.getMonthlyEmissions().associate { it.month to it.totalEmissionsGrams }
+    }
+
     suspend fun saveManualTrip(distance: Double, mode: String) {
 
         val emissionKg = CarbonHelper.calculate(distance, mode)
 
         var busKg = 0.0
         var metroKg = 0.0
+        var trainKg = 0.0
         var unknownCarKg = 0.0
         var mopedKg = 0.0
+
+        var walkingDistanceM = 0.0
+        var cyclingDistanceM = 0.0
 
         when (mode.lowercase().trim()) {
             "bus", "car/bus" -> busKg = emissionKg
             "metro" -> metroKg = emissionKg
             "car", "in vehicle" -> unknownCarKg = emissionKg
             "moped" -> mopedKg = emissionKg
+            "train", "train/high-speed" -> trainKg = emissionKg
         }
+
+        if (mode.lowercase().trim() == "walking") {
+            walkingDistanceM = distance
+        } else if (mode.lowercase().trim() == "cycling") {
+            cyclingDistanceM = distance
+        }
+
 
         dao.insertLocation(
             LocationEntity(
@@ -86,9 +121,15 @@ class TripRepository(private val dao: LocationDAO) {
                 carbonEmissionGrams = (emissionKg * 1000).toFloat(),
                 emissionBussKg = busKg,
                 emissionMetroKg = metroKg,
+                emissionTrainKg = trainKg,
                 emissionUnknownCarKg = unknownCarKg,
-                emissionMopedKg = mopedKg
+                emissionMopedKg = mopedKg,
+                walkingDistanceM = walkingDistanceM,
+                cyclingDistanceM = cyclingDistanceM
             )
         )
     }
+
+    suspend fun getTotalWalkingDistance(): Double = dao.getTotalWalkingDistance()
+    suspend fun getTotalCyclingDistance(): Double = dao.getTotalCyclingDistance()
 }

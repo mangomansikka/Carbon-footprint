@@ -61,7 +61,7 @@ fun AppNavGraph() {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(70.dp)
+                        .height(100.dp)
                         .background(Color(0xFF3A2F2F)),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
@@ -119,11 +119,12 @@ fun AppNavGraph() {
                 }
             }
         }
-    ) { _ ->
+    ) { innerPadding ->
 
         NavHost(
             navController = navController,
-            startDestination = "landingScreen"
+            startDestination = "landingScreen",
+            modifier = Modifier.padding(innerPadding)
         ) {
 
             composable("landingScreen") {

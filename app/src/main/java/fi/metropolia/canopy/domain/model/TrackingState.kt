@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableIntStateOf
 object TrackingState {
 
     var isTracking by mutableStateOf(false)
+    var lastUpdateTime: Long = 0L
 
     var totalDistanceMeters by mutableDoubleStateOf(0.0)
     var currentSpeedMps by mutableFloatStateOf(0f)
