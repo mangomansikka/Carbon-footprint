@@ -58,7 +58,7 @@ fun LocationScreen(navController: NavController) {
             .navigationBarsPadding(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Fixed Buttons at the top
+
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(
                 onClick = {
@@ -89,6 +89,12 @@ fun LocationScreen(navController: NavController) {
             ) {
                 Text("End Trip")
             }
+        }
+        Button(
+            onClick = { navController.navigate("manualScreen") },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Add manually")
         }
 
         // Scrollable Content
@@ -132,7 +138,7 @@ fun LocationScreen(navController: NavController) {
                 }
             }
 
-            // Filtering out "still" from distances display
+
             val distances = viewModel.modeDistances.entries.filter { it.key != "still" }.toList()
             if (distances.isEmpty()) {
                 item {
