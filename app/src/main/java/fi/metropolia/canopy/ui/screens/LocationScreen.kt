@@ -4,20 +4,24 @@ import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import fi.metropolia.canopy.domain.model.TrackingState
+import fi.metropolia.canopy.ui.overview.OverviewColors
+import fi.metropolia.canopy.ui.theme.Darkbutton
 import fi.metropolia.canopy.utils.viewModelFactories.TripViewModelFactory
 import fi.metropolia.canopy.viewmodels.TripViewModel
 
@@ -27,8 +31,6 @@ fun LocationScreen(navController: NavController) {
     val viewModel: TripViewModel = viewModel(
         factory = TripViewModelFactory(context)
     )
-
-    val scrollState = rememberScrollState()
 
     LaunchedEffect(Unit) {
         viewModel.loadEmissions()
@@ -53,76 +55,105 @@ fun LocationScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp, 60.dp, 24.dp, 24.dp)
-            .verticalScroll(scrollState)
-            .navigationBarsPadding(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .background(Color.White)
+            .navigationBarsPadding()
     ) {
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(
-                onClick = {
-                    val permissions = mutableListOf(
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    )
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        permissions.add(Manifest.permission.ACTIVITY_RECOGNITION)
-                    }
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        permissions.add(Manifest.permission.POST_NOTIFICATIONS)
-                    }
-                    permissionLauncher.launch(permissions.toTypedArray())
-                },
-                enabled = !viewModel.isTracking,
-                modifier = Modifier.weight(1f)
-            ) {
-                Text("Start Trip")
-            }
-
-            Button(
-                onClick = {
-                    viewModel.endTrip(context)
-                },
-                enabled = viewModel.isTracking,
-                modifier = Modifier.weight(1f)
-            ) {
-                Text("End Trip")
-            }
-        }
-        Button(
-            onClick = { navController.navigate("manualScreen") },
-            modifier = Modifier.fillMaxWidth()
+        /* HEADER - Matching Green Theme */
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(OverviewColors.BgGreen)
+                .padding(top = 48.dp, start = 20.dp, bottom = 24.dp)
         ) {
-            Text("Add manually")
+            Text(
+                text = "Live Tracking",
+                style = MaterialTheme.typography.titleLarge,
+                color = Color.White
+            )
         }
 
-        // Scrollable Content
+        /* CONTENT */
         LazyColumn(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp),
+            contentPadding = PaddingValues(top = 20.dp, bottom = 80.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            
+            // Action Buttons
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Button(
+                        onClick = {
+                            val permissions = mutableListOf(
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION
+                            )
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                permissions.add(Manifest.permission.ACTIVITY_RECOGNITION)
+                            }
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+                            }
+                            permissionLauncher.launch(permissions.toTypedArray())
+                        },
+                        enabled = !viewModel.isTracking,
+                        modifier = Modifier.weight(1f).height(50.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Darkbutton),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Start Trip")
+                    }
+
+                    Button(
+                        onClick = { viewModel.endTrip(context) },
+                        enabled = viewModel.isTracking,
+                        modifier = Modifier.weight(1f).height(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (viewModel.isTracking) Color(0xFFE57373) else Color.LightGray
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("End Trip")
+                    }
+                }
+            }
+
+            item {
+                OutlinedButton(
+                    onClick = { navController.navigate("manualScreen") },
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Add Manual Entry")
+                }
+            }
+
             // Live Debug & Detection Section
             if (viewModel.isTracking) {
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+                        colors = CardDefaults.cardColors(containerColor = OverviewColors.BgGreen.copy(alpha = 0.1f)),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            Text("Live Detection", style = MaterialTheme.typography.titleSmall)
-                            Text("Current: ${TrackingState.currentActivityByConfidence}")
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("Live Detection", style = MaterialTheme.typography.titleSmall, color = OverviewColors.BgGreen)
+                            Text("Mode: ${TrackingState.currentActivityByConfidence}", fontWeight = FontWeight.Bold)
                             
-                            Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
                             
                             Text(
-                                text = "Average speed (last ${TrackingState.speedHistorySize} points): ${"%.1f".format(TrackingState.averageSpeedMps)} m/s",
+                                text = "Avg Speed: ${"%.1f".format(TrackingState.averageSpeedMps)} m/s",
                                 style = MaterialTheme.typography.bodySmall
                             )
                             
                             LinearProgressIndicator(
                                 progress = { TrackingState.currentConfidence / 100f },
-                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                                color = OverviewColors.BgGreen,
+                                trackColor = Color.LightGray
                             )
                         }
                     }
@@ -130,85 +161,66 @@ fun LocationScreen(navController: NavController) {
             }
 
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Total Distance: ${"%.2f".format(viewModel.totalDistanceMeters)} m")
-                    Text("Current Speed: ${"%.2f".format(viewModel.currentSpeedMps)} m/s")
-                    HorizontalDivider()
-                    Text("Distance per Mode:", style = MaterialTheme.typography.titleMedium)
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Total Distance: ${"%.2f".format(viewModel.totalDistanceMeters)} m", style = MaterialTheme.typography.titleMedium)
+                    Text("Current Speed: ${"%.2f".format(viewModel.currentSpeedMps)} m/s", style = MaterialTheme.typography.bodyMedium)
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                    Text("Distance per Mode:", style = MaterialTheme.typography.titleSmall, color = Color.Gray)
                 }
             }
-
 
             val distances = viewModel.modeDistances.entries.filter { it.key != "still" }.toList()
             if (distances.isEmpty()) {
                 item {
-                    Text("No distance recorded yet", style = MaterialTheme.typography.bodyMedium)
+                    Text("No data yet", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                 }
             } else {
                 items(distances) { entry ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = entry.key.replaceFirstChar { it.uppercase() },
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "${"%.1f".format(entry.value)} m",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
+                        Text(entry.key.replaceFirstChar { it.uppercase() })
+                        Text("${"%.1f".format(entry.value)} m", fontWeight = FontWeight.Bold)
                     }
                 }
             }
 
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    HorizontalDivider()
-                    Text("Emissions per Mode (Current Trip):", style = MaterialTheme.typography.titleMedium)
-                }
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                Text("Emissions (Current Trip):", style = MaterialTheme.typography.titleSmall, color = Color.Gray)
             }
 
             val currentEmissions = viewModel.modeEmissions.entries.filter { it.key != "still" }.toList()
             if (currentEmissions.isEmpty()) {
                 item {
-                    Text("Start moving to see emission data...",
-                        style = MaterialTheme.typography.bodyMedium)
+                    Text("Emissions will appear once you start moving", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                 }
             } else {
                 items(currentEmissions) { entry ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
-                        )
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F8F1)),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            modifier = Modifier.fillMaxWidth().padding(12.dp),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(
-                                text = entry.key.replaceFirstChar { it.uppercase() },
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(text = "${"%.4f".format(entry.value)} kg CO₂")
+                            Text(entry.key.replaceFirstChar { it.uppercase() }, fontWeight = FontWeight.Medium)
+                            Text(text = "${"%.4f".format(entry.value)} kg CO₂", color = OverviewColors.BgGreen, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
             }
 
             item {
-                HorizontalDivider()
-                Text("To see your total emissions, go to the Overview screen",
-                    style = MaterialTheme.typography.bodyMedium
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    text = "Visit the Overview screen for your full history.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }

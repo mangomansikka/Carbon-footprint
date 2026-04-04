@@ -121,8 +121,8 @@ class TrackingService : Service() {
                                     TrackingState.currentConfirmedMode != "unknown" &&
                                     TrackingState.currentConfirmedMode != "none"
 
-            //Detect a "tunnel gap" (more than 15 seconds since last GPS fix)
-            val isGapRecovery = timeGapMs > 15000L && isConfirmedMoving
+            //Detect a "tunnel gap" (more than 10 seconds since last GPS fix)
+            val isGapRecovery = timeGapMs > 10000L && isConfirmedMoving
 
             val shouldAccumulate = if (isGapRecovery) {
                 // TUNNEL LOGIC: If we just regained signal after a gap and were moving,
