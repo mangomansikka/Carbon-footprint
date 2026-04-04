@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -47,7 +46,6 @@ class CanopyActivity : ComponentActivity() {
 fun AppNavGraph() {
 
     val navController = rememberNavController()
-
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
 
@@ -55,20 +53,20 @@ fun AppNavGraph() {
 
     Scaffold(
         bottomBar = {
-
             Box {
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(100.dp)
+                        .height(70.dp)
+                        .navigationBarsPadding()
                         .background(Color(0xFF3A2F2F)),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
                     val iconColor = { route: String ->
-                        if (currentRoute == route) Color(0xFF58F0B1) else Color.Gray
+                        if (currentRoute == route) accentGreen else Color.Gray
                     }
 
                     /* HOME */
@@ -81,23 +79,24 @@ fun AppNavGraph() {
                         Icon(Icons.Default.Home, null, tint = iconColor("landingScreen"))
                     }
 
-                    /* MANUAL (✏️) */
+                    /* ECO 🌱 (korvaa kynän) */
                     IconButton(onClick = {
-                        navController.navigate("manualScreen")
+                        navController.navigate("ecoScreen")
                     }) {
-                        Icon(Icons.Default.Edit, null, tint = iconColor("manualScreen"))
+                        Icon(Icons.Default.Eco, null, tint = iconColor("ecoScreen"))
                     }
 
+                    /* SPACE for center button */
                     Spacer(modifier = Modifier.width(40.dp))
 
-                    /* OVERVIEW */
+                    /* ACHIEVEMENTS 🏆 */
                     IconButton(onClick = {
                         navController.navigate("overviewScreen")
                     }) {
                         Icon(Icons.Default.EmojiEvents, null, tint = iconColor("overviewScreen"))
                     }
 
-                    /* FOOTPRINT */
+                    /* STATS 📈 */
                     IconButton(onClick = {
                         navController.navigate("homeScreen")
                     }) {
@@ -105,7 +104,7 @@ fun AppNavGraph() {
                     }
                 }
 
-                /* 🔥 CENTER BUTTON */
+                /* CENTER BUTTON (TRACKING) */
                 FloatingActionButton(
                     onClick = {
                         navController.navigate("locationScreen")
@@ -139,12 +138,23 @@ fun AppNavGraph() {
                 OverviewScreen(navController)
             }
 
-            composable("manualScreen") {
-                ManualInputScreen()
-            }
-
             composable("homeScreen") {
                 HomeScreen(navController)
+            }
+
+            /* ECO SCREEN (placeholder) */
+            composable("ecoScreen") {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Eco Screen 🌱")
+                }
+            }
+
+            /* MANUAL löytyy edelleen mutta ei navissa */
+            composable("manualScreen") {
+                ManualInputScreen()
             }
         }
     }
