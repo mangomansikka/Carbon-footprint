@@ -1,6 +1,5 @@
 package fi.metropolia.canopy.ui.overview
 
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
@@ -17,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import fi.metropolia.canopy.utils.viewModelFactories.TripViewModelFactory
@@ -41,7 +41,6 @@ fun OverviewScreen(navController: NavController) {
         viewModel.loadEmissions()
     }
 
-    /* GROUP DATA */
     val emissions = remember(rawEmissions) {
         val grouped = mutableMapOf<String, Double>()
         rawEmissions.forEach { (mode, value) ->
@@ -66,12 +65,9 @@ fun OverviewScreen(navController: NavController) {
 
     val showInfo = remember { mutableStateOf(false) }
 
-    /* DONUT */
-    val slices: List<EmissionSlice> =
+    val slices =
         if (!hasData) {
-            listOf(
-                EmissionSlice("No data", 1.0, Color(0xFF6FCF97))
-            )
+            listOf(EmissionSlice("No data", 1.0, Color(0xFF6FCF97)))
         } else {
             emissions
                 .filter { it.value > 0 && it.key != "Walking" && it.key != "Cycling" }
@@ -96,6 +92,17 @@ fun OverviewScreen(navController: NavController) {
             modifier = Modifier.padding(start = 20.dp)
         )
 
+        Spacer(Modifier.height(12.dp))
+
+        // näkyy vain kun EI dataa (tämä on oikein)
+        if (!hasData) {
+            Text(
+                text = "Start a trip to see your emissions",
+                color = Color.White,
+                modifier = Modifier.padding(start = 20.dp)
+            )
+        }
+
         Spacer(Modifier.height(24.dp))
 
         Row(
@@ -106,13 +113,30 @@ fun OverviewScreen(navController: NavController) {
             horizontalArrangement = Arrangement.spacedBy(24.dp)
         ) {
 
-            DonutChart(
-                centerText = if (hasData)
-                    "${totalEmission.roundTo1()} g"
-                else
-                    "No Data",
-                slices = slices
-            )
+            Box(
+                modifier = Modifier.size(160.dp),
+                contentAlignment = Alignment.Center
+            ) {
+
+                DonutChart(
+                    centerText = "",
+                    slices = slices
+                )
+
+                val centerText = if (hasData) {
+                    val parts = formatEmission(totalEmission).split(" ")
+                    "${parts[0]} ${parts[1]}\nCO₂"
+                } else {
+                    "No Data"
+                }
+
+                Text(
+                    text = centerText,
+                    style = MaterialTheme.typography.titleMedium, // 🔥 parempi koko
+                    textAlign = TextAlign.Center,
+                    color = Color.Black
+                )
+            }
 
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
@@ -140,7 +164,11 @@ fun OverviewScreen(navController: NavController) {
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
 
-                        Icon(icon, null, tint = Color.White)
+                        Icon(
+                            icon,
+                            null,
+                            tint = colorForMode(category)
+                        )
 
                         Spacer(Modifier.width(8.dp))
 
@@ -165,7 +193,7 @@ fun OverviewScreen(navController: NavController) {
         ) {
 
             Text(
-                text = "${totalEmission.roundTo1()} g CO2 total",
+                text = "${formatEmission(totalEmission)} total",
                 style = MaterialTheme.typography.headlineMedium
             )
 
@@ -200,9 +228,9 @@ fun OverviewScreen(navController: NavController) {
 
                     Text(
                         text = when (category) {
-                            "Walking" -> "${walkingDist.roundTo1()} m"
-                            "Cycling" -> "${cyclingDist.roundTo1()} m"
-                            else -> "${value.roundTo1()} g"
+                            "Walking" -> formatDistance(walkingDist)
+                            "Cycling" -> formatDistance(cyclingDist)
+                            else -> formatEmission(value)
                         },
                         style = MaterialTheme.typography.titleLarge
                     )
@@ -213,8 +241,7 @@ fun OverviewScreen(navController: NavController) {
 
             Button(
                 onClick = { showInfo.value = true },
-                modifier = Modifier
-                    .height(56.dp),
+                modifier = Modifier.height(56.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Darkbutton,
                     contentColor = Color.White
@@ -223,21 +250,13 @@ fun OverviewScreen(navController: NavController) {
                 Text("?")
             }
 
-            if (!hasData) {
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    text = "Start a trip to see your emissions",
-                    color = Color.Gray
-                )
-            }
-
             if (showInfo.value) {
                 AlertDialog(
                     onDismissRequest = { showInfo.value = false },
                     title = { Text("Emissions") },
-                    text = { Text("Each mode produces different amount of emissions. Metro produces none. " +
-                            "Favor transportation methods such as a metro and a train with smaller emissions. " +
-                            "Walking and cycling is even better!") },
+                    text = {
+                        Text("Each mode produces different emissions. Walking and cycling are best.")
+                    },
                     confirmButton = {
                         Button(
                             onClick = { showInfo.value = false },
@@ -255,7 +274,14 @@ fun OverviewScreen(navController: NavController) {
     }
 }
 
-/* ICONS */
+fun formatDistance(meters: Double): String =
+    if (meters >= 1000) "%.2f km".format(meters / 1000)
+    else "%.0f m".format(meters)
+
+fun formatEmission(kg: Double): String =
+    if (kg >= 1) "%.2f kg CO₂".format(kg)
+    else "%.0f g".format(kg * 1000)
+
 private fun iconForLabel(label: String) = when (label.lowercase()) {
     "bus" -> Icons.Filled.DirectionsBus
     "metro" -> Icons.Filled.DirectionsSubway
@@ -266,16 +292,11 @@ private fun iconForLabel(label: String) = when (label.lowercase()) {
     else -> Icons.Filled.DirectionsCar
 }
 
-/* COLORS */
 private fun colorForMode(mode: String) = when (mode.lowercase()) {
-    "car" -> Color(0xFF6FCF97)
-    "bus" -> Color(0xFF27AE60)
-    "train" -> Color(0xFF1B5E20)
-    "metro" -> Color(0xFFA8E6CF)
-    "moped" -> Color(0xFF2F4F2F)
+    "car" -> Color(0xFF2E7D32)
+    "bus" -> Color(0xFF1565C0)
+    "train" -> Color(0xFFC62828)
+    "metro" -> Color(0xFF6A1B9A)
+    "moped" -> Color(0xFFEF6C00)
     else -> Color.Gray
 }
-
-/* FORMAT */
-private fun Double.roundTo1(): String =
-    ((this * 10.0).roundToInt() / 10.0).toString()
