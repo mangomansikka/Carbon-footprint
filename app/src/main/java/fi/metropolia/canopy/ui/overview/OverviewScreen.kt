@@ -211,17 +211,37 @@ fun OverviewScreen(navController: NavController) {
                 Spacer(Modifier.height(12.dp))
             }
 
-            Button(
-                onClick = { showInfo.value = true },
-                modifier = Modifier
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Darkbutton,
-                    contentColor = Color.White
-                )
+            Spacer(Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)  // Adds space between buttons
             ) {
-                Text("?")
+                Button(
+                    onClick = { viewModel.exportData(context) },  // Trigger export
+                    modifier = Modifier
+                        .weight(1f)  // Makes it expand to fill available space next to the ? button
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Darkbutton,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Export Data to CSV")
+                }
+
+                Button(
+                    onClick = { showInfo.value = true },
+                    modifier = Modifier
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Darkbutton,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("?")
+                }
             }
+
 
             if (!hasData) {
                 Spacer(Modifier.height(16.dp))
