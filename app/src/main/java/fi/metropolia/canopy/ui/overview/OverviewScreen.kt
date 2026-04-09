@@ -248,27 +248,58 @@ fun OverviewScreen(navController: NavController) {
                 )
             ) {
                 Text("?")
-            }
-
-            if (showInfo.value) {
-                AlertDialog(
-                    onDismissRequest = { showInfo.value = false },
-                    title = { Text("Emissions") },
-                    text = {
-                        Text("Each mode produces different emissions. Walking and cycling are best.")
-                    },
-                    confirmButton = {
-                        Button(
-                            onClick = { showInfo.value = false },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Darkbutton,
-                                contentColor = Color.White
-                            )
-                        ) {
-                            Text("OK")
-                        }
+                Spacer(Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)  // Adds space between buttons
+                ) {
+                    Button(
+                        onClick = { viewModel.exportData(context) },  // Trigger export
+                        modifier = Modifier
+                            .weight(1f)  // Makes it expand to fill available space next to the ? button
+                            .height(56.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Darkbutton,
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text("Export Data to CSV")
                     }
-                )
+
+                    Button(
+                        onClick = { showInfo.value = true },
+                        modifier = Modifier
+                            .height(56.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Darkbutton,
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text("?")
+                    }
+                }
+
+
+                if (showInfo.value) {
+                    AlertDialog(
+                        onDismissRequest = { showInfo.value = false },
+                        title = { Text("Emissions") },
+                        text = {
+                            Text("Each mode produces different emissions. Walking and cycling are best.")
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = { showInfo.value = false },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Darkbutton,
+                                    contentColor = Color.White
+                                )
+                            ) {
+                                Text("OK")
+                            }
+                        }
+                    )
+                }
             }
         }
     }

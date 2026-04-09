@@ -6,17 +6,21 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fi.metropolia.canopy.data.repository.TripRepository
+import fi.metropolia.canopy.data.repository.UserRepository
 import fi.metropolia.canopy.data.source.CanopyDatabase
 import fi.metropolia.canopy.data.source.LocationEntity
 import fi.metropolia.canopy.domain.model.TrackingState
 import fi.metropolia.canopy.service.TrackingService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import fi.metropolia.canopy.utils.ExportUtils
 
 class TripViewModel(context: Context) : ViewModel() {
 
     private val repository: TripRepository
+    private val userRepository: UserRepository
 
     private val _trips = MutableStateFlow<List<LocationEntity>>(emptyList())
     private val _emissions = MutableStateFlow<Map<String, Double>>(emptyMap())
@@ -33,6 +37,7 @@ class TripViewModel(context: Context) : ViewModel() {
     init {
         val db = CanopyDatabase.getInstance(context)
         repository = TripRepository(db.locationDao())
+        userRepository = UserRepository(db.userDao())
         loadEmissions()
     }
 
@@ -82,6 +87,14 @@ class TripViewModel(context: Context) : ViewModel() {
             repository.saveTripSummary()
             TrackingState.isTracking = false
             loadEmissions()
+        }
+    }
+
+    fun exportData(context: Context, recipientEmail: String? = null) {
+        viewModelScope.launch {
+            val trips = repository.getAllTrips()
+            val userRole = userRepository.userRole.first()
+            ExportUtils.exportAndEmailData(context, trips, userRole, recipientEmail)
         }
     }
 }
