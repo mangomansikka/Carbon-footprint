@@ -97,22 +97,6 @@ fun LandingScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Button(
-            onClick = { navController.navigate("homeScreen") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(80.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Darkbutton,
-                contentColor = Color.White
-            )
-        ) {
-            Text("Start Tracking")
-        }
-
-        Spacer(modifier = Modifier.height(40.dp))
-
         Image(
             painter = painterResource(id = R.drawable.metropolia),
             contentDescription = "App Logo",
