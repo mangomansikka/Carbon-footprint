@@ -100,7 +100,7 @@ class TrackingService : Service() {
         TrackingState.updateRollingAverage(location.speed)
 
         val speedKmh = location.speed * 3.6
-        val mode = determineTransportMode(speedKmh)
+        var mode = determineTransportMode(speedKmh)
 
         var deltaEmission = 0.0
 
@@ -124,6 +124,14 @@ class TrackingService : Service() {
             //Detect a "tunnel gap" (more than 10 seconds since last GPS fix)
             val isGapRecovery = timeGapMs > 10000L && isConfirmedMoving
 
+            // METRO LOGIC: If the gap is significant (e.g. > 25 seconds) while moving,
+            // it is very likely a subway/metro tunnel.
+            if (isGapRecovery && timeGapMs > 25000L) {
+                if (mode == "car" || mode == "unknown") {
+                    mode = "metro"
+                }
+            }
+
             val shouldAccumulate = if (isGapRecovery) {
                 // TUNNEL LOGIC: If we just regained signal after a gap and were moving,
                 // we accept the distance even if accuracy is slightly lower (up to 50m)
@@ -141,7 +149,8 @@ class TrackingService : Service() {
                 TrackingState.totalDistanceMeters += deltaDistance
 
                 if (isGapRecovery) {
-                    Log.d("TrackingService", "Bridged gap: ${deltaDistance}m over ${timeGapMs/1000}s")
+                    val logMsg = if (mode == "metro") "Bridged Metro tunnel" else "Bridged gap"
+                    Log.d("TrackingService", "$logMsg: ${deltaDistance}m over ${timeGapMs/1000}s")
                 }
             }
         }
@@ -159,6 +168,8 @@ class TrackingService : Service() {
                     longitude = location.longitude,
                     // Use a simple mapping to fill specific columns for the Overview summation
                     emissionBussKg = if (mode == "bus") deltaEmission else 0.0,
+                    emissionMetroKg = if (mode == "metro") deltaEmission else 0.0,
+                    emissionTrainKg = if (mode == "train") deltaEmission else 0.0,
                     emissionMopedKg = if (mode == "moped_scooter") deltaEmission else 0.0,
                     emissionUnknownCarKg = if (mode == "car") deltaEmission else 0.0,
                     // Note: Activity recognition doesn't distinguish fuel type yet, defaulting to unknown
@@ -175,7 +186,7 @@ class TrackingService : Service() {
                 TrackingState.currentConfirmedMode.lowercase()
             }
             speedKmh < 3.0 -> "still"
-            speedKmh < 10.0 -> "walking"     // Fixed from "on foot"
+            speedKmh < 6.0 -> "walking"     // Fixed from "on foot"
             speedKmh < 120.0 -> "car"        // Fixed from "car/bus"
             else -> "train"                  // Fixed from "train/high-speed"
         }

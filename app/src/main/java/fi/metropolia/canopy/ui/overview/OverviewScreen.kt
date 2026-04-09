@@ -239,40 +239,66 @@ fun OverviewScreen(navController: NavController) {
                 Spacer(Modifier.height(12.dp))
             }
 
-            Button(
-                onClick = { showInfo.value = true },
-                modifier = Modifier.height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Darkbutton,
-                    contentColor = Color.White
-                )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)  // Adds space between buttons
             ) {
-                Text("?")
+                Button(
+                    onClick = { showInfo.value = true },
+                    modifier = Modifier.height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Darkbutton,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("?")
+                }
+
+                Button(
+                    onClick = { viewModel.exportData(context) },  // Trigger export
+                    modifier = Modifier
+                        .weight(1f)  // Makes it expand to fill available space next to the ? button
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Darkbutton,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Export Data to CSV")
+                }
             }
 
-            if (showInfo.value) {
-                AlertDialog(
-                    onDismissRequest = { showInfo.value = false },
-                    title = { Text("Emissions") },
-                    text = {
-                        Text("Each mode produces different emissions. Walking and cycling are best.")
-                    },
-                    confirmButton = {
-                        Button(
-                            onClick = { showInfo.value = false },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Darkbutton,
-                                contentColor = Color.White
-                            )
-                        ) {
-                            Text("OK")
+
+            Spacer(Modifier.height(16.dp))
+
+
+                if (showInfo.value) {
+                    AlertDialog(
+                        onDismissRequest = { showInfo.value = false },
+                        title = { Text("Emissions") },
+                        text = {
+                            Text("Each mode produces different emissions. Walking and cycling are the best. " +
+                                    "To download your data, click 'Export Data to CSV'. " +
+                                    "CSV is a plain text file used to store tabular data " +
+                                    "in a structured format.")
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = { showInfo.value = false },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Darkbutton,
+                                    contentColor = Color.White
+                                )
+                            ) {
+                                Text("OK")
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     }
-}
+
 
 fun formatDistance(meters: Double): String =
     if (meters >= 1000) "%.2f km".format(meters / 1000)
