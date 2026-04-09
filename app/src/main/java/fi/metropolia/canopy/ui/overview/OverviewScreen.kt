@@ -280,7 +280,7 @@ fun formatDistance(meters: Double): String =
 
 fun formatEmission(kg: Double): String =
     if (kg >= 1) "%.2f kg CO₂".format(kg)
-    else "%.0f g".format(kg * 1000)
+    else "%.0f g CO₂".format(kg * 1000)
 
 private fun iconForLabel(label: String) = when (label.lowercase()) {
     "bus" -> Icons.Filled.DirectionsBus
