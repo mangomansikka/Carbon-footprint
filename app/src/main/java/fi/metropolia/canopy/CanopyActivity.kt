@@ -15,12 +15,15 @@ import androidx.navigation.compose.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.core.view.WindowCompat
+import androidx.navigation.NavHostController
 import fi.metropolia.canopy.ui.theme.CanopyMinnoTheme
+import fi.metropolia.canopy.ui.TreeView.TreeScreen
 import fi.metropolia.canopy.ui.homeview.HomeScreen
 import fi.metropolia.canopy.ui.homeview.LandingScreen
 import fi.metropolia.canopy.ui.overview.OverviewScreen
 import fi.metropolia.canopy.ui.screens.LocationScreen
 import fi.metropolia.canopy.ui.screens.ManualInputScreen
+
 
 class CanopyActivity : ComponentActivity() {
 
@@ -142,14 +145,9 @@ fun AppNavGraph() {
                 HomeScreen(navController)
             }
 
-            /* ECO SCREEN (placeholder) */
+            /* ECO SCREEN (My Tree) */
             composable("ecoScreen") {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Eco Screen 🌱")
-                }
+                TreeScreen(navController)
             }
 
             /* MANUAL löytyy edelleen mutta ei navissa */
@@ -159,3 +157,4 @@ fun AppNavGraph() {
         }
     }
 }
+
