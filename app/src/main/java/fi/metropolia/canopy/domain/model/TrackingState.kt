@@ -22,6 +22,9 @@ object TrackingState {
     
     // Track emissions per mode
     val modeEmissions = mutableStateMapOf<String, Double>()
+    
+    // Total emissions for the current tracking session in Kg
+    val totalEmissionKg: Double get() = modeEmissions.values.sum()
 
     var currentConfirmedMode by mutableStateOf("still")
 
