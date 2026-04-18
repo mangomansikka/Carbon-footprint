@@ -32,7 +32,6 @@ fun LandingScreen(navController: NavController) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-
     val db = remember { CanopyDatabase.getInstance(context) }
     val userRepository = remember { UserRepository(db.userDao()) }
 
@@ -43,67 +42,114 @@ fun LandingScreen(navController: NavController) {
             .fillMaxSize()
             .background(OverviewColors.BgGreen)
             .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+            .padding(horizontal = 24.dp)
             .navigationBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Spacer(modifier = Modifier.height(60.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         Image(
-            painter = painterResource(R.drawable.tree),
-            contentDescription = "Community tree",
+            painter = painterResource(R.drawable.eco_footprint),
+            contentDescription = "Carbon footprint",
             contentScale = ContentScale.Fit,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(310.dp)
+            modifier = Modifier.size(180.dp)
         )
 
-        Spacer(modifier = Modifier.height(30.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Welcome to Canopy",
+            style = MaterialTheme.typography.headlineLarge,
+            textAlign = TextAlign.Center,
+            color = Color.Black
+        )
 
         Text(
             text = "Track your carbon footprint",
-            style = MaterialTheme.typography.headlineLarge,
+            style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center,
-            color = Color.Black,
-            modifier = Modifier.fillMaxWidth()
+            color = Color.Black
         )
 
-        Spacer(modifier = Modifier.height(30.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            RadioButton(
-                selected = userRole == "student",
-                onClick = {
-                    scope.launch {
-                        userRepository.changeRole("student")
-                    }
-                }
-            )
-            Text("Student")
-        }
+        Text(
+            text = "Choose your role to begin",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color(0xFF2E4E3F),
+            textAlign = TextAlign.Center
+        )
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            RadioButton(
-                selected = userRole == "staff",
-                onClick = {
-                    scope.launch {
-                        userRepository.changeRole("staff")
-                    }
+        Spacer(modifier = Modifier.height(40.dp))
+
+        Card(
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F8F4)),
+            elevation = CardDefaults.cardElevation(3.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(vertical = 12.dp, horizontal = 16.dp)
+            ) {
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = userRole == "student",
+                        onClick = {
+                            scope.launch {
+                                userRepository.changeRole("student")
+                            }
+                        },
+                        colors = RadioButtonDefaults.colors(
+                            selectedColor = Color(0xFF2E7D32)
+                        )
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Student",
+                        modifier = Modifier.width(100.dp)
+                    )
                 }
-            )
-            Text("Staff")
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = userRole == "staff",
+                        onClick = {
+                            scope.launch {
+                                userRepository.changeRole("staff")
+                            }
+                        },
+                        colors = RadioButtonDefaults.colors(
+                            selectedColor = Color(0xFF2E7D32)
+                        )
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Staff",
+                        modifier = Modifier.width(100.dp)
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
+        Spacer(modifier = Modifier.height(40.dp))
+
         Image(
             painter = painterResource(id = R.drawable.metropolia),
             contentDescription = "App Logo",
-            modifier = Modifier.size(70.dp)
+            modifier = Modifier.size(100.dp)
         )
 
-        Spacer(modifier = Modifier.height(60.dp))
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
