@@ -59,13 +59,20 @@ fun LandingScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
+            text = "Welcome to Canopy",
+            style = MaterialTheme.typography.headlineLarge,
+            textAlign = TextAlign.Center,
+            color = Color.Black
+        )
+
+        Text(
             text = "Track your carbon footprint",
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center,
             color = Color.Black
         )
 
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         Text(
             text = "Choose your role to begin",
@@ -74,7 +81,7 @@ fun LandingScreen(navController: NavController) {
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(40.dp))
 
         Card(
             shape = RoundedCornerShape(20.dp),
@@ -133,21 +140,6 @@ fun LandingScreen(navController: NavController) {
         }
 
         Spacer(modifier = Modifier.height(20.dp))
-
-        Button(
-            onClick = { navController.navigate("homeScreen") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(50.dp),
-            elevation = ButtonDefaults.buttonElevation(4.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Darkbutton,
-                contentColor = Color.White
-            )
-        ) {
-            Text("Start Tracking")
-        }
 
         Spacer(modifier = Modifier.height(40.dp))
 
