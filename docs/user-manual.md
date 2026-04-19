@@ -46,12 +46,12 @@ The main purpose of the application is to track commuting distance and estimate 
 ### 5.1 Starting Location Tracking
 1. Open the application.
    
-<img width="408" height="911" alt="Screenshot 2026-03-31 153634" src="https://github.com/user-attachments/assets/3a6ce82f-0449-4d06-b911-523853c2f323" />
+<img width="410" height="863" alt="Screenshot 2026-04-19 175336" src="https://github.com/user-attachments/assets/51788783-6e8b-4e84-a6f9-bbcdbb941a13" />
 
-2. Press the **Start tracking** button or the **green button** in the middle to open the tracking page.
+2. Press the **green plus button** in the middle to open the tracking page.
 3. To start your trip press the **Start Trip** button.
    
-<img width="409" height="910" alt="Screenshot 2026-03-31 154124" src="https://github.com/user-attachments/assets/b82125e0-6e85-4380-971c-04cf5e0fd5a5" />
+<img width="409" height="862" alt="Screenshot 2026-04-19 175354" src="https://github.com/user-attachments/assets/8cf4fee7-9074-454f-b9b4-886e5bf29d83" />
 
 While tracking is active, the application calculates:
 * Movement distance
@@ -61,44 +61,66 @@ While tracking is active, the application calculates:
 ### 5.2 Stopping Tracking
 1. Press the **End trip** button.
 
-<img width="410" height="911" alt="Screenshot 2026-03-31 154331" src="https://github.com/user-attachments/assets/0b710c8b-f7b1-4cc3-bd7a-fa9a4cbbbea1" />
+<img width="409" height="863" alt="Screenshot 2026-04-19 175713" src="https://github.com/user-attachments/assets/603af68d-a769-46a3-9195-c3fce61aab52" />
 
 2. The trip will be saved and you will see your trips statistics.
 
-<img width="409" height="914" alt="Screenshot 2026-03-31 154343" src="https://github.com/user-attachments/assets/c5b34920-c9b0-4bad-af25-5a1689c91939" />
-
 ### 5.3 Manual trip entry
 The application also allows manual trip entry, to do this:
-1. Press the **Pen button** in the bottom bar
+1. Press the **Add Manual Entry** in the tracking page
 
-<img width="408" height="911" alt="Screenshot 2026-03-31 153119" src="https://github.com/user-attachments/assets/1187592d-3566-4394-8db4-88147da32809" />
+<img width="409" height="861" alt="image" src="https://github.com/user-attachments/assets/af7920b4-9c66-4602-8836-0138b4fc321a" />
 
 2. Select your transport mode and input your trips lenght as meters
 3. Press **Save trip** and your trip will be saved
 
-<img width="409" height="911" alt="Screenshot 2026-03-31 153208" src="https://github.com/user-attachments/assets/c764e3d5-56b1-4359-8ed2-2e51dd6f72db" />
-
+<img width="407" height="863" alt="Screenshot 2026-04-19 180512" src="https://github.com/user-attachments/assets/10ba5eed-814c-47b0-be71-cd2ff3250a47" />
 
 ### 5.4 Viewing Environmental Impact
 The application visualizes commuting impact through:
+* **Interactive Tree:** to see your Interactive tree that reacts to your emissions, press the **leaf button** in the bottom bar
+
+<img width="407" height="862" alt="image" src="https://github.com/user-attachments/assets/7ed5edad-507e-4786-880f-9a3aed92176b" />
+
 * **Diagrams:** to see your emissions per vehicle type, press the **Trophy button** in the bottom bar
 
-<img width="408" height="912" alt="Screenshot 2026-03-31 153403" src="https://github.com/user-attachments/assets/708256a9-fccc-41a6-8b95-fc4e33b4dd46" />
+<img width="410" height="863" alt="Screenshot 2026-04-19 183430" src="https://github.com/user-attachments/assets/85a72449-e6a6-4b58-b95c-0ea8f9998c0b" />
 
 * **Graphs:** to see your monthly/yearly emissions, press the **Graphs button** in the bottom bar
 
-<img width="410" height="914" alt="Screenshot 2026-03-31 153430" src="https://github.com/user-attachments/assets/c3649ce7-adf5-4c78-94f6-2ab0585fccc8" />
+<img width="407" height="861" alt="image" src="https://github.com/user-attachments/assets/5eeb8826-0748-4a5d-9399-e08aab14a71f" />
 
 ---
 
-## 6. Permissions
+## 6. Exporting data
+The application allows data to be exported to a csv file, to do this:
+1. Open the Diagram page by pressing the **Trophy button**.
+
+<img width="410" height="863" alt="image" src="https://github.com/user-attachments/assets/28a61acd-3be1-4d37-885b-9d82ccae5dd5" />
+
+2. Press the **Export Data to CSV** button.
+
+<img width="411" height="853" alt="image" src="https://github.com/user-attachments/assets/372c4cbc-ef3e-40e5-821d-9b4131200339" />
+
+3. This will allow you to share a csv file with your data through email or your preferred way.
+
+---
+
+## 7. Permissions
 The application requires the following permissions:
 * **Location permission:** Used to track movement distance and detect trips.
-> **Note:** Without location permission, the application cannot automatically detect commuting.
+
+<img width="410" height="861" alt="Screenshot 2026-04-19 175417" src="https://github.com/user-attachments/assets/cdd3ec38-dd09-440a-89d4-d52d1b9a8a02" />
+
+* **Activity permission:** Used to detect motion type (walking, cycling).
+
+<img width="409" height="863" alt="Screenshot 2026-04-19 175431" src="https://github.com/user-attachments/assets/253793ff-cd7b-4324-8589-1c07fc6a1cf2" /> 
+
+> **Note:** Without location and activity permissions, the application cannot automatically detect commuting.
 
 ---
 
-## 7. Troubleshooting
+## 8. Troubleshooting
 
 #### Location tracking does not start
 Make sure that:
@@ -111,7 +133,7 @@ Make sure that:
 
 ---
 
-## 8. Future Improvements
+## 9. Future Improvements
 The application is still under development. Future versions may include:
 * Authentication (Login and sign up)
 * Improved trip detection
@@ -120,6 +142,6 @@ The application is still under development. Future versions may include:
 
 ---
 
-## 9. Contact
+## 10. Contact
 This project was developed as part of:
 **Metropolia University of Applied Sciences** – *Multidisciplinary Innovation Project Course*.
