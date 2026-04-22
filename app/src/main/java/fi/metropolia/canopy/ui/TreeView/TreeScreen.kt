@@ -15,8 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
@@ -69,20 +67,27 @@ fun MainTreeContent(totalEmissionsKg: Double, onShowGallery: () -> Unit) {
 
     val imageRes = getTreeImage(stage)
 
-    val colorFilter = if (stage == TreeStage.DESTROYED) {
-        ColorFilter.tint(Color(0xFF795548), blendMode = BlendMode.Modulate)
-    } else null
 
-    val backgroundColor = if (stage == TreeStage.DESTROYED) Color(0xFFBCAAA4) else OverviewColors.BgGreen
+    val colorFilter = when (stage) {
+        TreeStage.SEED -> ColorFilter.tint(Color(0xFF795548), blendMode = BlendMode.Modulate)
+        else -> null
+    }
+
+    //tausta muuttuu ruskeaksi kun  on paljon päästöi
+    val backgroundColor = when (stage) {
+        TreeStage.DESTROYED -> Color(0xFFBCAAA4)
+        TreeStage.SEED -> Color(0xFFD7CCC8)
+        else -> OverviewColors.BgGreen
+    }
 
     val size by animateDpAsState(
         targetValue = when (stage) {
-            TreeStage.DESTROYED -> 140.dp
             TreeStage.SEED -> 140.dp
             TreeStage.SPROUT -> 200.dp
             TreeStage.SMALL_TREE -> 280.dp
             TreeStage.BIG_TREE -> 340.dp
-
+            TreeStage.FULL_TREE -> 420.dp
+            TreeStage.DESTROYED -> 420.dp // Kuihtunut puu on suuri, mutta kuollut, koska päästöt on suuret
         },
         label = "tree_size"
     )
@@ -150,7 +155,7 @@ fun MainTreeContent(totalEmissionsKg: Double, onShowGallery: () -> Unit) {
                 Spacer(modifier = Modifier.height(8.dp))
                 
                 Text(
-                    text = "Total Emissions",
+                    text = "Yearly Emissions",
                     style = MaterialTheme.typography.labelMedium,
                     color = Color.Gray
                 )
@@ -223,7 +228,7 @@ fun TreeStageCard(stage: TreeStage) {
                 painter = painterResource(id = getTreeImage(stage)),
                 contentDescription = null,
                 modifier = Modifier.size(80.dp),
-                colorFilter = if (stage == TreeStage.DESTROYED) ColorFilter.tint(Color(0xFF795548), blendMode = BlendMode.Modulate) else null
+                colorFilter = if (stage == TreeStage.SEED) ColorFilter.tint(Color(0xFF795548), blendMode = BlendMode.Modulate) else null
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -246,34 +251,34 @@ fun TreeStageCard(stage: TreeStage) {
 
 fun getEmissionRange(stage: TreeStage): String {
     return when (stage) {
-
-        TreeStage.BIG_TREE -> "15 - 40 kg CO₂"
-        TreeStage.SMALL_TREE -> "40 - 70 kg CO₂"
-        TreeStage.SPROUT -> "70 - 100 kg CO₂"
-        TreeStage.SEED -> "100 - 150 kg CO₂"
-        TreeStage.DESTROYED -> "> 150 kg CO₂"
+        TreeStage.FULL_TREE -> "< 1000 kg CO₂"
+        TreeStage.BIG_TREE -> "1000 - 2500 kg CO₂"
+        TreeStage.SMALL_TREE -> "2500 - 5000 kg CO₂"
+        TreeStage.SPROUT -> "5000 - 8000 kg CO₂"
+        TreeStage.SEED -> "8000 - 12000 kg CO₂"
+        TreeStage.DESTROYED -> "> 12000 kg CO₂"
     }
 }
 
 fun getStageText(stage: TreeStage): String {
     return when (stage) {
-        TreeStage.DESTROYED -> "Destroyed 🌫️"
+        TreeStage.DESTROYED -> "Withered 🌫️"
         TreeStage.SEED -> "Baseline 🌱"
         TreeStage.SPROUT -> "Growing 🌿"
         TreeStage.SMALL_TREE -> "Doing Great 🌳"
-        TreeStage.BIG_TREE -> "Perfect 🌍💚"
-
+        TreeStage.BIG_TREE -> "Very Good 🌳✨"
+        TreeStage.FULL_TREE -> "Perfect 🌍💚"
     }
 }
 
 fun getTreeImage(stage: TreeStage): Int {
     return when (stage) {
-        TreeStage.DESTROYED -> R.drawable.tree5
-        TreeStage.SEED -> R.drawable.tree1
-        TreeStage.SPROUT -> R.drawable.tree2
-        TreeStage.SMALL_TREE -> R.drawable.tree3
-        TreeStage.BIG_TREE -> R.drawable.tree4
-
+        TreeStage.FULL_TREE -> R.drawable.tree4     // Terve puu
+        TreeStage.BIG_TREE -> R.drawable.tree4      // Melkein täysi
+        TreeStage.SMALL_TREE -> R.drawable.tree3    // Keskikokoinen
+        TreeStage.SPROUT -> R.drawable.tree2         // Pieni taimi
+        TreeStage.SEED -> R.drawable.tree1          // Alkuvaihe
+        TreeStage.DESTROYED -> R.drawable.tree5     // Kuihtunut (ilman lehtiä)
     }
 }
 
