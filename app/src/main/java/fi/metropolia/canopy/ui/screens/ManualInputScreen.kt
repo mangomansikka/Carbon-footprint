@@ -19,6 +19,10 @@ import fi.metropolia.canopy.viewmodels.TripViewModel
 import fi.metropolia.canopy.ui.overview.OverviewColors
 import fi.metropolia.canopy.ui.theme.Darkbutton
 import fi.metropolia.canopy.utils.viewModelFactories.TripViewModelFactory
+import android.app.DatePickerDialog
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 @Composable
 fun ManualInputScreen() {
@@ -30,6 +34,7 @@ fun ManualInputScreen() {
         factory = TripViewModelFactory(context)
     )
 
+    var selectedTripTimeMillis by remember { mutableStateOf(System.currentTimeMillis()) }
     var distance by remember { mutableStateOf("") }
     var selectedMode by remember { mutableStateOf("car") }
     var showSaved by remember { mutableStateOf(false) }
@@ -43,6 +48,13 @@ fun ManualInputScreen() {
         "walking",
         "cycling"
     )
+
+    val calendar = Calendar.getInstance().apply {
+        timeInMillis = selectedTripTimeMillis}
+
+    val dateLabel = remember(selectedTripTimeMillis) {
+        SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(selectedTripTimeMillis)
+    }
 
     Column(
         modifier = Modifier
@@ -117,12 +129,42 @@ fun ManualInputScreen() {
                 }
             }
 
-            Spacer(Modifier.height(32.dp))
+
+            Spacer(Modifier.height(8.dp))
+
+            OutlinedButton(
+                onClick = {
+                    DatePickerDialog(
+                        context,
+                        { _, year, month, dayOfMonth ->
+                            val picked = Calendar.getInstance().apply {
+                                set(Calendar.YEAR, year)
+                                set(Calendar.MONTH, month)
+                                set(Calendar.DAY_OF_MONTH, dayOfMonth)
+                                set(Calendar.HOUR_OF_DAY,12)
+                                set(Calendar.MINUTE,0)
+                                set(Calendar.SECOND,0)
+                                set(Calendar.MILLISECOND,0)
+                            }
+                            selectedTripTimeMillis = picked.timeInMillis },
+                        calendar.get(Calendar.YEAR),
+                        calendar.get(Calendar.MONTH),
+                        calendar.get(Calendar.DAY_OF_MONTH)
+                    ).show()
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Selected: $dateLabel")
+            }
+
+
+            Spacer(Modifier.height(18.dp))
 
             Button(
                 onClick = {
                     val dist = distance.toDoubleOrNull() ?: 0.0
-                    viewModel.saveManualTrip(dist, selectedMode)
+                    viewModel.saveManualTrip(dist, selectedMode, selectedTripTimeMillis)
                     distance = ""
                     showSaved = true
                 },

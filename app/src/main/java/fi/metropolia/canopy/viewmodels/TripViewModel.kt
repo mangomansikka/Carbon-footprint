@@ -9,6 +9,7 @@ import fi.metropolia.canopy.data.repository.TripRepository
 import fi.metropolia.canopy.data.repository.UserRepository
 import fi.metropolia.canopy.data.source.CanopyDatabase
 import fi.metropolia.canopy.data.source.LocationEntity
+import fi.metropolia.canopy.data.source.TripEntity
 import fi.metropolia.canopy.domain.model.TrackingState
 import fi.metropolia.canopy.service.TrackingService
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,9 +71,13 @@ class TripViewModel(context: Context) : ViewModel() {
         }
     }
 
-    fun saveManualTrip(distance: Double, mode: String) {
+    fun saveManualTrip(distance: Double, mode: String, selectedTripTimeMillis: Long) {
         viewModelScope.launch {
-            repository.saveManualTrip(distance, mode)
+            repository.saveManualTrip(
+                distance = distance,
+                mode = mode,
+                selectedTripTimeMillis = selectedTripTimeMillis
+            )
             loadEmissions()
         }
     }
@@ -97,4 +102,6 @@ class TripViewModel(context: Context) : ViewModel() {
             ExportUtils.exportAndEmailData(context, trips, userRole, recipientEmail)
         }
     }
+
+
 }

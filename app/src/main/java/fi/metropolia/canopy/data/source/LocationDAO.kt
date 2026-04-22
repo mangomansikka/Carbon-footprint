@@ -2,13 +2,11 @@ package fi.metropolia.canopy.data.source
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 
 @Dao
 interface LocationDAO {
-    @Insert
-    suspend fun insertLocation(location: LocationEntity)
-
     @Query("SELECT COALESCE(SUM(emissionBussKg), 0.0) FROM locations")
     suspend fun getTotalBusEmissions(): Double
 
@@ -42,11 +40,11 @@ interface LocationDAO {
     @Query("SELECT COALESCE(SUM(cyclingDistanceM), 0.0) FROM locations")
     suspend fun getTotalCyclingDistance(): Double
 
-    @Query("SELECT * FROM locations ORDER BY timestamp DESC")
+    @Query("SELECT * FROM locations ORDER BY timestampMillis DESC")
     suspend fun getAllLocations(): List<LocationEntity>
 
     @Query("""
-        SELECT strftime('%m', timestamp / 1000, 'unixepoch') as month, 
+        SELECT strftime('%m', timestampMillis / 1000, 'unixepoch') as month, 
                SUM(emissionBussKg + emissionMetroKg + emissionTrainKg + 
                    emissionPetrolCarKg + emissionDieselCarKg + emissionHybridCarKg + emissionUnknownCarKg + 
                    emissionElectricCarKg + emissionMopedKg) * 1000 as totalEmissionsGrams
@@ -73,4 +71,7 @@ interface LocationDAO {
 
     @Query("DELETE FROM locations")
     suspend fun deleteAllLocations()
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertLocation(entity: LocationEntity)
 }

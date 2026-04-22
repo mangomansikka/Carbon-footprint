@@ -28,5 +28,6 @@ data class LocationEntity(
 
     // New fields for walking and cycling distances
     val walkingDistanceM: Double = 0.0,
-    val cyclingDistanceM: Double = 0.0
+    val cyclingDistanceM: Double = 0.0,
+    val timestampMillis: Long,
 )

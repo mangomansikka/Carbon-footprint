@@ -44,8 +44,8 @@ class TripRepository(private val dao: LocationDAO) {
             }
         }
 
-        dao.insertLocation(
-            LocationEntity(
+
+            val entity = LocationEntity(
                 latitude = TrackingState.lastLatitude ?: 0.0,
                 longitude = TrackingState.lastLongitude ?: 0.0,
                 transportModes = modesString,
@@ -56,9 +56,10 @@ class TripRepository(private val dao: LocationDAO) {
                 emissionUnknownCarKg = unknownCarKg,
                 emissionMopedKg = mopedKg,
                 walkingDistanceM = walkingDistanceM,
-                cyclingDistanceM = cyclingDistanceM
+                cyclingDistanceM = cyclingDistanceM,
+                timestampMillis = System.currentTimeMillis()
             )
-        )
+            dao.insertLocation(entity)
     }
 
     suspend fun getAllTrips(): List<LocationEntity> {
@@ -85,7 +86,7 @@ class TripRepository(private val dao: LocationDAO) {
         return dao.getMonthlyEmissions().associate { it.month to it.totalEmissionsGrams }
     }
 
-    suspend fun saveManualTrip(distance: Double, mode: String) {
+    suspend fun saveManualTrip(distance: Double, mode: String, selectedTripTimeMillis: Long) {
 
         val emissionKg = CarbonHelper.calculate(distance, mode)
 
@@ -113,8 +114,8 @@ class TripRepository(private val dao: LocationDAO) {
         }
 
 
-        dao.insertLocation(
-            LocationEntity(
+
+            val entity = LocationEntity(
                 latitude = 0.0,
                 longitude = 0.0,
                 transportModes = mode,
@@ -125,9 +126,11 @@ class TripRepository(private val dao: LocationDAO) {
                 emissionUnknownCarKg = unknownCarKg,
                 emissionMopedKg = mopedKg,
                 walkingDistanceM = walkingDistanceM,
-                cyclingDistanceM = cyclingDistanceM
+                cyclingDistanceM = cyclingDistanceM,
+                timestampMillis = selectedTripTimeMillis
             )
-        )
+        dao.insertLocation(entity)
+
     }
 
     suspend fun getTotalWalkingDistance(): Double = dao.getTotalWalkingDistance()

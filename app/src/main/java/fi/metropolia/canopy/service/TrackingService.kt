@@ -162,19 +162,20 @@ class TrackingService : Service() {
 
         // Database persistence
         serviceScope.launch {
-            db.locationDao().insertLocation(
-                LocationEntity(
+
+                val entity = LocationEntity(
                     latitude = location.latitude,
                     longitude = location.longitude,
                     // Use a simple mapping to fill specific columns for the Overview summation
                     emissionBussKg = if (mode == "bus") deltaEmission else 0.0,
                     emissionMetroKg = if (mode == "metro") deltaEmission else 0.0,
                     emissionTrainKg = if (mode == "train") deltaEmission else 0.0,
-                    emissionMopedKg = if (mode == "moped_scooter") deltaEmission else 0.0,
                     emissionUnknownCarKg = if (mode == "car") deltaEmission else 0.0,
+                    emissionMopedKg = if (mode == "moped_scooter") deltaEmission else 0.0,
+                    timestampMillis = currentTime
                     // Note: Activity recognition doesn't distinguish fuel type yet, defaulting to unknown
                 )
-            )
+                db.locationDao().insertLocation(entity)
         }
     }
 
