@@ -46,8 +46,12 @@ class TripRepository(private val dao: LocationDAO) {
 
         dao.insertLocation(
             LocationEntity(
-                latitude = TrackingState.lastLatitude ?: 0.0,
-                longitude = TrackingState.lastLongitude ?: 0.0,
+                latitude = TrackingState.tripEndLatitude ?: TrackingState.lastLatitude ?: 0.0,
+                longitude = TrackingState.tripEndLongitude ?: TrackingState.lastLongitude ?: 0.0,
+                startLatitude = TrackingState.tripStartLatitude,
+                startLongitude = TrackingState.tripStartLongitude,
+                endLatitude = TrackingState.tripEndLatitude ?: TrackingState.lastLatitude,
+                endLongitude = TrackingState.tripEndLongitude ?: TrackingState.lastLongitude,
                 transportModes = modesString,
                 carbonEmissionGrams = (totalEmissionsKg * 1000).toFloat(),
                 emissionBussKg = busKg,
@@ -117,6 +121,10 @@ class TripRepository(private val dao: LocationDAO) {
             LocationEntity(
                 latitude = 0.0,
                 longitude = 0.0,
+                startLatitude = null,
+                startLongitude = null,
+                endLatitude = null,
+                endLongitude = null,
                 transportModes = mode,
                 carbonEmissionGrams = (emissionKg * 1000).toFloat(),
                 emissionBussKg = busKg,

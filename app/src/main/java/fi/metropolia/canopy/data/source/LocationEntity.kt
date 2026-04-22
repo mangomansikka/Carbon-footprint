@@ -10,6 +10,10 @@ data class LocationEntity(
     val latitude: Double,
     val longitude: Double,
     val timestamp: Long = System.currentTimeMillis(),
+    val startLatitude: Double? = null,
+    val startLongitude: Double? = null,
+    val endLatitude: Double? = null,
+    val endLongitude: Double? = null,
 
     // Persistent trip results
     val transportModes: String = "",

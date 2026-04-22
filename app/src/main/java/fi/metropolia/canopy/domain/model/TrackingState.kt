@@ -33,6 +33,10 @@ object TrackingState {
 
     var lastLatitude: Double? = null
     var lastLongitude: Double? = null
+    var tripStartLatitude: Double? = null
+    var tripStartLongitude: Double? = null
+    var tripEndLatitude: Double? = null
+    var tripEndLongitude: Double? = null
 
     fun reset() {
         isTracking = false
@@ -48,6 +52,10 @@ object TrackingState {
         currentConfidence = 0
         lastLatitude = null
         lastLongitude = null
+        tripStartLatitude = null
+        tripStartLongitude = null
+        tripEndLatitude = null
+        tripEndLongitude = null
     }
 
     fun addDistanceToMode(mode: String, distance: Double, emission: Double) {

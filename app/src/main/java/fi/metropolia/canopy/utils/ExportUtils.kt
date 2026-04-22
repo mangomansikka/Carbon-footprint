@@ -12,10 +12,19 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 object ExportUtils {
+    private data class AssignmentResult(
+        val startCampus: String,
+        val endCampus: String,
+        val assignedCampus: String,
+        val assignmentMethod: String
+    )
+
+    private data class CampusAggregate(var totalEmissionKg: Double = 0.0, var tripCount: Int = 0)
+
     fun generateCsv(trips: List<LocationEntity>, userRole: String): String {
         val csvBuilder = StringBuilder()
 
-        csvBuilder.append("ID,User Role,Latitude,Longitude,Timestamp,Transport Modes,Total Carbon Emission (kg),Bus Emission (kg),Metro Emission (kg),Train Emission (kg),Petrol Car Emission (kg),Diesel Car Emission (kg),Hybrid Car Emission (kg),Electric Car Emission (kg),Unknown Car Emission (kg),Moped Emission (kg),Walking Distance (m),Cycling Distance (m)\n")
+        csvBuilder.append("ID,User Role,Trip Start Latitude,Trip Start Longitude,Trip End Latitude,Trip End Longitude,Timestamp,Start Campus,End Campus,Assigned Campus,Campus Assignment Method,Distance To Assigned Campus (m),Transport Modes,Total Carbon Emission (kg),Assigned Campus Emission (kg),Bus Emission (kg),Metro Emission (kg),Train Emission (kg),Petrol Car Emission (kg),Diesel Car Emission (kg),Hybrid Car Emission (kg),Electric Car Emission (kg),Unknown Car Emission (kg),Moped Emission (kg),Walking Distance (m),Cycling Distance (m)\n")
 
         val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
 
@@ -24,20 +33,48 @@ object ExportUtils {
             .filter { it.transportModes.isNotEmpty() || it.carbonEmissionGrams > 0f }
             .sortedByDescending { it.timestamp }
 
-        val totalCount = filteredTrips.size
+        val campusAggregates = linkedMapOf(
+            "Myllypuro" to CampusAggregate(),
+            "Karamalmi" to CampusAggregate(),
+            "Arabia" to CampusAggregate(),
+            "Myyrmaki" to CampusAggregate(),
+            "Off-campus" to CampusAggregate()
+        )
 
         filteredTrips.forEachIndexed { index, trip ->
-            val newId = totalCount - index
-            csvBuilder.append("$newId,")
-            csvBuilder.append("$userRole,")
-            csvBuilder.append("${trip.latitude},")
-            csvBuilder.append("${trip.longitude},")
+            val startLat = trip.startLatitude ?: trip.latitude.takeIf { it != 0.0 }
+            val startLon = trip.startLongitude ?: trip.longitude.takeIf { it != 0.0 }
+            val endLat = trip.endLatitude ?: trip.latitude.takeIf { it != 0.0 }
+            val endLon = trip.endLongitude ?: trip.longitude.takeIf { it != 0.0 }
+
+            val assignment = assignCampus(startLat, startLon, endLat, endLon)
+            val assignedDistance = when (assignment.assignmentMethod) {
+                "end-campus" -> CampusResolver.resolveCampus(endLat, endLon)?.distanceMeters
+                "start-campus-fallback" -> CampusResolver.resolveCampus(startLat, startLon)?.distanceMeters
+                else -> null
+            }
+
+            val tripTotalEmissionKg = trip.carbonEmissionGrams / 1000f
+            campusAggregates[assignment.assignedCampus]?.apply {
+                totalEmissionKg += tripTotalEmissionKg.toDouble()
+                tripCount += 1
+            }
+
+            csvBuilder.append("${index + 1},")
+            csvBuilder.append("${quoteCsv(userRole)},")
+            csvBuilder.append("${formatCoordinate(startLat)},")
+            csvBuilder.append("${formatCoordinate(startLon)},")
+            csvBuilder.append("${formatCoordinate(endLat)},")
+            csvBuilder.append("${formatCoordinate(endLon)},")
             csvBuilder.append("${dateFormat.format(Date(trip.timestamp))},")
-            csvBuilder.append("\"${trip.transportModes}\",")
-            
-            // Convert grams to kg for the export
-            val totalEmissionKg = trip.carbonEmissionGrams / 1000f
-            csvBuilder.append("$totalEmissionKg,")
+            csvBuilder.append("${quoteCsv(assignment.startCampus)},")
+            csvBuilder.append("${quoteCsv(assignment.endCampus)},")
+            csvBuilder.append("${quoteCsv(assignment.assignedCampus)},")
+            csvBuilder.append("${quoteCsv(assignment.assignmentMethod)},")
+            csvBuilder.append("${assignedDistance ?: ""},")
+            csvBuilder.append("${quoteCsv(trip.transportModes)},")
+            csvBuilder.append("$tripTotalEmissionKg,")
+            csvBuilder.append("$tripTotalEmissionKg,")
 
             csvBuilder.append("${trip.emissionBussKg},")
             csvBuilder.append("${trip.emissionMetroKg},")
@@ -52,8 +89,56 @@ object ExportUtils {
             csvBuilder.append("${trip.cyclingDistanceM}\n")
         }
 
+        csvBuilder.append("\n")
+        csvBuilder.append("Campus,Total Emissions (kg),Trip Count\n")
+        campusAggregates.forEach { (campus, aggregate) ->
+            csvBuilder.append("${quoteCsv(campus)},${aggregate.totalEmissionKg},${aggregate.tripCount}\n")
+        }
+
         return csvBuilder.toString()
     }
+
+    private fun assignCampus(
+        startLatitude: Double?,
+        startLongitude: Double?,
+        endLatitude: Double?,
+        endLongitude: Double?
+    ): AssignmentResult {
+        val endMatch = CampusResolver.resolveCampus(endLatitude, endLongitude)
+        val startMatch = CampusResolver.resolveCampus(startLatitude, startLongitude)
+
+        val startCampus = if (startMatch?.withinThreshold == true) startMatch.name else "Off-campus"
+        val endCampus = if (endMatch?.withinThreshold == true) endMatch.name else "Off-campus"
+
+        if (endMatch?.withinThreshold == true) {
+            return AssignmentResult(
+                startCampus = startCampus,
+                endCampus = endCampus,
+                assignedCampus = endMatch.name,
+                assignmentMethod = "end-campus"
+            )
+        }
+
+        if (startMatch?.withinThreshold == true) {
+            return AssignmentResult(
+                startCampus = startCampus,
+                endCampus = endCampus,
+                assignedCampus = startMatch.name,
+                assignmentMethod = "start-campus-fallback"
+            )
+        }
+
+        return AssignmentResult(
+            startCampus = "Off-campus",
+            endCampus = "Off-campus",
+            assignedCampus = "Off-campus",
+            assignmentMethod = "off-campus"
+        )
+    }
+
+    private fun quoteCsv(value: String): String = "\"${value.replace("\"", "\"\"")}\""
+
+    private fun formatCoordinate(value: Double?): String = value?.toString() ?: ""
 
     // Function to save CSV to a file and return the Uri
     fun saveCsvToFile(context: Context, csvContent: String, fileName: String = "carbon_footprint_data.csv"): Uri? {
