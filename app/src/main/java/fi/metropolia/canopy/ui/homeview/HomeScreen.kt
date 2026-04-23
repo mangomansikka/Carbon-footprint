@@ -104,7 +104,7 @@ fun HomeScreen(
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = "kg CO₂/year",
+                    text = "ton CO₂/year",
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color.White
                 )
