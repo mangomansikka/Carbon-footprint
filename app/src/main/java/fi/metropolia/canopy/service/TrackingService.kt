@@ -99,6 +99,13 @@ class TrackingService : Service() {
         TrackingState.currentSpeedMps = location.speed
         TrackingState.updateRollingAverage(location.speed)
 
+        if (TrackingState.tripStartLatitude == null || TrackingState.tripStartLongitude == null) {
+            TrackingState.tripStartLatitude = location.latitude
+            TrackingState.tripStartLongitude = location.longitude
+        }
+        TrackingState.tripEndLatitude = location.latitude
+        TrackingState.tripEndLongitude = location.longitude
+
         val speedKmh = location.speed * 3.6
         var mode = determineTransportMode(speedKmh)
 

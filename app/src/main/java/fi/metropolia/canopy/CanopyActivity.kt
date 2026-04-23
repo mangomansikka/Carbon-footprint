@@ -96,7 +96,7 @@ fun AppNavGraph() {
                     IconButton(onClick = {
                         navController.navigate("overviewScreen")
                     }) {
-                        Icon(Icons.Default.EmojiEvents, null, tint = iconColor("overviewScreen"))
+                        Icon(Icons.Default.PieChart, null, tint = iconColor("overviewScreen"))
                     }
 
                     /* STATS 📈 */
