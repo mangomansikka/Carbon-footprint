@@ -85,7 +85,7 @@ fun ManualInputScreen() {
                 .padding(20.dp)
         ) {
 
-            Text("Distance (meters)", style = MaterialTheme.typography.titleMedium)
+            Text("Distance (kilometres)", style = MaterialTheme.typography.titleMedium)
 
             Spacer(Modifier.height(8.dp))
 
@@ -94,7 +94,7 @@ fun ManualInputScreen() {
                 onValueChange = { distance = it },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                label = { Text("Enter distance") }
+                label = { Text("Enter distance in km") }
             )
 
             Spacer(Modifier.height(24.dp))
@@ -163,8 +163,9 @@ fun ManualInputScreen() {
 
             Button(
                 onClick = {
-                    val dist = distance.toDoubleOrNull() ?: 0.0
-                    viewModel.saveManualTrip(dist, selectedMode, selectedTripTimeMillis)
+                    val distKm = distance.toDoubleOrNull() ?: 0.0
+                    val distM = distKm * 1000.0
+                    viewModel.saveManualTrip(distM, selectedMode, selectedTripTimeMillis)
                     distance = ""
                     showSaved = true
                 },
