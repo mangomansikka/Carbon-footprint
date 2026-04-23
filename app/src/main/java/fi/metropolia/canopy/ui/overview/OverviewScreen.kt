@@ -65,21 +65,40 @@ fun OverviewScreen(navController: NavController) {
 
     val showInfo = remember { mutableStateOf(false) }
 
+    val ecoMode = (emissions["Car"] ?: 0.0) == 0.0 &&
+            (emissions["Moped"] ?: 0.0) == 0.0
+
+    val bgColor = if (ecoMode) Color(0xFF81C784) else OverviewColors.BgGreen
+
+    val emissionsWithDistance = emissions.toMutableMap()
+    emissionsWithDistance["Walking"] = walkingDist / 1000
+    emissionsWithDistance["Cycling"] = cyclingDist / 1000
+
+    val orderedModes = listOf(
+        "Car", "Moped",
+        "Bus", "Train", "Metro",
+        "Walking", "Cycling"
+    )
+
     val slices =
         if (!hasData) {
             listOf(EmissionSlice("No data", 1.0, Color(0xFF6FCF97)))
         } else {
-            emissions
-                .filter { it.value > 0 && it.key != "Walking" && it.key != "Cycling" }
-                .map { (category, value) ->
-                    EmissionSlice(category, value, colorForMode(category))
+            orderedModes
+                .filter { (emissionsWithDistance[it] ?: 0.0) > 0 }
+                .map {
+                    EmissionSlice(
+                        it,
+                        emissionsWithDistance[it] ?: 0.0,
+                        colorForMode(it)
+                    )
                 }
         }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(OverviewColors.BgGreen)
+            .background(bgColor)
             .verticalScroll(scrollState)
     ) {
 
@@ -94,7 +113,6 @@ fun OverviewScreen(navController: NavController) {
 
         Spacer(Modifier.height(12.dp))
 
-        // näkyy vain kun EI dataa (tämä on oikein)
         if (!hasData) {
             Text(
                 text = "Start a trip to see your emissions",
@@ -109,8 +127,7 @@ fun OverviewScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(24.dp)
+            verticalAlignment = Alignment.CenterVertically
         ) {
 
             Box(
@@ -132,26 +149,19 @@ fun OverviewScreen(navController: NavController) {
 
                 Text(
                     text = centerText,
-                    style = MaterialTheme.typography.titleMedium, // 🔥 parempi koko
+                    style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center,
                     color = Color.Black
                 )
             }
 
+            Spacer(modifier = Modifier.width(48.dp))
+
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
-                val summaryModes = listOf(
-                    "Car" to Icons.Default.DirectionsCar,
-                    "Bus" to Icons.Default.DirectionsBus,
-                    "Train" to Icons.Default.Train,
-                    "Metro" to Icons.Default.DirectionsSubway,
-                    "Moped" to Icons.Default.TwoWheeler,
-                    "Walking" to Icons.Default.DirectionsWalk,
-                    "Cycling" to Icons.Default.DirectionsBike
-                )
+                orderedModes.forEach { category ->
 
-                summaryModes.forEach { (category, icon) ->
-
+                    val icon = iconForLabel(category)
                     val value = emissions[category] ?: 0.0
 
                     val textValue =
@@ -162,21 +172,20 @@ fun OverviewScreen(navController: NavController) {
                             "$pct%"
                         }
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    if ((emissionsWithDistance[category] ?: 0.0) > 0 || category == "Metro") {
 
-                        Icon(
-                            icon,
-                            null,
-                            tint = colorForMode(category)
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
 
-                        Spacer(Modifier.width(8.dp))
+                            Icon(icon, null, tint = colorForMode(category))
 
-                        Text(
-                            text = "$category $textValue",
-                            color = Color.White,
-                            style = MaterialTheme.typography.titleMedium
-                        )
+                            Spacer(Modifier.width(8.dp))
+
+                            Text(
+                                text = "$category $textValue",
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
                     }
                 }
             }
@@ -199,11 +208,11 @@ fun OverviewScreen(navController: NavController) {
 
             Spacer(Modifier.height(20.dp))
 
-            val allModes = listOf(
-                "Car", "Bus", "Train", "Metro", "Moped", "Walking", "Cycling"
-            )
+            val visibleModes = orderedModes.filter {
+                (emissionsWithDistance[it] ?: 0.0) > 0 || it == "Metro"
+            }
 
-            allModes.forEach { category ->
+            visibleModes.forEach { category ->
 
                 val value = emissions[category] ?: 0.0
 
@@ -241,7 +250,7 @@ fun OverviewScreen(navController: NavController) {
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)  // Adds space between buttons
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Button(
                     onClick = { showInfo.value = true },
@@ -251,13 +260,13 @@ fun OverviewScreen(navController: NavController) {
                         contentColor = Color.White
                     )
                 ) {
-                    Text("?")
+                    Icon(Icons.Default.Info, contentDescription = null)
                 }
 
                 Button(
-                    onClick = { viewModel.exportData(context) },  // Trigger export
+                    onClick = { viewModel.exportData(context) },
                     modifier = Modifier
-                        .weight(1f)  // Makes it expand to fill available space next to the ? button
+                        .weight(1f)
                         .height(56.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Darkbutton,
@@ -268,36 +277,31 @@ fun OverviewScreen(navController: NavController) {
                 }
             }
 
-
             Spacer(Modifier.height(16.dp))
 
-
-                if (showInfo.value) {
-                    AlertDialog(
-                        onDismissRequest = { showInfo.value = false },
-                        title = { Text("Emissions") },
-                        text = {
-                            Text("Each mode produces different emissions. Walking and cycling are the best. " +
-                                    "To download your data, click 'Export Data to CSV'. " +
-                                    "CSV is a plain text file used to store tabular data " +
-                                    "in a structured format.")
-                        },
-                        confirmButton = {
-                            Button(
-                                onClick = { showInfo.value = false },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Darkbutton,
-                                    contentColor = Color.White
-                                )
-                            ) {
-                                Text("OK")
-                            }
+            if (showInfo.value) {
+                AlertDialog(
+                    onDismissRequest = { showInfo.value = false },
+                    title = { Text("Emissions") },
+                    text = {
+                        Text("Each mode produces different emissions. Walking and cycling are the best.")
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = { showInfo.value = false },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Darkbutton,
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text("OK")
                         }
-                    )
-                }
+                    }
+                )
             }
         }
     }
+}
 
 
 fun formatDistance(meters: Double): String =
@@ -319,10 +323,8 @@ private fun iconForLabel(label: String) = when (label.lowercase()) {
 }
 
 private fun colorForMode(mode: String) = when (mode.lowercase()) {
-    "car" -> Color(0xFF2E7D32)
-    "bus" -> Color(0xFF1565C0)
-    "train" -> Color(0xFFC62828)
-    "metro" -> Color(0xFF6A1B9A)
-    "moped" -> Color(0xFFEF6C00)
+    "car", "moped" -> Color(0xFFD32F2F)
+    "bus", "train", "metro" -> Color(0xFFFFEB3B)
+    "walking", "cycling" -> Color(0xFF2E7D32)
     else -> Color.Gray
 }
