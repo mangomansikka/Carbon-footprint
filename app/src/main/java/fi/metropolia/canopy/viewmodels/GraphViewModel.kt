@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fi.metropolia.canopy.data.repository.TripRepository
 import fi.metropolia.canopy.data.source.CanopyDatabase
+import fi.metropolia.canopy.data.source.LocationEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -21,6 +22,10 @@ class GraphViewModel(context: Context) : ViewModel() {
 
     private val _percentageChange = MutableStateFlow(0.0)
     val percentageChange: StateFlow<Double> = _percentageChange
+
+    private val _calenderData = MutableStateFlow<List<LocationEntity>>(emptyList())
+    val calenderData: StateFlow<List<LocationEntity>> = _calenderData
+
 
     init {
         val db = CanopyDatabase.getInstance(context)
@@ -55,6 +60,21 @@ class GraphViewModel(context: Context) : ViewModel() {
             } else {
                 _percentageChange.value = if (current > 0) 100.0 else 0.0
             }
+        }
+    }
+
+    fun loadCalenderData(startMillis: Long, endMillis: Long) {
+        viewModelScope.launch {
+            val data = repository.getLocationsByDate(startMillis, endMillis)
+            _calenderData.value = data
+        }
+    }
+
+    fun deleteLocationsById(id: Int, startMillis: Long, endMillis: Long) {
+        viewModelScope.launch {
+            repository.deleteLocationsById(id)
+            loadMonthlyEmissions() // Update the graph and totals
+            loadCalenderData(startMillis, endMillis) // Update the list for the current day
         }
     }
 

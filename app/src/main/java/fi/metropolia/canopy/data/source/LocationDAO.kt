@@ -1,6 +1,7 @@
 package fi.metropolia.canopy.data.source
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -74,4 +75,10 @@ interface LocationDAO {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLocation(entity: LocationEntity)
+
+    @Query("SELECT * FROM locations WHERE timestampMillis >= :startDate AND timestampMillis <= :endDate")
+    suspend fun getLocationsByDate(startDate: Long, endDate: Long): List<LocationEntity>
+
+    @Query("DELETE FROM locations WHERE id = :id")
+    suspend fun deleteLocationsById(id: Int)
 }
