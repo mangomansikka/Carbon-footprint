@@ -152,4 +152,6 @@ class TripRepository(private val dao: LocationDAO) {
         dao.deleteLocationsById(id)
     }
 
+    suspend fun getDaysWithData(): List<String> = dao.getDaysWithData()
+
 }

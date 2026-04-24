@@ -26,11 +26,15 @@ class GraphViewModel(context: Context) : ViewModel() {
     private val _calenderData = MutableStateFlow<List<LocationEntity>>(emptyList())
     val calenderData: StateFlow<List<LocationEntity>> = _calenderData
 
+    private val _daysWithData = MutableStateFlow<Set<String>>(emptySet())
+    val daysWithData: StateFlow<Set<String>> = _daysWithData
+
 
     init {
         val db = CanopyDatabase.getInstance(context)
         repository = TripRepository(db.locationDao())
         loadMonthlyEmissions()
+        loadDaysWithData()
     }
 
     fun loadMonthlyEmissions() {
@@ -45,10 +49,6 @@ class GraphViewModel(context: Context) : ViewModel() {
             calendar.add(Calendar.MONTH, -1)
             val prevMonthKey = String.format("%02d", calendar.get(Calendar.MONTH) + 1)
 
-            // Calculate Total specifically for the CURRENT YEAR
-            // We'll filter the data map keys if they contained year info, 
-            // but since our current DAO only returns "MM", we'll sum the current map.
-            // Note: For a true yearly footprint, we should clear old data or update DAO to group by YYYY-MM.
             val totalGrams = data.values.sum()
             _totalEmissionsKg.value = totalGrams / 1000.0
 
@@ -70,11 +70,18 @@ class GraphViewModel(context: Context) : ViewModel() {
         }
     }
 
+    fun loadDaysWithData() {
+        viewModelScope.launch {
+            _daysWithData.value = repository.getDaysWithData().toSet()
+        }
+    }
+
     fun deleteLocationsById(id: Int, startMillis: Long, endMillis: Long) {
         viewModelScope.launch {
             repository.deleteLocationsById(id)
             loadMonthlyEmissions() // Update the graph and totals
             loadCalenderData(startMillis, endMillis) // Update the list for the current day
+            loadDaysWithData() // Update dots in calendar
         }
     }
 

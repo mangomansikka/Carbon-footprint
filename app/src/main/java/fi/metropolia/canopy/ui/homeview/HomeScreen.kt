@@ -68,8 +68,6 @@ fun HomeScreen(navController: NavController) {
         last4Months.map { (it.second / maxVal) * 100f + 20f }
     }
 
-    // Optimization: Defer the reading of the animated value to a child component
-    // to prevent the entire HomeScreen from recomposing every frame.
     val animatedValueState = animateFloatAsState(targetValue = totalEmissionsKg.toFloat(), label = "co2Animation")
 
     Column(
@@ -90,12 +88,10 @@ fun HomeScreen(navController: NavController) {
 
             Spacer(Modifier.height(16.dp))
 
-            // Isolated Animated Section
             AnimatedFootprintHeader(animatedValueState, percentageChange)
 
             Spacer(Modifier.height(24.dp))
 
-            // Toggle Buttons
             ToggleViewButtons(viewState)
 
             Spacer(Modifier.height(32.dp))
@@ -191,10 +187,17 @@ fun MonthlyGraphSection(chartPoints: List<Float>, last4Months: List<Pair<String,
 
 @Composable
 fun EmissionsCalendar(viewModel: GraphViewModel) {
+    val daysWithData by viewModel.daysWithData.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadDaysWithData()
+    }
+
     val calendarData = remember {
         val cal = Calendar.getInstance().apply { set(Calendar.DAY_OF_MONTH, 1) }
         val mName = cal.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault()) ?: ""
         val yr = cal.get(Calendar.YEAR)
+        val monthIdx = cal.get(Calendar.MONTH) // 0-indexed
         val dInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
         val firstDay = cal.get(Calendar.DAY_OF_WEEK)
         val off = when (firstDay) {
@@ -207,11 +210,12 @@ fun EmissionsCalendar(viewModel: GraphViewModel) {
             Calendar.SUNDAY -> 6
             else -> 0
         }
-        Triple(mName, yr, dInMonth) to off
+        Triple(mName, yr, dInMonth) to (off to monthIdx)
     }
     
-    val (baseInfo, offset) = calendarData
+    val (baseInfo, extra) = calendarData
     val (monthName, year, daysInMonth) = baseInfo
+    val (offset, monthIndex) = extra
     
     var showDialog by remember { mutableStateOf(false) }
     var selectedDateStr by remember { mutableStateOf("") }
@@ -241,7 +245,6 @@ fun EmissionsCalendar(viewModel: GraphViewModel) {
 
         Spacer(Modifier.height(8.dp))
 
-        // Replace LazyGrid with standard Column/Row for better performance during parent recompositions
         val totalSlots = offset + daysInMonth
         val rows = (totalSlots + 6) / 7
         
@@ -254,9 +257,13 @@ fun EmissionsCalendar(viewModel: GraphViewModel) {
                             Box(modifier = Modifier.weight(1f).aspectRatio(1f))
                         } else {
                             val day = index - offset + 1
+                            val dateKey = String.format("%04d-%02d-%02d", year, monthIndex + 1, day)
+                            val hasData = daysWithData.contains(dateKey)
+
                             CalendarDay(
                                 day = day,
                                 monthName = monthName,
+                                hasData = hasData,
                                 onDayClick = { start, end, dateStr ->
                                     dayRange = start to end
                                     selectedDateStr = dateStr
@@ -284,7 +291,13 @@ fun EmissionsCalendar(viewModel: GraphViewModel) {
 }
 
 @Composable
-fun CalendarDay(day: Int, monthName: String, onDayClick: (Long, Long, String) -> Unit, modifier: Modifier) {
+fun CalendarDay(
+    day: Int, 
+    monthName: String, 
+    hasData: Boolean,
+    onDayClick: (Long, Long, String) -> Unit, 
+    modifier: Modifier
+) {
     Box(
         modifier = modifier
             .aspectRatio(1f)
@@ -301,7 +314,17 @@ fun CalendarDay(day: Int, monthName: String, onDayClick: (Long, Long, String) ->
             },
         contentAlignment = Alignment.Center
     ) {
-        Text(text = day.toString(), color = Color.White)
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = day.toString(), color = Color.White)
+            if (hasData) {
+                Spacer(Modifier.height(2.dp))
+                Box(
+                    modifier = Modifier
+                        .size(4.dp)
+                        .background(AccentGreen, CircleShape)
+                )
+            }
+        }
     }
 }
 
@@ -369,10 +392,32 @@ fun LineChart(points: List<Float>) {
         for (i in 0 until points.size - 1) {
             val start = Offset(space * i, size.height - points[i])
             val end = Offset(space * (i + 1), size.height - points[i + 1])
-            drawLine(color = AccentGreen.copy(alpha = 0.3f), start = start, end = end, strokeWidth = 16f)
-            drawLine(color = AccentGreen, start = start, end = end, strokeWidth = 6f)
-            drawCircle(color = AccentGreen, radius = 8f, center = start)
-            if (i == points.size - 2) drawCircle(color = AccentGreen, radius = 8f, center = end)
+            
+            drawLine(
+                color = AccentGreen.copy(alpha = 0.3f), 
+                start = start, 
+                end = end, 
+                strokeWidth = 16f
+            )
+            
+            drawLine(
+                color = AccentGreen, 
+                start = start, 
+                end = end, 
+                strokeWidth = 6f
+            )
+            
+            drawCircle(
+                color = AccentGreen, 
+                radius = 8f, 
+                center = start
+            )
+            
+            if (i == points.size - 2) drawCircle(
+                color = AccentGreen, 
+                radius = 8f, 
+                center = end
+            )
         }
     }
 }

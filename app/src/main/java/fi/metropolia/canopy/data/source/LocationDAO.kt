@@ -81,4 +81,7 @@ interface LocationDAO {
 
     @Query("DELETE FROM locations WHERE id = :id")
     suspend fun deleteLocationsById(id: Int)
+
+    @Query("SELECT DISTINCT(strftime('%Y-%m-%d', timestampMillis / 1000, 'unixepoch')) FROM locations")
+    suspend fun getDaysWithData(): List<String>
 }
