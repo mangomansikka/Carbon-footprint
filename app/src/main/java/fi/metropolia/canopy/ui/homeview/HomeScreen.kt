@@ -4,9 +4,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,7 +30,6 @@ import fi.metropolia.canopy.R
 import fi.metropolia.canopy.data.source.LocationEntity
 import fi.metropolia.canopy.utils.viewModelFactories.GraphViewModelFactory
 import fi.metropolia.canopy.viewmodels.GraphViewModel
-import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
@@ -67,86 +63,127 @@ fun HomeScreen(navController: NavController) {
         }
     }
 
-    val maxVal = last4Months.maxOf { it.second }.coerceAtLeast(1f)
-    val chartPoints = last4Months.map { (it.second / maxVal) * 100f + 20f }
-    val animatedValue by animateFloatAsState(targetValue = totalEmissionsKg.toFloat(), label = "co2Animation")
+    val chartPoints = remember(last4Months) {
+        val maxVal = last4Months.maxOf { it.second }.coerceAtLeast(1f)
+        last4Months.map { (it.second / maxVal) * 100f + 20f }
+    }
+
+    // Optimization: Defer the reading of the animated value to a child component
+    // to prevent the entire HomeScreen from recomposing every frame.
+    val animatedValueState = animateFloatAsState(targetValue = totalEmissionsKg.toFloat(), label = "co2Animation")
 
     Column(
-        modifier = Modifier.fillMaxSize().background(BgGreen).verticalScroll(rememberScrollState())
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BgGreen)
+            .verticalScroll(rememberScrollState())
     ) {
-        Column(modifier = Modifier.weight(1f).padding(24.dp)) {
+        Column(
+            modifier = Modifier.weight(1f).padding(24.dp)
+        ) {
             Spacer(Modifier.height(20.dp))
-            Text(text = "My Footprint", style = MaterialTheme.typography.titleLarge, color = Color.White)
+
+            Text(
+                text = "My Footprint",
+                style = MaterialTheme.typography.titleLarge,
+                color = Color.White)
+
             Spacer(Modifier.height(16.dp))
 
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text(text = String.format("%.2f", animatedValue), style = MaterialTheme.typography.displayLarge, color = Color.White)
-                Spacer(Modifier.width(8.dp))
-                Text(text = "ton CO₂/year", style = MaterialTheme.typography.bodyLarge, color = Color.White)
-            }
-
-            Spacer(Modifier.height(20.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = if (percentageChange >= 0) Icons.Default.TrendingUp else Icons.AutoMirrored.Filled.TrendingDown,
-                    contentDescription = null,
-                    tint = if (percentageChange <= 0) AccentGreen else Color(0xFFFF6B6B)
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = String.format("%.1f", Math.abs(percentageChange)) + "% " + 
-                           (if (percentageChange >= 0) "increase" else "decrease") + " since last month",
-                    color = Color.White
-                )
-            }
+            // Isolated Animated Section
+            AnimatedFootprintHeader(animatedValueState, percentageChange)
 
             Spacer(Modifier.height(24.dp))
 
             // Toggle Buttons
-            Row(modifier = Modifier.fillMaxWidth()) {
-                Button(
-                    onClick = { viewState.value = false },
-                    modifier = Modifier.weight(1f).height(48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = if (!viewState.value) Color.White else LightGreen, contentColor = Color.Black),
-                    shape = RoundedCornerShape(12.dp)
-                ) { Text("Monthly", fontSize = 12.sp) }
-                Spacer(Modifier.width(8.dp))
-                Button(
-                    onClick = { viewState.value = true },
-                    modifier = Modifier.weight(1f).height(48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = if (viewState.value) Color.White else LightGreen, contentColor = Color.Black),
-                    shape = RoundedCornerShape(12.dp)
-                ) { Text("Calendar", fontSize = 12.sp) }
-            }
+            ToggleViewButtons(viewState)
 
             Spacer(Modifier.height(32.dp))
 
             if (viewState.value) {
                 EmissionsCalendar(viewModel)
             } else {
-                LineChart(chartPoints)
-                Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                    last4Months.forEach { Text(it.first, color = Color.White, style = MaterialTheme.typography.labelMedium) }
-                }
+                MonthlyGraphSection(chartPoints, last4Months)
             }
 
             Spacer(Modifier.height(40.dp))
 
-            // Plant Girl Section
-            Box(modifier = Modifier.fillMaxWidth().height(300.dp)) {
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    val path = Path().apply {
-                        moveTo(0f, size.height * 0.4f)
-                        quadraticBezierTo(size.width * 0.25f, size.height * 0.2f, size.width * 0.5f, size.height * 0.45f)
-                        quadraticBezierTo(size.width * 0.75f, size.height * 0.7f, size.width, size.height * 0.4f)
-                        lineTo(size.width, size.height)
-                        lineTo(0f, size.height)
-                        close()
-                    }
-                    drawPath(path = path, color = LightGreen)
-                }
-                Image(painter = painterResource(R.drawable.plant_girl), contentDescription = null, modifier = Modifier.align(Alignment.BottomCenter).height(240.dp))
+            PlantGirlSection()
+        }
+    }
+}
+
+@Composable
+fun AnimatedFootprintHeader(valueState: State<Float>, percentageChange: Double) {
+    Column {
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(
+                text = String.format("%.2f", valueState.value),
+                style = MaterialTheme.typography.displayLarge,
+                color = Color.White
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(text = "ton CO₂/year", style = MaterialTheme.typography.bodyLarge, color = Color.White)
+        }
+
+        Spacer(Modifier.height(20.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = if (percentageChange >= 0) Icons.Default.TrendingUp else Icons.AutoMirrored.Filled.TrendingDown,
+                contentDescription = null,
+                tint = if (percentageChange <= 0) AccentGreen else Color(0xFFFF6B6B)
+            )
+
+            Spacer(Modifier.width(8.dp))
+
+            Text(
+                text = String.format("%.1f", Math.abs(percentageChange)) + "% " + 
+                       (if (percentageChange >= 0) "increase" else "decrease") + " since last month",
+                color = Color.White
+            )
+        }
+    }
+}
+
+@Composable
+fun ToggleViewButtons(viewState: MutableState<Boolean>) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Button(
+            onClick = { viewState.value = false },
+            modifier = Modifier.weight(1f).height(48.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = if (!viewState.value) Color.White else LightGreen, contentColor = Color.Black),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("Monthly", fontSize = 12.sp)
+        }
+
+        Spacer(Modifier.width(8.dp))
+
+        Button(
+            onClick = { viewState.value = true },
+            modifier = Modifier.weight(1f).height(48.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = if (viewState.value) Color.White else LightGreen, contentColor = Color.Black),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("Calendar", fontSize = 12.sp)
+        }
+    }
+}
+
+@Composable
+fun MonthlyGraphSection(chartPoints: List<Float>, last4Months: List<Pair<String, Float>>) {
+    Column {
+        LineChart(chartPoints)
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween) {
+            last4Months.forEach {
+                Text(
+                    it.first,
+                    color = Color.White,
+                    style = MaterialTheme.typography.labelMedium)
             }
         }
     }
@@ -154,80 +191,82 @@ fun HomeScreen(navController: NavController) {
 
 @Composable
 fun EmissionsCalendar(viewModel: GraphViewModel) {
-    val calendar = Calendar.getInstance().apply {
-        set(Calendar.DAY_OF_MONTH, 1)
+    val calendarData = remember {
+        val cal = Calendar.getInstance().apply { set(Calendar.DAY_OF_MONTH, 1) }
+        val mName = cal.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault()) ?: ""
+        val yr = cal.get(Calendar.YEAR)
+        val dInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
+        val firstDay = cal.get(Calendar.DAY_OF_WEEK)
+        val off = when (firstDay) {
+            Calendar.MONDAY -> 0
+            Calendar.TUESDAY -> 1
+            Calendar.WEDNESDAY -> 2
+            Calendar.THURSDAY -> 3
+            Calendar.FRIDAY -> 4
+            Calendar.SATURDAY -> 5
+            Calendar.SUNDAY -> 6
+            else -> 0
+        }
+        Triple(mName, yr, dInMonth) to off
     }
     
-    val monthName = calendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())
-    val year = calendar.get(Calendar.YEAR)
-    val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
-    
-    // Calculate offset for Monday-start (Calendar.MONDAY is 2, SUNDAY is 1)
-    val firstDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
-    val offset = when (firstDayOfWeek) {
-        Calendar.MONDAY -> 0
-        Calendar.TUESDAY -> 1
-        Calendar.WEDNESDAY -> 2
-        Calendar.THURSDAY -> 3
-        Calendar.FRIDAY -> 4
-        Calendar.SATURDAY -> 5
-        Calendar.SUNDAY -> 6
-        else -> 0
-    }
+    val (baseInfo, offset) = calendarData
+    val (monthName, year, daysInMonth) = baseInfo
     
     var showDialog by remember { mutableStateOf(false) }
     var selectedDateStr by remember { mutableStateOf("") }
-    
-    // Time range states for deletion logic
-    var currentDayStart by remember { mutableLongStateOf(0L) }
-    var currentDayEnd by remember { mutableLongStateOf(0L) }
+    var dayRange by remember { mutableStateOf(0L to 0L) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(text = "$monthName $year", color = Color.White, style = MaterialTheme.typography.titleMedium)
+        Text(
+            text = "$monthName $year",
+            color = Color.White,
+            style = MaterialTheme.typography.titleMedium
+        )
+
         Spacer(Modifier.height(16.dp))
 
-        // Weekdays Header
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
             listOf("M", "T", "W", "T", "F", "S", "S").forEach { day ->
-                Text(text = day, color = Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
+                Text(
+                    text = day,
+                    color = Color.White.copy(alpha = 0.6f),
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
 
         Spacer(Modifier.height(8.dp))
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(7),
-            modifier = Modifier.height(280.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            // Padding days from previous month
-            items(offset) {
-                Box(modifier = Modifier.aspectRatio(1f))
-            }
-
-            items(daysInMonth) { index ->
-                val day = index + 1
-                Box(
-                    modifier = Modifier
-                        .aspectRatio(1f)
-                        .background(Color.White.copy(alpha = 0.1f), CircleShape)
-                        .clickable {
-                            val cal = Calendar.getInstance().apply {
-                                set(Calendar.DAY_OF_MONTH, day)
-                                set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0)
-                            }
-                            currentDayStart = cal.timeInMillis
-                            cal.set(Calendar.HOUR_OF_DAY, 23); cal.set(Calendar.MINUTE, 59); cal.set(Calendar.SECOND, 59)
-                            currentDayEnd = cal.timeInMillis
-                            
-                            selectedDateStr = "$day $monthName"
-                            viewModel.loadCalenderData(currentDayStart, currentDayEnd)
-                            showDialog = true
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(text = day.toString(), color = Color.White)
+        // Replace LazyGrid with standard Column/Row for better performance during parent recompositions
+        val totalSlots = offset + daysInMonth
+        val rows = (totalSlots + 6) / 7
+        
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            for (r in 0 until rows) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    for (c in 0 until 7) {
+                        val index = r * 7 + c
+                        if (index < offset || index >= totalSlots) {
+                            Box(modifier = Modifier.weight(1f).aspectRatio(1f))
+                        } else {
+                            val day = index - offset + 1
+                            CalendarDay(
+                                day = day,
+                                monthName = monthName,
+                                onDayClick = { start, end, dateStr ->
+                                    dayRange = start to end
+                                    selectedDateStr = dateStr
+                                    viewModel.loadCalenderData(start, end)
+                                    showDialog = true
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -238,22 +277,37 @@ fun EmissionsCalendar(viewModel: GraphViewModel) {
             date = selectedDateStr,
             viewModel = viewModel,
             onDismiss = { showDialog = false },
-            dayStart = currentDayStart,
-            dayEnd = currentDayEnd
+            dayStart = dayRange.first,
+            dayEnd = dayRange.second
         )
     }
 }
 
 @Composable
-fun TripDetailsDialog(
-    date: String,
-    viewModel: GraphViewModel,
-    onDismiss: () -> Unit,
-    dayStart: Long,
-    dayEnd: Long
-) {
-    val trips by viewModel.calenderData.collectAsState()
+fun CalendarDay(day: Int, monthName: String, onDayClick: (Long, Long, String) -> Unit, modifier: Modifier) {
+    Box(
+        modifier = modifier
+            .aspectRatio(1f)
+            .background(Color.White.copy(alpha = 0.1f), CircleShape)
+            .clickable {
+                val cal = Calendar.getInstance().apply {
+                    set(Calendar.DAY_OF_MONTH, day)
+                    set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0)
+                }
+                val start = cal.timeInMillis
+                cal.set(Calendar.HOUR_OF_DAY, 23); cal.set(Calendar.MINUTE, 59); cal.set(Calendar.SECOND, 59)
+                val end = cal.timeInMillis
+                onDayClick(start, end, "$day $monthName")
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text = day.toString(), color = Color.White)
+    }
+}
 
+@Composable
+fun TripDetailsDialog(date: String, viewModel: GraphViewModel, onDismiss: () -> Unit, dayStart: Long, dayEnd: Long) {
+    val trips by viewModel.calenderData.collectAsState()
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Trips on $date") },
@@ -286,8 +340,30 @@ fun TripDetailsDialog(
 }
 
 @Composable
+fun PlantGirlSection() {
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .height(300.dp)) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val path = Path().apply {
+                moveTo(0f, size.height * 0.4f)
+                quadraticBezierTo(size.width * 0.25f, size.height * 0.2f, size.width * 0.5f, size.height * 0.45f)
+                quadraticBezierTo(size.width * 0.75f, size.height * 0.7f, size.width, size.height * 0.4f)
+                lineTo(size.width, size.height)
+                lineTo(0f, size.height)
+                close()
+            }
+            drawPath(path = path, color = LightGreen)
+        }
+        Image(painter = painterResource(R.drawable.plant_girl), contentDescription = null, modifier = Modifier.align(Alignment.BottomCenter).height(240.dp))
+    }
+}
+
+@Composable
 fun LineChart(points: List<Float>) {
-    Canvas(modifier = Modifier.fillMaxWidth().height(150.dp)) {
+    Canvas(modifier = Modifier
+        .fillMaxWidth()
+        .height(150.dp)) {
         if (points.size < 2) return@Canvas
         val space = size.width / (points.size - 1)
         for (i in 0 until points.size - 1) {
