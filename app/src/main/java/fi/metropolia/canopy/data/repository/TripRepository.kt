@@ -143,4 +143,15 @@ class TripRepository(private val dao: LocationDAO) {
 
     suspend fun getTotalWalkingDistance(): Double = dao.getTotalWalkingDistance()
     suspend fun getTotalCyclingDistance(): Double = dao.getTotalCyclingDistance()
+
+    suspend fun getLocationsByDate(startDate: Long, endDate: Long): List<LocationEntity> {
+        return dao.getLocationsByDate(startDate, endDate)
+    }
+
+    suspend fun deleteLocationsById(id: Int) {
+        dao.deleteLocationsById(id)
+    }
+
+    suspend fun getDaysWithData(): List<String> = dao.getDaysWithData()
+
 }
