@@ -112,12 +112,24 @@ fun MainTreeContent(totalEmissionsKg: Double, onShowGallery: () -> Unit) {
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
-            
+
             TextButton(
                 onClick = onShowGallery,
-                modifier = Modifier.align(Alignment.CenterEnd)
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .background(
+                        color = Color.White.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(50)
+                    )
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = Color.Black
+                )
             ) {
-                Text("View All", color = Color.DarkGray, fontWeight = FontWeight.Bold)
+                Text(
+                    "View All",
+                    fontWeight = FontWeight.SemiBold
+                )
             }
         }
 
@@ -185,8 +197,19 @@ fun AllTreesGallery(onBack: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            TextButton(onClick = onBack) {
-                Text("← Back", color = Color.Black, fontWeight = FontWeight.Bold)
+            TextButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .background(
+                        color = Color.White.copy(alpha = 0.3f),
+                        shape = RoundedCornerShape(50)
+                    )
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = Color.Black
+                )
+            ) {
+                Text("← Back", fontWeight = FontWeight.SemiBold)
             }
             Spacer(modifier = Modifier.width(8.dp))
             Text(
@@ -217,8 +240,13 @@ fun AllTreesGallery(onBack: () -> Unit) {
 fun TreeStageCard(stage: TreeStage) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.9f))
+        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 6.dp
+        ),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.95f)
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
