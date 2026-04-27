@@ -17,7 +17,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import fi.metropolia.canopy.ui.theme.CanopyMinnoTheme
-import fi.metropolia.canopy.ui.TreeView.TreeScreen
+import fi.metropolia.canopy.ui.treeview.TreeScreen
 import fi.metropolia.canopy.ui.homeview.HomeScreen
 import fi.metropolia.canopy.ui.homeview.LandingScreen
 import fi.metropolia.canopy.ui.overview.OverviewScreen
@@ -147,7 +147,7 @@ fun AppNavGraph() {
 
             /* ECO SCREEN (My Tree) */
             composable("ecoScreen") {
-                TreeScreen(navController)
+                TreeScreen()
             }
 
             /* MANUAL löytyy edelleen mutta ei navissa */

@@ -1,4 +1,4 @@
-package fi.metropolia.canopy.ui.TreeView
+package fi.metropolia.canopy.ui.treeview
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
@@ -24,8 +24,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import fi.metropolia.canopy.R
 import fi.metropolia.canopy.domain.model.TrackingState
 import fi.metropolia.canopy.ui.overview.OverviewColors
@@ -34,7 +32,7 @@ import fi.metropolia.canopy.viewmodels.TripViewModel
 import java.util.Locale as JavaLocale
 
 @Composable
-fun TreeScreen(navController: NavController) {
+fun TreeScreen() {
     val context = LocalContext.current
     val viewModel: TripViewModel = viewModel(
         factory = TripViewModelFactory(context)
@@ -96,10 +94,10 @@ fun MainTreeContent(totalEmissionsKg: Double, onShowGallery: () -> Unit) {
         modifier = Modifier
             .fillMaxSize()
             .background(backgroundColor)
-            .padding(24.dp),
+            .padding(horizontal = 24.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         Box(
             modifier = Modifier.fillMaxWidth(),
@@ -139,13 +137,11 @@ fun MainTreeContent(totalEmissionsKg: Double, onShowGallery: () -> Unit) {
             painter = painterResource(id = imageRes),
             contentDescription = "Tree",
             modifier = Modifier
-                .fillMaxWidth()
-                .height(450.dp)
                 .size(size),
             colorFilter = colorFilter
         )
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Surface(
             color = Color.White.copy(alpha = 0.7f),
@@ -153,7 +149,7 @@ fun MainTreeContent(totalEmissionsKg: Double, onShowGallery: () -> Unit) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
-                modifier = Modifier.padding(24.dp),
+                modifier = Modifier.padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
@@ -167,7 +163,7 @@ fun MainTreeContent(totalEmissionsKg: Double, onShowGallery: () -> Unit) {
                 Spacer(modifier = Modifier.height(8.dp))
                 
                 Text(
-                    text = "Yearly Emissions",
+                    text = "Monthly Emissions",
                     style = MaterialTheme.typography.labelMedium,
                     color = Color.Gray
                 )
@@ -181,7 +177,7 @@ fun MainTreeContent(totalEmissionsKg: Double, onShowGallery: () -> Unit) {
             }
         }
         
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.weight(0.5f))
     }
 }
 
@@ -229,7 +225,7 @@ fun AllTreesGallery(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxSize()
         ) {
-            items(items = stagesList) { stage ->
+            items(items = stagesList) { stage: TreeStage ->
                 TreeStageCard(stage)
             }
         }
@@ -279,12 +275,12 @@ fun TreeStageCard(stage: TreeStage) {
 
 fun getEmissionRange(stage: TreeStage): String {
     return when (stage) {
-        TreeStage.FULL_TREE -> "< 1000 kg CO₂"
-        TreeStage.BIG_TREE -> "1000 - 2500 kg CO₂"
-        TreeStage.SMALL_TREE -> "2500 - 5000 kg CO₂"
-        TreeStage.SPROUT -> "5000 - 8000 kg CO₂"
-        TreeStage.SEED -> "8000 - 12000 kg CO₂"
-        TreeStage.DESTROYED -> "> 12000 kg CO₂"
+        TreeStage.FULL_TREE -> "< 30 kg CO₂"
+        TreeStage.BIG_TREE -> "30 - 80 kg CO₂"
+        TreeStage.SMALL_TREE -> "80 - 150 kg CO₂"
+        TreeStage.SPROUT -> "150 - 300 kg CO₂"
+        TreeStage.SEED -> "300 - 500 kg CO₂"
+        TreeStage.DESTROYED -> "> 1000 kg CO₂"
     }
 }
 
@@ -313,9 +309,8 @@ fun getTreeImage(stage: TreeStage): Int {
 @Preview(showBackground = true)
 @Composable
 fun TreeScreenPreview() {
-    val navController = rememberNavController()
     MaterialTheme {
-        TreeScreen(navController = navController)
+        TreeScreen()
     }
 }
 
