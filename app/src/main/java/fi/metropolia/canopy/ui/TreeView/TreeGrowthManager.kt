@@ -1,18 +1,19 @@
-package fi.metropolia.canopy.ui.TreeView
+package fi.metropolia.canopy.ui.treeview
 
 enum class TreeStage {
     SEED, SPROUT, SMALL_TREE, BIG_TREE, FULL_TREE, DESTROYED
 }
 
 object TreeGrowthManager {
-    fun getTreeStage(totalEmissionKg: Double): TreeStage {
+
+    fun getTreeStage(monthlyEmissionKg: Double): TreeStage {
         return when {
-            totalEmissionKg < 1000.0  -> TreeStage.FULL_TREE   // Erinomainen
-            totalEmissionKg < 2500.0  -> TreeStage.BIG_TREE    // Hyvä
-            totalEmissionKg < 5000.0  -> TreeStage.SMALL_TREE  // Kohtuullinen
-            totalEmissionKg < 8000.0  -> TreeStage.SPROUT     // Melko korkea
-            totalEmissionKg < 12000.0 -> TreeStage.SEED       // Baseline
-            else -> TreeStage.DESTROYED                       // Kriittinen (Yli keskiarvon)
+            monthlyEmissionKg < 30.0  -> TreeStage.FULL_TREE   // Erinomainen (Kävely, pyöräily, juna, metro)
+            monthlyEmissionKg < 80.0  -> TreeStage.BIG_TREE    // Hyvä
+            monthlyEmissionKg < 150.0 -> TreeStage.SMALL_TREE  // Kohtuullinen
+            monthlyEmissionKg < 300.0 -> TreeStage.SPROUT      // Melko korkea
+            monthlyEmissionKg < 1000.0 -> TreeStage.DESTROYED        // Korkea (Paljon autoilua)
+            else -> TreeStage.DESTROYED                       // Erittäin korkea (Kriittinen)
         }
     }
 }
