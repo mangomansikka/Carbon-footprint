@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.clickable
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,8 +35,11 @@ fun LandingScreen(navController: NavController) {
     val db = remember { CanopyDatabase.getInstance(context) }
     val userRepository = remember { UserRepository(db.userDao()) }
 
-    val userRole by userRepository.userRole.collectAsState(initial = "")
+
+    val userRole by userRepository.userRole.collectAsState(initial = null)
+
     var showSaved by remember { mutableStateOf(false) }
+    var showRoleDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -59,7 +63,11 @@ fun LandingScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = if (userRole.isEmpty()) "Welcome to Canopy" else "Welcome back!",
+            text = when (userRole) {
+                null -> "Loading..."
+                "" -> "Welcome to Canopy"
+                else -> "Welcome back!"
+            },
             style = MaterialTheme.typography.headlineLarge,
             textAlign = TextAlign.Center,
             color = Color.Black
@@ -75,10 +83,7 @@ fun LandingScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(10.dp))
 
         Text(
-            text = if (userRole.isEmpty())
-                "Choose your role to begin"
-            else
-                "",
+            text = if (userRole == "") "Choose your role to begin" else "",
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF2E4E3F),
             textAlign = TextAlign.Center
@@ -100,66 +105,71 @@ fun LandingScreen(navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                if (userRole.isEmpty()) {
+                when {
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = false,
-                            onClick = {
-                                scope.launch {
-                                    userRepository.changeRole("student")
-                                    showSaved = true
-                                }
-                            },
-                            colors = RadioButtonDefaults.colors(
-                                selectedColor = Color(0xFF2E7D32)
-                            )
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Student")
+                    userRole == null -> {
+                        CircularProgressIndicator()
                     }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = false,
-                            onClick = {
-                                scope.launch {
-                                    userRepository.changeRole("staff")
-                                    showSaved = true
+
+                    userRole == "" -> {
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = false,
+                                onClick = {
+                                    scope.launch {
+                                        userRepository.changeRole("student")
+                                        showSaved = true
+                                    }
                                 }
-                            },
-                            colors = RadioButtonDefaults.colors(
-                                selectedColor = Color(0xFF2E7D32)
                             )
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Staff")
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Student")
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = false,
+                                onClick = {
+                                    scope.launch {
+                                        userRepository.changeRole("staff")
+                                        showSaved = true
+                                    }
+                                }
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Staff")
+                        }
+
+                        if (showSaved) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Your choice has been saved ✓",
+                                color = Color(0xFF2E7D32),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                     }
 
-                    if (showSaved) {
-                        Spacer(modifier = Modifier.height(8.dp))
+
+                    else -> {
                         Text(
-                            text = "Your choice has been saved ✓",
+                            text = "${userRole!!.replaceFirstChar { it.uppercase() }} account ✓",
+                            style = MaterialTheme.typography.bodyLarge,
                             color = Color(0xFF2E7D32),
-                            style = MaterialTheme.typography.bodySmall
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { showRoleDialog = true }
                         )
                     }
-
-                } else {
-
-                    Text(
-                        text = "${userRole.replaceFirstChar { it.uppercase() }} account ✓",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color(0xFF2E7D32),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
                 }
             }
         }
@@ -173,6 +183,31 @@ fun LandingScreen(navController: NavController) {
         )
 
         Spacer(modifier = Modifier.height(24.dp))
+    }
+
+    if (showRoleDialog) {
+        AlertDialog(
+            onDismissRequest = { showRoleDialog = false },
+            title = { Text("Change role") },
+            text = {
+                Column {
+                    TextButton(onClick = {
+                        scope.launch { userRepository.changeRole("student") }
+                        showRoleDialog = false
+                    }) {
+                        Text("Student")
+                    }
+
+                    TextButton(onClick = {
+                        scope.launch { userRepository.changeRole("staff") }
+                        showRoleDialog = false
+                    }) {
+                        Text("Staff")
+                    }
+                }
+            },
+            confirmButton = {}
+        )
     }
 }
 
