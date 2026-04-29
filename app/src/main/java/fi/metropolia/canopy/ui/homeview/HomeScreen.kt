@@ -38,7 +38,7 @@ private val LightGreen = Color(0xFFAED3B0)
 private val AccentGreen = Color(0xFF58F0B1)
 
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen() {
     val context = LocalContext.current
     val viewModel: GraphViewModel = viewModel(factory = GraphViewModelFactory(context))
     
