@@ -15,7 +15,6 @@ import androidx.navigation.compose.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.core.view.WindowCompat
-import androidx.navigation.NavHostController
 import fi.metropolia.canopy.ui.theme.CanopyMinnoTheme
 import fi.metropolia.canopy.ui.treeview.TreeScreen
 import fi.metropolia.canopy.ui.homeview.HomeScreen
@@ -130,7 +129,7 @@ fun AppNavGraph() {
         ) {
 
             composable("landingScreen") {
-                LandingScreen(navController)
+                LandingScreen()
             }
 
             composable("locationScreen") {
@@ -138,11 +137,11 @@ fun AppNavGraph() {
             }
 
             composable("overviewScreen") {
-                OverviewScreen(navController)
+                OverviewScreen()
             }
 
             composable("homeScreen") {
-                HomeScreen(navController)
+                HomeScreen()
             }
 
             /* ECO SCREEN (My Tree) */
@@ -157,4 +156,3 @@ fun AppNavGraph() {
         }
     }
 }
-

@@ -4,6 +4,7 @@ import fi.metropolia.canopy.data.source.LocationDAO
 import fi.metropolia.canopy.data.source.LocationEntity
 import fi.metropolia.canopy.domain.model.TrackingState
 import fi.metropolia.canopy.utils.CarbonHelper
+import fi.metropolia.canopy.utils.CampusResolver
 
 class TripRepository(private val dao: LocationDAO) {
 
@@ -90,7 +91,12 @@ class TripRepository(private val dao: LocationDAO) {
         return dao.getMonthlyEmissions().associate { it.month to it.totalEmissionsGrams }
     }
 
-    suspend fun saveManualTrip(distance: Double, mode: String, selectedTripTimeMillis: Long) {
+    suspend fun saveManualTrip(
+        distance: Double,
+        mode: String,
+        selectedTripTimeMillis: Long,
+        assignedCampusName: String? = null
+    ) {
 
         val emissionKg = CarbonHelper.calculate(distance, mode)
 
@@ -117,26 +123,40 @@ class TripRepository(private val dao: LocationDAO) {
             cyclingDistanceM = distance
         }
 
+        var startLat: Double? = null
+        var startLon: Double? = null
+        var endLat: Double? = null
+        var endLon: Double? = null
 
+        if (!assignedCampusName.isNullOrBlank() && !assignedCampusName.equals("Non campus trip", ignoreCase = true)) {
+            val coords = CampusResolver.getCampusCoordinates(assignedCampusName)
+            if (coords != null) {
+                val (lat, lon) = coords
+                startLat = lat
+                startLon = lon
+                endLat = lat
+                endLon = lon
+            }
+        }
 
-            val entity = LocationEntity(
-                latitude = 0.0,
-                longitude = 0.0,
-                startLatitude = null,
-                startLongitude = null,
-                endLatitude = null,
-                endLongitude = null,
-                transportModes = mode,
-                carbonEmissionGrams = (emissionKg * 1000).toFloat(),
-                emissionBussKg = busKg,
-                emissionMetroKg = metroKg,
-                emissionTrainKg = trainKg,
-                emissionUnknownCarKg = unknownCarKg,
-                emissionMopedKg = mopedKg,
-                walkingDistanceM = walkingDistanceM,
-                cyclingDistanceM = cyclingDistanceM,
-                timestampMillis = selectedTripTimeMillis
-            )
+        val entity = LocationEntity(
+            latitude = 0.0,
+            longitude = 0.0,
+            startLatitude = startLat,
+            startLongitude = startLon,
+            endLatitude = endLat,
+            endLongitude = endLon,
+            transportModes = mode,
+            carbonEmissionGrams = (emissionKg * 1000).toFloat(),
+            emissionBussKg = busKg,
+            emissionMetroKg = metroKg,
+            emissionTrainKg = trainKg,
+            emissionUnknownCarKg = unknownCarKg,
+            emissionMopedKg = mopedKg,
+            walkingDistanceM = walkingDistanceM,
+            cyclingDistanceM = cyclingDistanceM,
+            timestampMillis = selectedTripTimeMillis
+        )
         dao.insertLocation(entity)
 
     }

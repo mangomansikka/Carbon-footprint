@@ -37,6 +37,11 @@ object CampusResolver {
         )
     }
 
+    fun getCampusCoordinates(name: String): Pair<Double, Double>? {
+        val campus = campuses.find { it.name.equals(name, ignoreCase = true) }
+        return campus?.let { Pair(it.latitude, it.longitude) }
+    }
+
     private fun distanceMeters(
         latitude1: Double,
         longitude1: Double,

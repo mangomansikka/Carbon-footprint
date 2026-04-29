@@ -39,6 +39,12 @@ fun ManualInputScreen() {
     var selectedMode by remember { mutableStateOf("car") }
     var showSaved by remember { mutableStateOf(false) }
 
+    val campusOptions = listOf("Myllypuro", "Karamalmi", "Arabia", "Myyrmäki", "Non campus trip")
+    var selectedCampus by remember { mutableStateOf<String?>(null) }
+    var campusDropdownExpanded by remember { mutableStateOf(false) }
+    var showCampusInfo by remember { mutableStateOf(false) }
+    var showCampusValidationError by remember { mutableStateOf(false) }
+
     val modes = listOf(
         "car",
         "bus",
@@ -161,13 +167,68 @@ fun ManualInputScreen() {
 
             Spacer(Modifier.height(18.dp))
 
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Assign to campus", style = MaterialTheme.typography.titleMedium)
+                IconButton(onClick = { showCampusInfo = true }) {
+                    Icon(Icons.Default.Info, contentDescription = "Campus assignment info")
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+
+            Box(modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(
+                    onClick = { campusDropdownExpanded = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(selectedCampus ?: "Select campus")
+                }
+                DropdownMenu(
+                    expanded = campusDropdownExpanded,
+                    onDismissRequest = { campusDropdownExpanded = false },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    campusOptions.forEach { campus ->
+                        DropdownMenuItem(
+                            text = { Text(campus) },
+                            onClick = {
+                                selectedCampus = campus
+                                campusDropdownExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            if (showCampusValidationError) {
+                Text(
+                    text = "Please select a campus or Non campus trip",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            Spacer(Modifier.height(18.dp))
+
             Button(
                 onClick = {
+                    if (selectedCampus == null) {
+                        showCampusValidationError = true
+                        return@Button
+                    }
+
                     val distKm = distance.toDoubleOrNull() ?: 0.0
                     val distM = distKm * 1000.0
-                    viewModel.saveManualTrip(distM, selectedMode, selectedTripTimeMillis)
+                    val campusToSend = if (selectedCampus == "Non campus trip") null else selectedCampus
+                    viewModel.saveManualTrip(distM, selectedMode, selectedTripTimeMillis, campusToSend)
                     distance = ""
                     showSaved = true
+                    showCampusValidationError = false
                 },
                 modifier = Modifier
                     .padding(horizontal = 24.dp)
@@ -199,6 +260,23 @@ fun ManualInputScreen() {
             // Extra space at the bottom to ensure the button can be scrolled
             // well above the bottom navigation bar
             Spacer(Modifier.height(80.dp))
+
+            if (showCampusInfo) {
+                AlertDialog(
+                    onDismissRequest = { showCampusInfo = false },
+                    title = { Text("Campus assignment") },
+                    text = {
+                        Text(
+                            "If a trip is campus to campus, assign the end campus. If it is a trip home from campus, assign that campus."
+                        )
+                    },
+                    confirmButton = {
+                        Button(onClick = { showCampusInfo = false }) {
+                            Text("OK")
+                        }
+                    }
+                )
+            }
         }
     }
 }

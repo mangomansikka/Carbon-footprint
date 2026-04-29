@@ -71,12 +71,18 @@ class TripViewModel(context: Context) : ViewModel() {
         }
     }
 
-    fun saveManualTrip(distance: Double, mode: String, selectedTripTimeMillis: Long) {
+    fun saveManualTrip(
+        distance: Double,
+        mode: String,
+        selectedTripTimeMillis: Long,
+        assignedCampusName: String? = null
+    ) {
         viewModelScope.launch {
             repository.saveManualTrip(
                 distance = distance,
                 mode = mode,
-                selectedTripTimeMillis = selectedTripTimeMillis
+                selectedTripTimeMillis = selectedTripTimeMillis,
+                assignedCampusName = assignedCampusName
             )
             loadEmissions()
         }
