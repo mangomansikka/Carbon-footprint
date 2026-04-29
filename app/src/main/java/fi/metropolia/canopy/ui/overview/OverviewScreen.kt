@@ -28,7 +28,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 
 @Composable
-fun OverviewScreen(navController: NavController) {
+fun OverviewScreen() {
 
     val context = LocalContext.current
     val viewModel: TripViewModel = viewModel(

@@ -27,7 +27,7 @@ import fi.metropolia.canopy.data.source.CanopyDatabase
 import kotlinx.coroutines.launch
 
 @Composable
-fun LandingScreen(navController: NavController) {
+fun LandingScreen() {
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -214,8 +214,7 @@ fun LandingScreen(navController: NavController) {
 @Preview(showBackground = true)
 @Composable
 fun LandingPreview() {
-    val navController = rememberNavController()
     MaterialTheme {
-        LandingScreen(navController = navController)
+        LandingScreen()
     }
 }
