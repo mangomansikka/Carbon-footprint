@@ -38,7 +38,6 @@ fun OverviewScreen() {
     val rawEmissions by viewModel.emissions.collectAsState()
     val walkingDist by viewModel.walkingDistance.collectAsState()
     val cyclingDist by viewModel.cyclingDistance.collectAsState()
-
     val scrollState = rememberScrollState()
 
     LaunchedEffect(Unit) {
@@ -74,7 +73,13 @@ fun OverviewScreen() {
     val emissionsWithDistance = emissions.toMutableMap()
     emissionsWithDistance["Walking"] = walkingDist / 1000
     emissionsWithDistance["Cycling"] = cyclingDist / 1000
+    val metroUsed = rawEmissions.keys.any {
+        it.lowercase().contains("metro")
+    }
 
+    if (metroUsed) {
+        emissionsWithDistance["Metro"] = 0.0001
+    }
     val orderedModes = listOf(
         "Car", "Moped",
         "Bus", "Train", "Metro",
@@ -358,10 +363,17 @@ private fun iconForLabel(label: String) = when (label.lowercase()) {
     else -> Icons.Filled.DirectionsCar
 }
 
-/* COLORS */
-private fun colorForMode(mode: String) = when (mode.lowercase()) {
-    "car", "moped" -> Color(0xFFD32F2F)
-    "bus", "train", "metro" -> Color(0xFFFFEB3B)
-    "walking", "cycling" -> Color(0xFF2E7D32)
-    else -> Color.Gray
-}
+    /* COLORS */
+    private fun colorForMode(mode: String) = when (mode.lowercase()) {
+
+
+        "car" -> Color(0xFFD32F2F)
+        "moped" -> Color(0xFFFF6B6B)
+        "bus" -> Color(0xFFFFC107)
+        "train" -> Color(0xFFFFE082)
+        "walking" -> Color(0xFF1B5E20)
+        "cycling" -> Color(0xFF2E7D32)
+        "metro" -> Color(0xFFA5D6A7)
+
+        else -> Color.Gray
+    }
