@@ -14,6 +14,7 @@ data class LocationEntity(
     val startLongitude: Double? = null,
     val endLatitude: Double? = null,
     val endLongitude: Double? = null,
+    val isLocked: Boolean = false,
 
     // Persistent trip results
     val transportModes: String = "",

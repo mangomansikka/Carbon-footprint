@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import fi.metropolia.canopy.data.repository.TripRepository
 import fi.metropolia.canopy.data.source.CanopyDatabase
 import fi.metropolia.canopy.data.source.LocationEntity
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -29,6 +30,7 @@ class GraphViewModel(context: Context) : ViewModel() {
     private val _daysWithData = MutableStateFlow<Set<String>>(emptySet())
     val daysWithData: StateFlow<Set<String>> = _daysWithData
 
+    private var calendarJob: Job? = null
 
     init {
         val db = CanopyDatabase.getInstance(context)
@@ -43,7 +45,6 @@ class GraphViewModel(context: Context) : ViewModel() {
             _monthlyEmissions.value = data
 
             val calendar = Calendar.getInstance()
-            val currentYear = calendar.get(Calendar.YEAR).toString()
             val currentMonthKey = String.format("%02d", calendar.get(Calendar.MONTH) + 1)
             
             calendar.add(Calendar.MONTH, -1)
@@ -63,10 +64,16 @@ class GraphViewModel(context: Context) : ViewModel() {
         }
     }
 
+    /**
+     * Loads trips for a specific day. Uses Flow to ensure the UI updates 
+     * immediately if data is locked or deleted.
+     */
     fun loadCalenderData(startMillis: Long, endMillis: Long) {
-        viewModelScope.launch {
-            val data = repository.getLocationsByDate(startMillis, endMillis)
-            _calenderData.value = data
+        calendarJob?.cancel()
+        calendarJob = viewModelScope.launch {
+            repository.getLocationsByDate(startMillis, endMillis).collect { data ->
+                _calenderData.value = data
+            }
         }
     }
 
@@ -79,16 +86,9 @@ class GraphViewModel(context: Context) : ViewModel() {
     fun deleteLocationsById(id: Int, startMillis: Long, endMillis: Long) {
         viewModelScope.launch {
             repository.deleteLocationsById(id)
-            loadMonthlyEmissions() // Update the graph and totals
-            loadCalenderData(startMillis, endMillis) // Update the list for the current day
-            loadDaysWithData() // Update dots in calendar
-        }
-    }
-
-    fun resetAllData() {
-        viewModelScope.launch {
-            // This is a helper if you want to clear the inconsistent data
-            // repository.deleteAll() // You can implement this in repository
+            // Note: calendarData will update automatically due to Flow collection in loadCalenderData
+            loadMonthlyEmissions() 
+            loadDaysWithData()
         }
     }
 }

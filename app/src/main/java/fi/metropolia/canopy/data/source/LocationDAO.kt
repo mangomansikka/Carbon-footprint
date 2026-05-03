@@ -1,10 +1,10 @@
 package fi.metropolia.canopy.data.source
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LocationDAO {
@@ -77,11 +77,17 @@ interface LocationDAO {
     suspend fun insertLocation(entity: LocationEntity)
 
     @Query("SELECT * FROM locations WHERE timestampMillis >= :startDate AND timestampMillis <= :endDate")
-    suspend fun getLocationsByDate(startDate: Long, endDate: Long): List<LocationEntity>
+    fun getLocationsByDate(startDate: Long, endDate: Long): Flow<List<LocationEntity>>
 
     @Query("DELETE FROM locations WHERE id = :id")
     suspend fun deleteLocationsById(id: Int)
 
     @Query("SELECT DISTINCT(strftime('%Y-%m-%d', timestampMillis / 1000, 'unixepoch')) FROM locations")
     suspend fun getDaysWithData(): List<String>
+
+    @Query("UPDATE locations SET isLocked = 1 WHERE isLocked = 0")
+    suspend fun lockAllCurrentData()
+
+    @Query("SELECT EXISTS(SELECT 1 FROM locations WHERE isLocked = 1 LIMIT 1)")
+    fun hasAnyLockedDataFlow(): Flow<Boolean>
 }
