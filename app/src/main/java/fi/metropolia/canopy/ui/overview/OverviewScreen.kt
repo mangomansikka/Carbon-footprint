@@ -90,9 +90,11 @@ fun OverviewScreen() {
 
     val slices =
         if (!hasData) {
-            listOf(EmissionSlice("No data", 1.0, Color(0xFFB2DFDB))) // pehmeä väri
+            listOf(EmissionSlice("No data", 1.0, Color(0xFFB2DFDB)))
         } else {
             orderedModes
+                // Exclude Walking and Cycling from the donut chart slices
+                .filter { it != "Walking" && it != "Cycling" }
                 .filter { (emissionsWithDistance[it] ?: 0.0) > 0 }
                 .map {
                     EmissionSlice(
