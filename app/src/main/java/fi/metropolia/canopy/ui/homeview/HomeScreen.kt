@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,15 +22,14 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import fi.metropolia.canopy.R
-import fi.metropolia.canopy.data.source.LocationEntity
 import fi.metropolia.canopy.utils.viewModelFactories.GraphViewModelFactory
+import fi.metropolia.canopy.utils.viewModelFactories.TripViewModelFactory
 import fi.metropolia.canopy.viewmodels.GraphViewModel
+import fi.metropolia.canopy.viewmodels.TripViewModel
 import java.util.Calendar
 import java.util.Locale
 
@@ -40,15 +40,18 @@ private val AccentGreen = Color(0xFF58F0B1)
 @Composable
 fun HomeScreen() {
     val context = LocalContext.current
-    val viewModel: GraphViewModel = viewModel(factory = GraphViewModelFactory(context))
+    val graphViewModel: GraphViewModel = viewModel(factory = GraphViewModelFactory(context))
+    val tripViewModel: TripViewModel = viewModel(factory = TripViewModelFactory(context))
     
-    val monthlyEmissions by viewModel.monthlyEmissions.collectAsState()
-    val totalEmissionsKg by viewModel.totalEmissionsKg.collectAsState()
-    val percentageChange by viewModel.percentageChange.collectAsState()
+    val monthlyEmissions by graphViewModel.monthlyEmissions.collectAsState()
+    val totalEmissionsKg by graphViewModel.totalEmissionsKg.collectAsState()
+    val percentageChange by graphViewModel.percentageChange.collectAsState()
     val viewState = remember { mutableStateOf(false) }
+    
+    val isLocked by tripViewModel.isLocked.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.loadMonthlyEmissions()
+        graphViewModel.loadMonthlyEmissions()
     }
 
     val last4Months = remember(monthlyEmissions) {
@@ -97,7 +100,7 @@ fun HomeScreen() {
             Spacer(Modifier.height(32.dp))
 
             if (viewState.value) {
-                EmissionsCalendar(viewModel)
+                EmissionsCalendar(graphViewModel, isLocked)
             } else {
                 MonthlyGraphSection(chartPoints, last4Months)
             }
@@ -186,7 +189,7 @@ fun MonthlyGraphSection(chartPoints: List<Float>, last4Months: List<Pair<String,
 }
 
 @Composable
-fun EmissionsCalendar(viewModel: GraphViewModel) {
+fun EmissionsCalendar(viewModel: GraphViewModel, isLocked: Boolean) {
     val daysWithData by viewModel.daysWithData.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -282,6 +285,7 @@ fun EmissionsCalendar(viewModel: GraphViewModel) {
     if (showDialog) {
         TripDetailsDialog(
             date = selectedDateStr,
+            isLocked = isLocked,
             viewModel = viewModel,
             onDismiss = { showDialog = false },
             dayStart = dayRange.first,
@@ -329,7 +333,7 @@ fun CalendarDay(
 }
 
 @Composable
-fun TripDetailsDialog(date: String, viewModel: GraphViewModel, onDismiss: () -> Unit, dayStart: Long, dayEnd: Long) {
+fun TripDetailsDialog(date: String, isLocked: Boolean, viewModel: GraphViewModel, onDismiss: () -> Unit, dayStart: Long, dayEnd: Long) {
     val trips by viewModel.calenderData.collectAsState()
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -349,8 +353,28 @@ fun TripDetailsDialog(date: String, viewModel: GraphViewModel, onDismiss: () -> 
                                 Text(trip.transportModes.ifEmpty { "Trip" }, fontWeight = FontWeight.Bold)
                                 Text("${String.format("%.2f", trip.carbonEmissionGrams / 1000.0)} kg CO₂", fontSize = 12.sp)
                             }
-                            IconButton(onClick = { viewModel.deleteLocationsById(trip.id, dayStart, dayEnd) }) {
-                                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+                            
+                            // Per-trip locking logic
+                            if (!trip.isLocked) {
+                                IconButton(onClick = {
+                                    viewModel.deleteLocationsById(
+                                        trip.id,
+                                        dayStart,
+                                        dayEnd
+                                    )
+                                }) {
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        contentDescription = "Delete",
+                                        tint = Color.Red
+                                    )
+                                }
+                            } else {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Lock, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+                                    Spacer(Modifier.width(4.dp))
+                                    Text("Locked", color = Color.Gray, fontSize = 12.sp)
+                                }
                             }
                         }
                         HorizontalDivider()

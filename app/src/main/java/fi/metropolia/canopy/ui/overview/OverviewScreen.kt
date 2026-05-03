@@ -68,6 +68,8 @@ fun OverviewScreen() {
 
     val showInfo = remember { mutableStateOf(false) }
 
+    val showConfirm = remember { mutableStateOf(false) }
+
     val bgColor = OverviewColors.BgGreen
 
     val emissionsWithDistance = emissions.toMutableMap()
@@ -304,7 +306,7 @@ fun OverviewScreen() {
                 }
 
                 Button(
-                    onClick = { viewModel.exportData(context) },
+                    onClick = { showConfirm.value = true },
                     modifier = Modifier
                         .weight(1f)
                         .height(56.dp),
@@ -335,6 +337,32 @@ fun OverviewScreen() {
                             )
                         ) {
                             Text("OK")
+                        }
+                    }
+                )
+            }
+
+            if (showConfirm.value) {
+                AlertDialog(
+                    onDismissRequest = { showConfirm.value = false },
+                    title = { Text("Are you sure?") },
+                    text = {
+                        Text("Once you export your data, it will be locked and can no longer be edited from the calendar.")
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                viewModel.exportData(context)
+                                showConfirm.value = false
+                            }) {
+                            Text("Yes")
+                        }
+                    },
+                    dismissButton = {
+                        Button(
+                            onClick = { showConfirm.value = false }
+                        ) {
+                            Text("No")
                         }
                     }
                 )

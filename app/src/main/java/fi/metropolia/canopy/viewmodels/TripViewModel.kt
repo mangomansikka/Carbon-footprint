@@ -9,7 +9,6 @@ import fi.metropolia.canopy.data.repository.TripRepository
 import fi.metropolia.canopy.data.repository.UserRepository
 import fi.metropolia.canopy.data.source.CanopyDatabase
 import fi.metropolia.canopy.data.source.LocationEntity
-import fi.metropolia.canopy.data.source.TripEntity
 import fi.metropolia.canopy.domain.model.TrackingState
 import fi.metropolia.canopy.service.TrackingService
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +16,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import fi.metropolia.canopy.utils.ExportUtils
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 
 class TripViewModel(context: Context) : ViewModel() {
 
@@ -34,7 +35,7 @@ class TripViewModel(context: Context) : ViewModel() {
 
     private val _cyclingDistance = MutableStateFlow(0.0)
     val cyclingDistance: StateFlow<Double> = _cyclingDistance
-
+    
     init {
         val db = CanopyDatabase.getInstance(context)
         repository = TripRepository(db.locationDao())
@@ -42,13 +43,16 @@ class TripViewModel(context: Context) : ViewModel() {
         loadEmissions()
     }
 
+    // Reactive "locked" state
+    val isLocked: StateFlow<Boolean> = repository.checkIfDataIsLockedFlow()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     val isTracking get() = TrackingState.isTracking
     val totalDistanceMeters get() = TrackingState.totalDistanceMeters
     val currentSpeedMps get() = TrackingState.currentSpeedMps
     val modeDistances get() = TrackingState.modeDistances
     val modeEmissions get() = TrackingState.modeEmissions
 
-    /* 🔹 START TRACKING */
     fun startTracking(context: Context) {
         TrackingState.reset()
         val intent = Intent(context, TrackingService::class.java).apply {
@@ -62,7 +66,7 @@ class TripViewModel(context: Context) : ViewModel() {
             _trips.value = repository.getAllTrips()
         }
     }
-
+    
     fun loadEmissions() {
         viewModelScope.launch {
             _emissions.value = repository.getEmissionsByMode()
@@ -70,7 +74,7 @@ class TripViewModel(context: Context) : ViewModel() {
             _cyclingDistance.value = repository.getTotalCyclingDistance()
         }
     }
-
+    
     fun saveManualTrip(
         distance: Double,
         mode: String,
@@ -106,8 +110,12 @@ class TripViewModel(context: Context) : ViewModel() {
             val trips = repository.getAllTrips()
             val userRole = userRepository.userRole.first()
             ExportUtils.exportAndEmailData(context, trips, userRole, recipientEmail)
+            
+            // Lock all existing data after export
+            repository.lockAllCurrentData()
         }
     }
-
-
+    
+    // Removed redundant manual check as we now use StateFlow
+    fun loadIsLocked() { }
 }

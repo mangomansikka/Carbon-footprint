@@ -5,6 +5,7 @@ import fi.metropolia.canopy.data.source.LocationEntity
 import fi.metropolia.canopy.domain.model.TrackingState
 import fi.metropolia.canopy.utils.CarbonHelper
 import fi.metropolia.canopy.utils.CampusResolver
+import kotlinx.coroutines.flow.Flow
 
 class TripRepository(private val dao: LocationDAO) {
 
@@ -164,7 +165,7 @@ class TripRepository(private val dao: LocationDAO) {
     suspend fun getTotalWalkingDistance(): Double = dao.getTotalWalkingDistance()
     suspend fun getTotalCyclingDistance(): Double = dao.getTotalCyclingDistance()
 
-    suspend fun getLocationsByDate(startDate: Long, endDate: Long): List<LocationEntity> {
+    fun getLocationsByDate(startDate: Long, endDate: Long): Flow<List<LocationEntity>> {
         return dao.getLocationsByDate(startDate, endDate)
     }
 
@@ -173,5 +174,13 @@ class TripRepository(private val dao: LocationDAO) {
     }
 
     suspend fun getDaysWithData(): List<String> = dao.getDaysWithData()
+    
+    suspend fun lockAllCurrentData() {
+        dao.lockAllCurrentData()
+    }
+    
+    fun checkIfDataIsLockedFlow(): Flow<Boolean> {
+        return dao.hasAnyLockedDataFlow()
+    }
 
 }
