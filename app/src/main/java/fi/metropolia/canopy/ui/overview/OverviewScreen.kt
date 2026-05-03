@@ -75,13 +75,7 @@ fun OverviewScreen() {
     val emissionsWithDistance = emissions.toMutableMap()
     emissionsWithDistance["Walking"] = walkingDist / 1000
     emissionsWithDistance["Cycling"] = cyclingDist / 1000
-    val metroUsed = rawEmissions.keys.any {
-        it.lowercase().contains("metro")
-    }
 
-    if (metroUsed) {
-        emissionsWithDistance["Metro"] = 0.0001
-    }
     val orderedModes = listOf(
         "Car", "Moped",
         "Bus", "Train", "Metro",
@@ -277,7 +271,7 @@ fun OverviewScreen() {
                                 "Cycling" -> formatDistance(cyclingDist)
                                 else -> {
                                     if (value > 1000)
-                                        "${value.toInt()} kg CO₂"
+                                        "%,.0f kg CO₂".format(value)
                                     else
                                         formatEmission(value)
                                 }
@@ -328,7 +322,10 @@ fun OverviewScreen() {
                     onDismissRequest = { showInfo.value = false },
                     title = { Text("Emissions") },
                     text = {
-                        Text("Each mode produces different emissions. Walking and cycling are the best.")
+                        Text(
+                            "Each mode produces different emissions. Walking and cycling are the best.\n\n" +
+                                    "Metro produces very low emissions and may not appear in the chart."
+                        )
                     },
                     confirmButton = {
                         Button(
@@ -379,7 +376,7 @@ fun formatDistance(meters: Double): String =
     else "%.0f m".format(meters)
 
 fun formatEmission(kg: Double): String =
-    if (kg >= 1) "%.2f kg CO₂".format(kg)
+    if (kg >= 1) "%,.2f kg CO₂".format(kg)
     else "%.0f g CO₂".format(kg * 1000)
 
 /* ICONS */
