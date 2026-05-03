@@ -1,5 +1,6 @@
 package fi.metropolia.canopy.ui.homeview
 
+import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -9,9 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,6 +21,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -47,6 +47,10 @@ fun HomeScreen() {
     val totalEmissionsKg by graphViewModel.totalEmissionsKg.collectAsState()
     val percentageChange by graphViewModel.percentageChange.collectAsState()
     val viewState = remember { mutableStateOf(false) }
+
+    // State for the selected month and year
+    val chosenMonth = remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH)) }
+    val chosenYear = remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.YEAR)) }
     
     val isLocked by tripViewModel.isLocked.collectAsState()
 
@@ -100,7 +104,13 @@ fun HomeScreen() {
             Spacer(Modifier.height(32.dp))
 
             if (viewState.value) {
-                EmissionsCalendar(graphViewModel, isLocked)
+                EmissionsCalendar(
+                    chosenMonth = chosenMonth.intValue,
+                    chosenYear = chosenYear.intValue,
+                    onMonthSelected = { chosenMonth.intValue = it },
+                    viewModel = graphViewModel,
+                    isLocked = isLocked
+                )
             } else {
                 MonthlyGraphSection(chartPoints, last4Months)
             }
@@ -189,18 +199,29 @@ fun MonthlyGraphSection(chartPoints: List<Float>, last4Months: List<Pair<String,
 }
 
 @Composable
-fun EmissionsCalendar(viewModel: GraphViewModel, isLocked: Boolean) {
+fun EmissionsCalendar(
+    chosenMonth: Int,
+    chosenYear: Int,
+    onMonthSelected: (Int) -> Unit,
+    viewModel: GraphViewModel,
+    isLocked: Boolean
+) {
     val daysWithData by viewModel.daysWithData.collectAsState()
+    var isPickerExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.loadDaysWithData()
     }
 
-    val calendarData = remember {
-        val cal = Calendar.getInstance().apply { set(Calendar.DAY_OF_MONTH, 1) }
+    val calendarData = remember(chosenMonth, chosenYear) {
+        val cal = Calendar.getInstance().apply {
+            set(Calendar.YEAR, chosenYear)
+            set(Calendar.MONTH, chosenMonth)
+            set(Calendar.DAY_OF_MONTH, 1)
+        }
         val mName = cal.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault()) ?: ""
         val yr = cal.get(Calendar.YEAR)
-        val monthIdx = cal.get(Calendar.MONTH) // 0-indexed
+        val monthIdx = cal.get(Calendar.MONTH)
         val dInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
         val firstDay = cal.get(Calendar.DAY_OF_WEEK)
         val off = when (firstDay) {
@@ -225,56 +246,85 @@ fun EmissionsCalendar(viewModel: GraphViewModel, isLocked: Boolean) {
     var dayRange by remember { mutableStateOf(0L to 0L) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = "$monthName $year",
-            color = Color.White,
-            style = MaterialTheme.typography.titleMedium
-        )
+        Row(
+            modifier = Modifier
+                .clickable { isPickerExpanded = !isPickerExpanded }
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "$monthName $year",
+                color = Color.White,
+                style = MaterialTheme.typography.titleMedium
+            )
+            Icon(
+                imageVector = if (isPickerExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.padding(start = 4.dp)
+            )
+        }
 
         Spacer(Modifier.height(16.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround
+        AnimatedVisibility(
+            visible = isPickerExpanded,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
         ) {
-            listOf("M", "T", "W", "T", "F", "S", "S").forEach { day ->
-                Text(
-                    text = day,
-                    color = Color.White.copy(alpha = 0.6f),
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            MonthPicker(
+                currentMonth = chosenMonth,
+                onMonthSelected = {
+                    onMonthSelected(it)
+                    isPickerExpanded = false
+                }
+            )
         }
 
-        Spacer(Modifier.height(8.dp))
+        AnimatedVisibility(
+            visible = !isPickerExpanded,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            val totalSlots = offset + daysInMonth
+            val rows = (totalSlots + 6) / 7
+            
+            Column {
+                // Weekdays Header
+                Row(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.SpaceAround) {
+                    listOf("M", "T", "W", "T", "F", "S", "S").forEach { day ->
+                        Text(text = day, color = Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
+                    }
+                }
 
-        val totalSlots = offset + daysInMonth
-        val rows = (totalSlots + 6) / 7
-        
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            for (r in 0 until rows) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    for (c in 0 until 7) {
-                        val index = r * 7 + c
-                        if (index < offset || index >= totalSlots) {
-                            Box(modifier = Modifier.weight(1f).aspectRatio(1f))
-                        } else {
-                            val day = index - offset + 1
-                            val dateKey = String.format("%04d-%02d-%02d", year, monthIndex + 1, day)
-                            val hasData = daysWithData.contains(dateKey)
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    for (r in 0 until rows) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            for (c in 0 until 7) {
+                                val index = r * 7 + c
+                                if (index < offset || index >= totalSlots) {
+                                    Box(modifier = Modifier.weight(1f).aspectRatio(1f))
+                                } else {
+                                    val day = index - offset + 1
+                                    val dateKey = String.format("%04d-%02d-%02d", year, monthIndex + 1, day)
+                                    val hasData = daysWithData.contains(dateKey)
 
-                            CalendarDay(
-                                day = day,
-                                monthName = monthName,
-                                hasData = hasData,
-                                onDayClick = { start, end, dateStr ->
-                                    dayRange = start to end
-                                    selectedDateStr = dateStr
-                                    viewModel.loadCalenderData(start, end)
-                                    showDialog = true
-                                },
-                                modifier = Modifier.weight(1f)
-                            )
+                                    CalendarDay(
+                                        day = day,
+                                        monthIndex = monthIndex,
+                                        year = year,
+                                        monthName = monthName,
+                                        hasData = hasData,
+                                        onDayClick = { start, end, dateStr ->
+                                            dayRange = start to end
+                                            selectedDateStr = dateStr
+                                            viewModel.loadCalenderData(start, end)
+                                            showDialog = true
+                                        },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -295,9 +345,45 @@ fun EmissionsCalendar(viewModel: GraphViewModel, isLocked: Boolean) {
 }
 
 @Composable
+fun MonthPicker(currentMonth: Int, onMonthSelected: (Int) -> Unit) {
+    val months = remember {
+        val cal = Calendar.getInstance()
+        (0..11).map {
+            cal.set(Calendar.MONTH, it)
+            cal.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault()) ?: ""
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(280.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        months.forEachIndexed { index, month ->
+            Text(
+                text = month,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onMonthSelected(index) }
+                    .padding(vertical = 8.dp),
+                textAlign = TextAlign.Center,
+                color = if (index == currentMonth) AccentGreen else Color.White,
+                fontWeight = if (index == currentMonth) FontWeight.Bold else FontWeight.Normal,
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+    }
+}
+
+@Composable
 fun CalendarDay(
-    day: Int, 
-    monthName: String, 
+    day: Int,
+    monthIndex: Int,
+    year: Int,
+    monthName: String,
     hasData: Boolean,
     onDayClick: (Long, Long, String) -> Unit, 
     modifier: Modifier
@@ -308,11 +394,19 @@ fun CalendarDay(
             .background(Color.White.copy(alpha = 0.1f), CircleShape)
             .clickable {
                 val cal = Calendar.getInstance().apply {
+                    set(Calendar.YEAR, year)
+                    set(Calendar.MONTH, monthIndex)
                     set(Calendar.DAY_OF_MONTH, day)
-                    set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0)
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
                 }
                 val start = cal.timeInMillis
-                cal.set(Calendar.HOUR_OF_DAY, 23); cal.set(Calendar.MINUTE, 59); cal.set(Calendar.SECOND, 59)
+                cal.set(Calendar.HOUR_OF_DAY, 23)
+                cal.set(Calendar.MINUTE, 59)
+                cal.set(Calendar.SECOND, 59)
+                cal.set(Calendar.MILLISECOND, 999)
                 val end = cal.timeInMillis
                 onDayClick(start, end, "$day $monthName")
             },
