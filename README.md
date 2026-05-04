@@ -4,7 +4,7 @@
 ![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=Android&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=SQLite&logoColor=white)
 
-Canopy is a communal system for visualizing commuting-related emissions. The application uses automatic and manual commuting data to display collective impact through a shared virtual tree.
+Canopy is a personal system for visualizing commuting-related emissions. The application uses automatic and manual commuting data to display personal impact through a virtual tree.
 
 ---
 
@@ -20,18 +20,19 @@ Canopy is a communal system for visualizing commuting-related emissions. The app
 
 ---
 
-## ✨ Features
+## Features
 
 - **Automatic Location Detection** - Start automatic location tracking with a single button press
 - **Distance Calculation** - Real-time calculation of commuting distance in meters
 - **Transport Mode Detection** - Intelligent detection of transportation type (vehicle, walking, cycling)
 - **Carbon Footprint Tracking** - Visual representation of your environmental impact
-- **Shared Virtual Tree** - Collective visualization of community emissions reduction
+- **Personal Virtual Tree** - Personal visualization of your emissions
 - **Interactive Dashboard** - Greenish UI with charts and statistics about your carbon footprint
+- **Data exportation** - Exporting your data to a CSV file
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Technology | Purpose |
 |-----------|---------|
@@ -44,13 +45,13 @@ Canopy is a communal system for visualizing commuting-related emissions. The app
 
 ---
 
-## 🚀 Project Status
+## Project Status
 
 This project is developed as part of Metropolia's multidisciplinary innovation project course and is **actively under development**.
 
 ---
 
-## 📦 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -77,15 +78,17 @@ cd Carbon-footprint
 1.   Start Tracking - Tap the location tracking button to begin automatic detection
 2.   View Statistics - Check your carbon footprint on the dashboard
 3.   Submit Data - Manual entry option available for commutes
-4.   See Community Impact - View the shared tree visualization
+4.   See Your Impact - View your personal tree visualization
+5.   Edit Data - Delete wrong data through the calendar
+6.   Export Data - Export your data to a CSV file
 
 ---
 
-## 📚 Documentation
+## Documentation
 - [User Manual](docs/user-manual.md)
 - [Architecture Overview](docs/Architecture-Overview.md)
 
 ---
 
-## 📄 License
+## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
