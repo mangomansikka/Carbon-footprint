@@ -324,7 +324,7 @@ fun OverviewScreen() {
                     text = {
                         Text(
                             "Each mode produces different emissions. Walking and cycling are the best.\n\n" +
-                                    "Metro produces very low emissions and may not appear in the chart."
+                                    "Currently, metro produces none and doesn't appear on the chart."
                         )
                     },
                     confirmButton = {
