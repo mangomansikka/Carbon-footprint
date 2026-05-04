@@ -71,10 +71,10 @@ fun MainTreeContent(totalEmissionsKg: Double, onShowGallery: () -> Unit) {
         else -> null
     }
 
-    //tausta muuttuu ruskeaksi kun  on paljon päästöi
+    // Tausta muuttuu huonoksi vasta kun päästöt ovat korkeat
     val backgroundColor = when (stage) {
-        TreeStage.DESTROYED -> Color(0xFFBCAAA4)
-        TreeStage.SEED -> Color(0xFFD7CCC8)
+        TreeStage.DEAD -> Color(0xFFBCAAA4)
+        TreeStage.SICK -> Color(0xFFD7CCC8)
         else -> OverviewColors.BgGreen
     }
 
@@ -82,10 +82,12 @@ fun MainTreeContent(totalEmissionsKg: Double, onShowGallery: () -> Unit) {
         targetValue = when (stage) {
             TreeStage.SEED -> 140.dp
             TreeStage.SPROUT -> 200.dp
-            TreeStage.SMALL_TREE -> 280.dp
-            TreeStage.BIG_TREE -> 340.dp
+            TreeStage.SMALL_TREE -> 260.dp
+            TreeStage.MEDIUM_TREE -> 320.dp
+            TreeStage.BIG_TREE -> 380.dp
             TreeStage.FULL_TREE -> 420.dp
-            TreeStage.DESTROYED -> 420.dp // Kuihtunut puu on suuri, mutta kuollut, koska päästöt on suuret
+            TreeStage.SICK -> 420.dp
+            TreeStage.DEAD -> 420.dp
         },
         label = "tree_size"
     )
@@ -275,34 +277,40 @@ fun TreeStageCard(stage: TreeStage) {
 
 fun getEmissionRange(stage: TreeStage): String {
     return when (stage) {
-        TreeStage.FULL_TREE -> "< 30 kg CO₂"
-        TreeStage.BIG_TREE -> "30 - 80 kg CO₂"
-        TreeStage.SMALL_TREE -> "80 - 150 kg CO₂"
-        TreeStage.SPROUT -> "150 - 300 kg CO₂"
-        TreeStage.SEED -> "300 - 500 kg CO₂"
-        TreeStage.DESTROYED -> "> 1000 kg CO₂"
+        TreeStage.SEED -> "0 - 100 kg CO₂"
+        TreeStage.SPROUT -> "100 - 220 kg CO₂"
+        TreeStage.SMALL_TREE -> "220 - 330 kg CO₂"
+        TreeStage.MEDIUM_TREE -> "330 - 440 kg CO₂"
+        TreeStage.BIG_TREE -> "440 - 550 kg CO₂"
+        TreeStage.FULL_TREE -> "550 - 660 kg CO₂"
+        TreeStage.SICK -> "660 - 800 kg CO₂"
+        TreeStage.DEAD -> "> 800 kg CO₂"
     }
 }
 
 fun getStageText(stage: TreeStage): String {
     return when (stage) {
-        TreeStage.DESTROYED -> "Withered 🌫️"
-        TreeStage.SEED -> "Baseline 🌱"
+        TreeStage.SEED -> "Seedling 🌱"
         TreeStage.SPROUT -> "Growing 🌿"
-        TreeStage.SMALL_TREE -> "Doing Great 🌳"
-        TreeStage.BIG_TREE -> "Very Good 🌳✨"
-        TreeStage.FULL_TREE -> "Perfect 🌍💚"
+        TreeStage.SMALL_TREE -> "Little Tree 🌳"
+        TreeStage.MEDIUM_TREE -> "Expanding 🌳"
+        TreeStage.BIG_TREE -> "Sturdy Tree 🌳✨"
+        TreeStage.FULL_TREE -> "Majestic Tree 🌍💚"
+        TreeStage.SICK -> "Feeling Unwell 🌫️"
+        TreeStage.DEAD -> "Withered 🌫️"
     }
 }
 
 fun getTreeImage(stage: TreeStage): Int {
     return when (stage) {
-        TreeStage.FULL_TREE -> R.drawable.tree4     // Terve puu
-        TreeStage.BIG_TREE -> R.drawable.tree4      // Melkein täysi
-        TreeStage.SMALL_TREE -> R.drawable.tree3    // Keskikokoinen
-        TreeStage.SPROUT -> R.drawable.tree2         // Pieni taimi
-        TreeStage.SEED -> R.drawable.tree1          // Alkuvaihe
-        TreeStage.DESTROYED -> R.drawable.tree5     // Kuihtunut (ilman lehtiä)
+        TreeStage.SEED -> R.drawable.tree1
+        TreeStage.SPROUT -> R.drawable.tree2
+        TreeStage.SMALL_TREE -> R.drawable.tree3
+        TreeStage.MEDIUM_TREE -> R.drawable.tree4
+        TreeStage.BIG_TREE -> R.drawable.tree5
+        TreeStage.FULL_TREE -> R.drawable.tree6
+        TreeStage.SICK -> R.drawable.tree7
+        TreeStage.DEAD -> R.drawable.tree8
     }
 }
 
