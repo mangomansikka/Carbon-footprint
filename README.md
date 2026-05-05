@@ -16,6 +16,7 @@ Canopy is a personal system for visualizing commuting-related emissions. The app
 - [Installation](#installation)
 - [Usage](#usage)
 - [Documentation](#documentation)
+- [Important Notes](#important-notes)
 - [License](#license)
 
 ---
@@ -87,6 +88,12 @@ cd Carbon-footprint
 ## Documentation
 - [User Manual](docs/user-manual.md)
 - [Architecture Overview](docs/Architecture-Overview.md)
+
+---
+
+## Important Notes
+
+Throughout the process, an algorithm was being developed to improve location data and travel mode accuracy. Unfortunately, the project ran out of time and is being left as a "work-in-process". The algorithm should and will be developed once the project continues again. Find the algorithm in branch "Algorithm-WIP".
 
 ---
 
