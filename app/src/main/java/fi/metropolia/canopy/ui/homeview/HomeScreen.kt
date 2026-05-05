@@ -37,6 +37,9 @@ private val BgGreen = Color(0xFF6F9C73)
 private val LightGreen = Color(0xFFAED3B0)
 private val AccentGreen = Color(0xFF58F0B1)
 
+/**
+ * HomeScreen composable function for visualizing the user's carbon footprint
+ */
 @Composable
 fun HomeScreen() {
     val context = LocalContext.current
@@ -46,18 +49,18 @@ fun HomeScreen() {
     val monthlyEmissions by graphViewModel.monthlyEmissions.collectAsState()
     val totalEmissionsKg by graphViewModel.totalEmissionsKg.collectAsState()
     val percentageChange by graphViewModel.percentageChange.collectAsState()
+    val isLocked by tripViewModel.isLocked.collectAsState()
+
     val viewState = remember { mutableStateOf(false) }
 
-    // State for the selected month and year
     val chosenMonth = remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH)) }
     val chosenYear = remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.YEAR)) }
-    
-    val isLocked by tripViewModel.isLocked.collectAsState()
 
     LaunchedEffect(Unit) {
         graphViewModel.loadMonthlyEmissions()
     }
 
+    // Get the last 4 months
     val last4Months = remember(monthlyEmissions) {
         val calendar = Calendar.getInstance()
         (0..3).map { i ->
@@ -70,11 +73,13 @@ fun HomeScreen() {
         }
     }
 
+    // Calculate the chart points based on the last 4 months
     val chartPoints = remember(last4Months) {
         val maxVal = last4Months.maxOf { it.second }.coerceAtLeast(1f)
         last4Months.map { (it.second / maxVal) * 100f + 20f }
     }
 
+    // Animate the target value
     val animatedValueState = animateFloatAsState(targetValue = totalEmissionsKg.toFloat(), label = "co2Animation")
 
     Column(
@@ -91,7 +96,8 @@ fun HomeScreen() {
             Text(
                 text = "My Footprint",
                 style = MaterialTheme.typography.titleLarge,
-                color = Color.White)
+                color = Color.White
+            )
 
             Spacer(Modifier.height(16.dp))
 
@@ -103,6 +109,7 @@ fun HomeScreen() {
 
             Spacer(Modifier.height(32.dp))
 
+            // Show the monthly or calendar view based on the toggle
             if (viewState.value) {
                 EmissionsCalendar(
                     chosenMonth = chosenMonth.intValue,
@@ -122,6 +129,9 @@ fun HomeScreen() {
     }
 }
 
+/**
+ * AnimatedFootprintHeader composable function for displaying the animated footprint header
+ */
 @Composable
 fun AnimatedFootprintHeader(valueState: State<Float>, percentageChange: Double) {
     Column {
@@ -131,7 +141,9 @@ fun AnimatedFootprintHeader(valueState: State<Float>, percentageChange: Double) 
                 style = MaterialTheme.typography.displayLarge,
                 color = Color.White
             )
+
             Spacer(Modifier.width(8.dp))
+
             Text(text = "ton CO₂/year", style = MaterialTheme.typography.bodyLarge, color = Color.White)
         }
 
@@ -155,6 +167,9 @@ fun AnimatedFootprintHeader(valueState: State<Float>, percentageChange: Double) 
     }
 }
 
+/**
+ * ToggleViewButtons composable function for toggling between monthly and calendar view
+ */
 @Composable
 fun ToggleViewButtons(viewState: MutableState<Boolean>) {
     Row(modifier = Modifier.fillMaxWidth()) {
@@ -180,6 +195,9 @@ fun ToggleViewButtons(viewState: MutableState<Boolean>) {
     }
 }
 
+/**
+ * MonthlyGraphSection composable function for displaying the monthly graph
+ */
 @Composable
 fun MonthlyGraphSection(chartPoints: List<Float>, last4Months: List<Pair<String, Float>>) {
     Column {
@@ -198,6 +216,9 @@ fun MonthlyGraphSection(chartPoints: List<Float>, last4Months: List<Pair<String,
     }
 }
 
+/**
+ * EmissionsCalendar composable function for displaying the emissions calendar
+ */
 @Composable
 fun EmissionsCalendar(
     chosenMonth: Int,
@@ -213,17 +234,23 @@ fun EmissionsCalendar(
         viewModel.loadDaysWithData()
     }
 
+    // Calculate the calendar data based on the chosen month and year
     val calendarData = remember(chosenMonth, chosenYear) {
+
+        // Set the calendar information to the chosen month and year
         val cal = Calendar.getInstance().apply {
             set(Calendar.YEAR, chosenYear)
             set(Calendar.MONTH, chosenMonth)
             set(Calendar.DAY_OF_MONTH, 1)
         }
+
         val mName = cal.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault()) ?: ""
         val yr = cal.get(Calendar.YEAR)
         val monthIdx = cal.get(Calendar.MONTH)
         val dInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
         val firstDay = cal.get(Calendar.DAY_OF_WEEK)
+
+        // Calculate the offset and day range for the calendar
         val off = when (firstDay) {
             Calendar.MONDAY -> 0
             Calendar.TUESDAY -> 1
@@ -257,6 +284,7 @@ fun EmissionsCalendar(
                 color = Color.White,
                 style = MaterialTheme.typography.titleMedium
             )
+
             Icon(
                 imageVector = if (isPickerExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                 contentDescription = null,
@@ -290,7 +318,6 @@ fun EmissionsCalendar(
             val rows = (totalSlots + 6) / 7
             
             Column {
-                // Weekdays Header
                 Row(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.SpaceAround) {
                     listOf("M", "T", "W", "T", "F", "S", "S").forEach { day ->
                         Text(text = day, color = Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
@@ -302,7 +329,7 @@ fun EmissionsCalendar(
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             for (c in 0 until 7) {
                                 val index = r * 7 + c
-                                if (index < offset || index >= totalSlots) {
+                                if (index !in offset..<totalSlots) {
                                     Box(modifier = Modifier.weight(1f).aspectRatio(1f))
                                 } else {
                                     val day = index - offset + 1
@@ -332,6 +359,7 @@ fun EmissionsCalendar(
         }
     }
 
+    // Show the trip details dialog if a date is selected
     if (showDialog) {
         TripDetailsDialog(
             date = selectedDateStr,
@@ -344,8 +372,10 @@ fun EmissionsCalendar(
     }
 }
 
+// MonthPicker composable function for displaying the month picker slider
 @Composable
 fun MonthPicker(currentMonth: Int, onMonthSelected: (Int) -> Unit) {
+    // Get the list of months
     val months = remember {
         val cal = Calendar.getInstance()
         (0..11).map {
@@ -362,6 +392,7 @@ fun MonthPicker(currentMonth: Int, onMonthSelected: (Int) -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        // Display months as clickable buttons
         months.forEachIndexed { index, month ->
             Text(
                 text = month,
@@ -378,6 +409,9 @@ fun MonthPicker(currentMonth: Int, onMonthSelected: (Int) -> Unit) {
     }
 }
 
+/**
+ * CalendarDay composable function for displaying a single day in the calendar
+ */
 @Composable
 fun CalendarDay(
     day: Int,
@@ -402,18 +436,26 @@ fun CalendarDay(
                     set(Calendar.SECOND, 0)
                     set(Calendar.MILLISECOND, 0)
                 }
+
                 val start = cal.timeInMillis
+
                 cal.set(Calendar.HOUR_OF_DAY, 23)
                 cal.set(Calendar.MINUTE, 59)
                 cal.set(Calendar.SECOND, 59)
                 cal.set(Calendar.MILLISECOND, 999)
+
                 val end = cal.timeInMillis
+
                 onDayClick(start, end, "$day $monthName")
             },
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = day.toString(), color = Color.White)
+            Text(
+                text = day.toString(),
+                color = Color.White)
+
+            // Show a dot if there is data for this day
             if (hasData) {
                 Spacer(Modifier.height(2.dp))
                 Box(
@@ -426,9 +468,13 @@ fun CalendarDay(
     }
 }
 
+/**
+ * TripDetailsDialog composable function for displaying the trip details dialog
+ */
 @Composable
 fun TripDetailsDialog(date: String, isLocked: Boolean, viewModel: GraphViewModel, onDismiss: () -> Unit, dayStart: Long, dayEnd: Long) {
     val trips by viewModel.calenderData.collectAsState()
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Trips on $date") },
@@ -449,6 +495,7 @@ fun TripDetailsDialog(date: String, isLocked: Boolean, viewModel: GraphViewModel
                             }
                             
                             // Per-trip locking logic
+                            // If the trip is not locked, show a delete button
                             if (!trip.isLocked) {
                                 IconButton(onClick = {
                                     viewModel.deleteLocationsById(
@@ -464,9 +511,17 @@ fun TripDetailsDialog(date: String, isLocked: Boolean, viewModel: GraphViewModel
                                     )
                                 }
                             } else {
+                                // If the trip is locked, show a lock icon with text
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Lock, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+                                    Icon(
+                                        Icons.Default.Lock,
+                                        contentDescription = null,
+                                        tint = Color.Gray,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+
                                     Spacer(Modifier.width(4.dp))
+
                                     Text("Locked", color = Color.Gray, fontSize = 12.sp)
                                 }
                             }
@@ -480,6 +535,9 @@ fun TripDetailsDialog(date: String, isLocked: Boolean, viewModel: GraphViewModel
     )
 }
 
+/**
+ * PlantGirlSection composable function for displaying the plant girl picture
+ */
 @Composable
 fun PlantGirlSection() {
     Box(modifier = Modifier
@@ -488,18 +546,37 @@ fun PlantGirlSection() {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val path = Path().apply {
                 moveTo(0f, size.height * 0.4f)
-                quadraticBezierTo(size.width * 0.25f, size.height * 0.2f, size.width * 0.5f, size.height * 0.45f)
-                quadraticBezierTo(size.width * 0.75f, size.height * 0.7f, size.width, size.height * 0.4f)
+                quadraticTo(
+                    size.width * 0.25f,
+                    size.height * 0.2f,
+                    size.width * 0.5f,
+                    size.height * 0.45f
+                )
+                quadraticTo(
+                    size.width * 0.75f,
+                    size.height * 0.7f,
+                    size.width,
+                    size.height * 0.4f
+                )
                 lineTo(size.width, size.height)
                 lineTo(0f, size.height)
                 close()
             }
             drawPath(path = path, color = LightGreen)
         }
-        Image(painter = painterResource(R.drawable.plant_girl), contentDescription = null, modifier = Modifier.align(Alignment.BottomCenter).height(240.dp))
+        Image(
+            painter = painterResource(R.drawable.plant_girl),
+            contentDescription = null,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .height(240.dp)
+        )
     }
 }
 
+/**
+ * LineChart composable function for displaying a line chart
+ */
 @Composable
 fun LineChart(points: List<Float>) {
     Canvas(modifier = Modifier
@@ -510,14 +587,15 @@ fun LineChart(points: List<Float>) {
         for (i in 0 until points.size - 1) {
             val start = Offset(space * i, size.height - points[i])
             val end = Offset(space * (i + 1), size.height - points[i + 1])
-            
+
+            // Draw the line and circles for each point
             drawLine(
                 color = AccentGreen.copy(alpha = 0.3f), 
                 start = start, 
                 end = end, 
                 strokeWidth = 16f
             )
-            
+
             drawLine(
                 color = AccentGreen, 
                 start = start, 
@@ -530,7 +608,7 @@ fun LineChart(points: List<Float>) {
                 radius = 8f, 
                 center = start
             )
-            
+
             if (i == points.size - 2) drawCircle(
                 color = AccentGreen, 
                 radius = 8f, 
