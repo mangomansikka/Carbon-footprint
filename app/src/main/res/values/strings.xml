@@ -1,3 +1,152 @@
 <resources>
     <string name="app_name">Canopy-Minno</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_eco">Eco</string>
+    <string name="nav_overview">Overview</string>
+    <string name="nav_stats">Stats</string>
+
+    <!-- Landing Screen -->
+    <string name="loading">Loading...</string>
+    <string name="welcome_to_canopy">Welcome to Canopy</string>
+    <string name="welcome_back">Welcome back!</string>
+    <string name="track_footprint_desc">Track your carbon footprint</string>
+    <string name="choose_role_hint">Choose your role to begin</string>
+    <string name="role_student">Student</string>
+    <string name="role_staff">Staff</string>
+    <string name="choice_saved">Your choice has been saved ✓</string>
+    <string name="account_confirmed_format">%1$s account ✓</string>
+    <string name="change_role">Change role</string>
+
+    <!-- Home Screen -->
+    <string name="my_footprint">My Footprint</string>
+    <string name="ton_co2_year">ton CO₂/year</string>
+    <string name="increase">increase</string>
+    <string name="decrease">decrease</string>
+    <string name="since_last_month">since last month</string>
+    <string name="monthly">Monthly</string>
+    <string name="calendar">Calendar</string>
+    <string name="trips_on_date">Trips on %1$s</string>
+    <string name="no_data_day">No data for this day.</string>
+    <string name="trip_label">Trip</string>
+    <string name="delete">Delete</string>
+    <string name="locked">Locked</string>
+    <string name="close">Close</string>
+    <string name="percent_format">%1$.1f%%</string>
+
+    <!-- Location Screen -->
+    <string name="live_tracking">Live Tracking</string>
+    <string name="start_trip">Start Trip</string>
+    <string name="end_trip">End Trip</string>
+    <string name="add_manual_entry">Add Manual Entry</string>
+    <string name="live_detection">Live Detection</string>
+    <string name="mode_label">Mode: %1$s</string>
+    <string name="avg_speed_label">Avg Speed: %1$.1f m/s</string>
+    <string name="total_distance_label">Total Distance: %1$.2f m</string>
+    <string name="current_speed_label">Current Speed: %1$.2f m/s</string>
+    <string name="distance_per_mode">Distance per Mode:</string>
+    <string name="no_data_yet">No data yet</string>
+    <string name="emissions_current_trip">Emissions (Current Trip):</string>
+    <string name="emissions_hint">Emissions will appear once you start moving</string>
+    <string name="kg_co2_label">%1$.4f kg CO₂</string>
+    <string name="overview_history_hint">Visit the Overview screen for your full history.</string>
+    <string name="distance_m_label">%1$.1f m</string>
+
+    <!-- Manual Input Screen -->
+    <string name="manual_input">Manual Input</string>
+    <string name="distance_km_label">Distance (kilometres)</string>
+    <string name="enter_distance_hint">Enter distance in km</string>
+    <string name="transport_mode_label">Transport mode</string>
+    <string name="assign_to_campus">Assign to campus</string>
+    <string name="campus_info_desc">Campus assignment info</string>
+    <string name="select_campus">Select campus</string>
+    <string name="campus_validation_error">Please select a campus or Non campus trip</string>
+    <string name="save_trip">Save trip</string>
+    <string name="trip_saved">Trip saved!</string>
+    <string name="campus_assignment_title">Campus assignment</string>
+    <string name="campus_assignment_text">If a trip is campus to campus, assign the end campus. If it is a trip home from campus, assign that campus.</string>
+    <string name="ok">OK</string>
+    <string name="selected_date_label">Selected: %1$s</string>
+
+    <!-- Campuses -->
+    <string name="campus_myllypuro">Myllypuro</string>
+    <string name="campus_karamalmi">Karamalmi</string>
+    <string name="campus_arabia">Arabia</string>
+    <string name="campus_myyrmaki">Myyrmäki</string>
+    <string name="non_campus_trip">Non campus trip</string>
+
+    <!-- Overview Screen -->
+    <string name="overview_title">Overview</string>
+    <string name="no_trips_hint">No trips yet — start tracking to see your footprint</string>
+    <string name="no_data">No Data</string>
+    <string name="t_co2_unit">%1$d t CO₂</string>
+    <string name="kg_co2_unit">%1$d kg CO₂</string>
+    <string name="kg_co2_multi_line">%1$d kg\nCO₂</string>
+    <string name="total_suffix">%1$s total</string>
+    <string name="no_emissions_recorded">No emissions recorded yet</string>
+    <string name="export_csv">Export Data to CSV</string>
+    <string name="emissions_info_title">Emissions</string>
+    <string name="emissions_info_text">Each mode produces different emissions. Walking and cycling are the best.\n\nCurrently, metro produces none and doesn\'t appear on the chart.</string>
+    <string name="confirm_export_title">Are you sure?</string>
+    <string name="confirm_export_text">Once you export your data, it will be locked and can no longer be edited from the calendar.</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="km_unit">%1$.2f km</string>
+    <string name="m_unit">%1$.0f m</string>
+    <string name="g_co2_unit">%1$.0f g CO₂</string>
+    <string name="kg_co2_format">%,.2f kg CO₂</string>
+    <string name="kg_co2_int_format">%,.0f kg CO₂</string>
+
+    <!-- Tree Screen -->
+    <string name="my_tree">My Tree</string>
+    <string name="view_all">View All</string>
+    <string name="monthly_emissions">Monthly Emissions</string>
+    <string name="back_arrow">← Back</string>
+    <string name="tree_stages">Tree Stages</string>
+    <string name="kg_co2_display">%.2f kg CO₂</string>
+
+    <string name="stage_seedling">Seedling 🌱</string>
+    <string name="stage_growing">Growing 🌿</string>
+    <string name="stage_little_tree">Little Tree 🌳</string>
+    <string name="stage_expanding">Expanding 🌳</string>
+    <string name="stage_sturdy_tree">Sturdy Tree 🌳✨</string>
+    <string name="stage_majestic_tree">Majestic Tree 🌍💚</string>
+    <string name="stage_feeling_unwell">Feeling Unwell 🌫️</string>
+    <string name="stage_withered">Withered 🌫️</string>
+
+    <string name="range_seed">0 – 100 kg CO₂</string>
+    <string name="range_sprout">100 – 220 kg CO₂</string>
+    <string name="range_small">220 – 330 kg CO₂</string>
+    <string name="range_medium">330 – 440 kg CO₂</string>
+    <string name="range_big">440 – 550 kg CO₂</string>
+    <string name="range_full">550 – 660 kg CO₂</string>
+    <string name="range_sick">660 – 800 kg CO₂</string>
+    <string name="range_dead">> 800 kg CO₂</string>
+
+    <!-- Transport Modes -->
+    <string name="mode_car">Car</string>
+    <string name="mode_bus">Bus</string>
+    <string name="mode_train">Train</string>
+    <string name="mode_metro">Metro</string>
+    <string name="mode_moped">Moped</string>
+    <string name="mode_walking">Walking</string>
+    <string name="mode_bicycle">Bicycle</string>
+    <string name="mode_tram">Tram</string>
+    <string name="mode_still">Still</string>
+    <string name="mode_none">None</string>
+    <string name="mode_unknown">Unknown</string>
+
+    <!-- Tracking Service -->
+    <string name="tracking_notification_title">Canopy Tracker</string>
+    <string name="tracking_active">Trip tracking active</string>
+    <string name="tracking_channel_name">Trip Tracking</string>
+
+    <!-- Export Utils -->
+    <string name="export_email_subject">Carbon Footprint Data Export</string>
+    <string name="export_email_body">Attached is your carbon footprint data in CSV format.</string>
+    <string name="send_email">Send Email</string>
+    <string name="no_trip_data_export">No trip data available to export</string>
+    <string name="failed_create_csv">Failed to create CSV file</string>
+
 </resources>

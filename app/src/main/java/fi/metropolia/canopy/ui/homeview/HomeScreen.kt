@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -89,7 +90,7 @@ fun HomeScreen() {
             Spacer(Modifier.height(20.dp))
 
             Text(
-                text = "My Footprint",
+                text = stringResource(R.string.my_footprint),
                 style = MaterialTheme.typography.titleLarge,
                 color = Color.White)
 
@@ -132,7 +133,7 @@ fun AnimatedFootprintHeader(valueState: State<Float>, percentageChange: Double) 
                 color = Color.White
             )
             Spacer(Modifier.width(8.dp))
-            Text(text = "ton CO₂/year", style = MaterialTheme.typography.bodyLarge, color = Color.White)
+            Text(text = stringResource(R.string.ton_co2_year), style = MaterialTheme.typography.bodyLarge, color = Color.White)
         }
 
         Spacer(Modifier.height(20.dp))
@@ -147,8 +148,12 @@ fun AnimatedFootprintHeader(valueState: State<Float>, percentageChange: Double) 
             Spacer(Modifier.width(8.dp))
 
             Text(
-                text = String.format("%.1f", Math.abs(percentageChange)) + "% " + 
-                       (if (percentageChange >= 0) "increase" else "decrease") + " since last month",
+                text = stringResource(
+                    R.string.percent_format, 
+                    Math.abs(percentageChange)
+                ) + " " + 
+                (if (percentageChange >= 0) stringResource(R.string.increase) else stringResource(R.string.decrease)) + 
+                " " + stringResource(R.string.since_last_month),
                 color = Color.White
             )
         }
@@ -164,7 +169,7 @@ fun ToggleViewButtons(viewState: MutableState<Boolean>) {
             colors = ButtonDefaults.buttonColors(containerColor = if (!viewState.value) Color.White else LightGreen, contentColor = Color.Black),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Monthly", fontSize = 12.sp)
+            Text(stringResource(R.string.monthly), fontSize = 12.sp)
         }
 
         Spacer(Modifier.width(8.dp))
@@ -175,7 +180,7 @@ fun ToggleViewButtons(viewState: MutableState<Boolean>) {
             colors = ButtonDefaults.buttonColors(containerColor = if (viewState.value) Color.White else LightGreen, contentColor = Color.Black),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Calendar", fontSize = 12.sp)
+            Text(stringResource(R.string.calendar), fontSize = 12.sp)
         }
     }
 }
@@ -431,10 +436,10 @@ fun TripDetailsDialog(date: String, isLocked: Boolean, viewModel: GraphViewModel
     val trips by viewModel.calenderData.collectAsState()
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Trips on $date") },
+        title = { Text(stringResource(R.string.trips_on_date, date)) },
         text = {
             if (trips.isEmpty()) {
-                Text("No data for this day.")
+                Text(stringResource(R.string.no_data_day))
             } else {
                 LazyColumn(modifier = Modifier.heightIn(max = 300.dp)) {
                     items(trips) { trip ->
@@ -444,7 +449,7 @@ fun TripDetailsDialog(date: String, isLocked: Boolean, viewModel: GraphViewModel
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(trip.transportModes.ifEmpty { "Trip" }, fontWeight = FontWeight.Bold)
+                                Text(trip.transportModes.ifEmpty { stringResource(R.string.trip_label) }, fontWeight = FontWeight.Bold)
                                 Text("${String.format("%.2f", trip.carbonEmissionGrams / 1000.0)} kg CO₂", fontSize = 12.sp)
                             }
                             
@@ -459,7 +464,7 @@ fun TripDetailsDialog(date: String, isLocked: Boolean, viewModel: GraphViewModel
                                 }) {
                                     Icon(
                                         Icons.Default.Delete,
-                                        contentDescription = "Delete",
+                                        contentDescription = stringResource(R.string.delete),
                                         tint = Color.Red
                                     )
                                 }
@@ -467,7 +472,7 @@ fun TripDetailsDialog(date: String, isLocked: Boolean, viewModel: GraphViewModel
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.Lock, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
                                     Spacer(Modifier.width(4.dp))
-                                    Text("Locked", color = Color.Gray, fontSize = 12.sp)
+                                    Text(stringResource(R.string.locked), color = Color.Gray, fontSize = 12.sp)
                                 }
                             }
                         }
@@ -476,7 +481,7 @@ fun TripDetailsDialog(date: String, isLocked: Boolean, viewModel: GraphViewModel
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Close") } }
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) } }
     )
 }
 

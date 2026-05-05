@@ -12,11 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import fi.metropolia.canopy.R
 import fi.metropolia.canopy.ui.overview.OverviewColors
 import androidx.compose.foundation.verticalScroll
@@ -55,7 +53,7 @@ fun LandingScreen() {
 
         Image(
             painter = painterResource(R.drawable.eco_footprint),
-            contentDescription = "Carbon footprint",
+            contentDescription = stringResource(R.string.track_footprint_desc),
             contentScale = ContentScale.Fit,
             modifier = Modifier.size(180.dp)
         )
@@ -64,9 +62,9 @@ fun LandingScreen() {
 
         Text(
             text = when (userRole) {
-                null -> "Loading..."
-                "" -> "Welcome to Canopy"
-                else -> "Welcome back!"
+                null -> stringResource(R.string.loading)
+                "" -> stringResource(R.string.welcome_to_canopy)
+                else -> stringResource(R.string.welcome_back)
             },
             style = MaterialTheme.typography.headlineLarge,
             textAlign = TextAlign.Center,
@@ -74,7 +72,7 @@ fun LandingScreen() {
         )
 
         Text(
-            text = "Track your carbon footprint",
+            text = stringResource(R.string.track_footprint_desc),
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center,
             color = Color.Black
@@ -83,7 +81,7 @@ fun LandingScreen() {
         Spacer(modifier = Modifier.height(10.dp))
 
         Text(
-            text = if (userRole == "") "Choose your role to begin" else "",
+            text = if (userRole == "") stringResource(R.string.choose_role_hint) else "",
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF2E4E3F),
             textAlign = TextAlign.Center
@@ -128,7 +126,7 @@ fun LandingScreen() {
                                 }
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Student")
+                            Text(stringResource(R.string.role_student))
                         }
 
                         Row(
@@ -145,13 +143,13 @@ fun LandingScreen() {
                                 }
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Staff")
+                            Text(stringResource(R.string.role_staff))
                         }
 
                         if (showSaved) {
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "Your choice has been saved ✓",
+                                text = stringResource(R.string.choice_saved),
                                 color = Color(0xFF2E7D32),
                                 style = MaterialTheme.typography.bodySmall
                             )
@@ -160,8 +158,9 @@ fun LandingScreen() {
 
 
                     else -> {
+                        val roleDisplay = if (userRole == "student") stringResource(R.string.role_student) else stringResource(R.string.role_staff)
                         Text(
-                            text = "${userRole!!.replaceFirstChar { it.uppercase() }} account ✓",
+                            text = stringResource(R.string.account_confirmed_format, roleDisplay),
                             style = MaterialTheme.typography.bodyLarge,
                             color = Color(0xFF2E7D32),
                             textAlign = TextAlign.Center,
@@ -178,7 +177,7 @@ fun LandingScreen() {
 
         Image(
             painter = painterResource(id = R.drawable.metropolia),
-            contentDescription = "App Logo",
+            contentDescription = null,
             modifier = Modifier.size(80.dp)
         )
 
@@ -188,33 +187,25 @@ fun LandingScreen() {
     if (showRoleDialog) {
         AlertDialog(
             onDismissRequest = { showRoleDialog = false },
-            title = { Text("Change role") },
+            title = { Text(stringResource(R.string.change_role)) },
             text = {
                 Column {
                     TextButton(onClick = {
                         scope.launch { userRepository.changeRole("student") }
                         showRoleDialog = false
                     }) {
-                        Text("Student")
+                        Text(stringResource(R.string.role_student))
                     }
 
                     TextButton(onClick = {
                         scope.launch { userRepository.changeRole("staff") }
                         showRoleDialog = false
                     }) {
-                        Text("Staff")
+                        Text(stringResource(R.string.role_staff))
                     }
                 }
             },
             confirmButton = {}
         )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun LandingPreview() {
-    MaterialTheme {
-        LandingScreen()
     }
 }

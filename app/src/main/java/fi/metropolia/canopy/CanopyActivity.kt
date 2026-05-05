@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.*
 import androidx.compose.material.icons.Icons
@@ -44,6 +45,15 @@ class CanopyActivity : ComponentActivity() {
     }
 }
 
+object Routes {
+    const val LANDING = "landingScreen"
+    const val LOCATION = "locationScreen"
+    const val OVERVIEW = "overviewScreen"
+    const val HOME = "homeScreen"
+    const val ECO = "ecoScreen"
+    const val MANUAL = "manualScreen"
+}
+
 @Composable
 fun AppNavGraph() {
 
@@ -73,50 +83,70 @@ fun AppNavGraph() {
 
                     /* HOME */
                     IconButton(onClick = {
-                        navController.navigate("landingScreen") {
-                            popUpTo("landingScreen")
+                        navController.navigate(Routes.LANDING) {
+                            popUpTo(Routes.LANDING)
                             launchSingleTop = true
                         }
                     }) {
-                        Icon(Icons.Default.Home, null, tint = iconColor("landingScreen"))
+                        Icon(
+                            Icons.Default.Home, 
+                            contentDescription = stringResource(R.string.nav_home), 
+                            tint = iconColor(Routes.LANDING)
+                        )
                     }
 
-                    /* ECO 🌱 (korvaa kynän) */
+                    /* ECO 🌱 */
                     IconButton(onClick = {
-                        navController.navigate("ecoScreen")
+                        navController.navigate(Routes.ECO)
                     }) {
-                        Icon(Icons.Default.Eco, null, tint = iconColor("ecoScreen"))
+                        Icon(
+                            Icons.Default.Eco, 
+                            contentDescription = stringResource(R.string.nav_eco), 
+                            tint = iconColor(Routes.ECO)
+                        )
                     }
 
                     /* SPACE for center button */
                     Spacer(modifier = Modifier.width(40.dp))
 
-                    /* ACHIEVEMENTS 🏆 */
+                    /* OVERVIEW 🏆 */
                     IconButton(onClick = {
-                        navController.navigate("overviewScreen")
+                        navController.navigate(Routes.OVERVIEW)
                     }) {
-                        Icon(Icons.Default.PieChart, null, tint = iconColor("overviewScreen"))
+                        Icon(
+                            Icons.Default.PieChart, 
+                            contentDescription = stringResource(R.string.nav_overview), 
+                            tint = iconColor(Routes.OVERVIEW)
+                        )
                     }
 
                     /* STATS 📈 */
                     IconButton(onClick = {
-                        navController.navigate("homeScreen")
+                        navController.navigate(Routes.HOME)
                     }) {
-                        Icon(Icons.Default.ShowChart, null, tint = iconColor("homeScreen"))
+                        Icon(
+                            Icons.Default.ShowChart, 
+                            contentDescription = stringResource(R.string.nav_stats), 
+                            tint = iconColor(Routes.HOME)
+                        )
                     }
                 }
 
                 /* CENTER BUTTON (TRACKING) */
                 FloatingActionButton(
                     onClick = {
-                        navController.navigate("locationScreen")
+                        navController.navigate(Routes.LOCATION)
                     },
                     containerColor = Color(0xFF4E7D5A),
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .offset(y = (-25).dp)
                 ) {
-                    Icon(Icons.Default.Add, null, tint = Color.White)
+                    Icon(
+                        Icons.Default.Add, 
+                        contentDescription = stringResource(R.string.live_tracking), 
+                        tint = Color.White
+                    )
                 }
             }
         }
@@ -124,33 +154,31 @@ fun AppNavGraph() {
 
         NavHost(
             navController = navController,
-            startDestination = "landingScreen",
+            startDestination = Routes.LANDING,
             modifier = Modifier.padding(innerPadding)
         ) {
 
-            composable("landingScreen") {
+            composable(Routes.LANDING) {
                 LandingScreen()
             }
 
-            composable("locationScreen") {
+            composable(Routes.LOCATION) {
                 LocationScreen(navController)
             }
 
-            composable("overviewScreen") {
+            composable(Routes.OVERVIEW) {
                 OverviewScreen()
             }
 
-            composable("homeScreen") {
+            composable(Routes.HOME) {
                 HomeScreen()
             }
 
-            /* ECO SCREEN (My Tree) */
-            composable("ecoScreen") {
+            composable(Routes.ECO) {
                 TreeScreen()
             }
 
-            /* MANUAL löytyy edelleen mutta ei navissa */
-            composable("manualScreen") {
+            composable(Routes.MANUAL) {
                 ManualInputScreen()
             }
         }

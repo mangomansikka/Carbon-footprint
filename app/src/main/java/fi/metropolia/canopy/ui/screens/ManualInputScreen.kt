@@ -14,7 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
+import fi.metropolia.canopy.R
 import fi.metropolia.canopy.viewmodels.TripViewModel
 import fi.metropolia.canopy.ui.overview.OverviewColors
 import fi.metropolia.canopy.ui.theme.Darkbutton
@@ -34,12 +36,19 @@ fun ManualInputScreen() {
         factory = TripViewModelFactory(context)
     )
 
-    var selectedTripTimeMillis by remember { mutableStateOf(System.currentTimeMillis()) }
     var distance by remember { mutableStateOf("") }
     var selectedMode by remember { mutableStateOf("car") }
     var showSaved by remember { mutableStateOf(false) }
 
-    val campusOptions = listOf("Myllypuro", "Karamalmi", "Arabia", "Myyrmäki", "Non campus trip")
+    var selectedTripTimeMillis by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    
+    val campusOptions = listOf(
+        stringResource(R.string.campus_myllypuro),
+        stringResource(R.string.campus_karamalmi),
+        stringResource(R.string.campus_arabia),
+        stringResource(R.string.campus_myyrmaki),
+        stringResource(R.string.non_campus_trip)
+    )
     var selectedCampus by remember { mutableStateOf<String?>(null) }
     var campusDropdownExpanded by remember { mutableStateOf(false) }
     var showCampusInfo by remember { mutableStateOf(false) }
@@ -52,11 +61,12 @@ fun ManualInputScreen() {
         "metro",
         "moped",
         "walking",
-        "cycling"
+        "bicycle"
     )
 
     val calendar = Calendar.getInstance().apply {
-        timeInMillis = selectedTripTimeMillis}
+        timeInMillis = selectedTripTimeMillis
+    }
 
     val dateLabel = remember(selectedTripTimeMillis) {
         SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(selectedTripTimeMillis)
@@ -78,7 +88,7 @@ fun ManualInputScreen() {
                 .padding(top = 48.dp, start = 20.dp, bottom = 24.dp)
         ) {
             Text(
-                text = "Manual Input",
+                text = stringResource(R.string.manual_input),
                 style = MaterialTheme.typography.titleLarge,
                 color = Color.White
             )
@@ -91,7 +101,7 @@ fun ManualInputScreen() {
                 .padding(20.dp)
         ) {
 
-            Text("Distance (kilometres)", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.distance_km_label), style = MaterialTheme.typography.titleMedium)
 
             Spacer(Modifier.height(8.dp))
 
@@ -100,12 +110,12 @@ fun ManualInputScreen() {
                 onValueChange = { distance = it },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                label = { Text("Enter distance in km") }
+                label = { Text(stringResource(R.string.enter_distance_hint)) }
             )
 
             Spacer(Modifier.height(24.dp))
 
-            Text("Transport mode", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.transport_mode_label), style = MaterialTheme.typography.titleMedium)
 
             Spacer(Modifier.height(12.dp))
 
@@ -130,7 +140,7 @@ fun ManualInputScreen() {
                     )
 
                     Text(
-                        text = mode.replaceFirstChar { it.uppercase() }
+                        text = getModeDisplayName(mode)
                     )
                 }
             }
@@ -147,12 +157,13 @@ fun ManualInputScreen() {
                                 set(Calendar.YEAR, year)
                                 set(Calendar.MONTH, month)
                                 set(Calendar.DAY_OF_MONTH, dayOfMonth)
-                                set(Calendar.HOUR_OF_DAY,12)
-                                set(Calendar.MINUTE,0)
-                                set(Calendar.SECOND,0)
-                                set(Calendar.MILLISECOND,0)
+                                set(Calendar.HOUR_OF_DAY, 12)
+                                set(Calendar.MINUTE, 0)
+                                set(Calendar.SECOND, 0)
+                                set(Calendar.MILLISECOND, 0)
                             }
-                            selectedTripTimeMillis = picked.timeInMillis },
+                            selectedTripTimeMillis = picked.timeInMillis 
+                        },
                         calendar.get(Calendar.YEAR),
                         calendar.get(Calendar.MONTH),
                         calendar.get(Calendar.DAY_OF_MONTH)
@@ -161,7 +172,7 @@ fun ManualInputScreen() {
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Selected: $dateLabel")
+                Text(stringResource(R.string.selected_date_label, dateLabel))
             }
 
 
@@ -171,9 +182,9 @@ fun ManualInputScreen() {
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Assign to campus", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.assign_to_campus), style = MaterialTheme.typography.titleMedium)
                 IconButton(onClick = { showCampusInfo = true }) {
-                    Icon(Icons.Default.Info, contentDescription = "Campus assignment info")
+                    Icon(Icons.Default.Info, contentDescription = stringResource(R.string.campus_info_desc))
                 }
             }
             Spacer(Modifier.height(8.dp))
@@ -184,7 +195,7 @@ fun ManualInputScreen() {
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text(selectedCampus ?: "Select campus")
+                    Text(selectedCampus ?: stringResource(R.string.select_campus))
                 }
                 DropdownMenu(
                     expanded = campusDropdownExpanded,
@@ -207,7 +218,7 @@ fun ManualInputScreen() {
 
             if (showCampusValidationError) {
                 Text(
-                    text = "Please select a campus or Non campus trip",
+                    text = stringResource(R.string.campus_validation_error),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -224,7 +235,8 @@ fun ManualInputScreen() {
 
                     val distKm = distance.toDoubleOrNull() ?: 0.0
                     val distM = distKm * 1000.0
-                    val campusToSend = if (selectedCampus == "Non campus trip") null else selectedCampus
+                    val nonCampusString = context.getString(R.string.non_campus_trip)
+                    val campusToSend = if (selectedCampus == nonCampusString) null else selectedCampus
                     viewModel.saveManualTrip(distM, selectedMode, selectedTripTimeMillis, campusToSend)
                     distance = ""
                     showSaved = true
@@ -241,7 +253,7 @@ fun ManualInputScreen() {
                 )
             ) {
                 Text(
-                    text = "Save trip",
+                    text = stringResource(R.string.save_trip),
                     style = MaterialTheme.typography.titleLarge
                 )
             }
@@ -250,7 +262,7 @@ fun ManualInputScreen() {
 
             if (showSaved) {
                 Text(
-                    text = "Trip saved!",
+                    text = stringResource(R.string.trip_saved),
                     color = OverviewColors.BgGreen,
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -264,15 +276,13 @@ fun ManualInputScreen() {
             if (showCampusInfo) {
                 AlertDialog(
                     onDismissRequest = { showCampusInfo = false },
-                    title = { Text("Campus assignment") },
+                    title = { Text(stringResource(R.string.campus_assignment_title)) },
                     text = {
-                        Text(
-                            "If a trip is campus to campus, assign the end campus. If it is a trip home from campus, assign that campus."
-                        )
+                        Text(stringResource(R.string.campus_assignment_text))
                     },
                     confirmButton = {
                         Button(onClick = { showCampusInfo = false }) {
-                            Text("OK")
+                            Text(stringResource(R.string.ok))
                         }
                     }
                 )
@@ -287,6 +297,6 @@ private fun iconForMode(mode: String) = when (mode.lowercase()) {
     "train" -> Icons.Default.Train
     "moped" -> Icons.Default.TwoWheeler
     "walking" -> Icons.Default.DirectionsWalk
-    "cycling" -> Icons.Default.DirectionsBike
+    "bicycle" -> Icons.Default.DirectionsBike
     else -> Icons.Default.DirectionsCar
 }

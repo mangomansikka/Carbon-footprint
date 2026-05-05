@@ -11,14 +11,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import fi.metropolia.canopy.R
 import fi.metropolia.canopy.domain.model.TrackingState
 import fi.metropolia.canopy.ui.overview.OverviewColors
 import fi.metropolia.canopy.ui.theme.Darkbutton
@@ -66,7 +67,7 @@ fun LocationScreen(navController: NavController) {
                 .padding(top = 48.dp, start = 20.dp, bottom = 24.dp)
         ) {
             Text(
-                text = "Live Tracking",
+                text = stringResource(R.string.live_tracking),
                 style = MaterialTheme.typography.titleLarge,
                 color = Color.White
             )
@@ -103,7 +104,7 @@ fun LocationScreen(navController: NavController) {
                         colors = ButtonDefaults.buttonColors(containerColor = Darkbutton),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Start Trip")
+                        Text(stringResource(R.string.start_trip))
                     }
 
                     Button(
@@ -115,7 +116,7 @@ fun LocationScreen(navController: NavController) {
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("End Trip")
+                        Text(stringResource(R.string.end_trip))
                     }
                 }
             }
@@ -126,7 +127,7 @@ fun LocationScreen(navController: NavController) {
                     modifier = Modifier.fillMaxWidth().height(50.dp),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Add Manual Entry")
+                    Text(stringResource(R.string.add_manual_entry))
                 }
             }
 
@@ -139,13 +140,13 @@ fun LocationScreen(navController: NavController) {
                         shape = RoundedCornerShape(16.dp)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Live Detection", style = MaterialTheme.typography.titleSmall, color = OverviewColors.BgGreen)
-                            Text("Mode: ${TrackingState.currentActivityByConfidence}", fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.live_detection), style = MaterialTheme.typography.titleSmall, color = OverviewColors.BgGreen)
+                            Text(stringResource(R.string.mode_label, getModeDisplayName(TrackingState.currentConfirmedMode)), fontWeight = FontWeight.Bold)
                             
                             Spacer(modifier = Modifier.height(8.dp))
                             
                             Text(
-                                text = "Avg Speed: ${"%.1f".format(TrackingState.averageSpeedMps)} m/s",
+                                text = stringResource(R.string.avg_speed_label, TrackingState.averageSpeedMps),
                                 style = MaterialTheme.typography.bodySmall
                             )
                             
@@ -162,17 +163,17 @@ fun LocationScreen(navController: NavController) {
 
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Total Distance: ${"%.2f".format(viewModel.totalDistanceMeters)} m", style = MaterialTheme.typography.titleMedium)
-                    Text("Current Speed: ${"%.2f".format(viewModel.currentSpeedMps)} m/s", style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.total_distance_label, viewModel.totalDistanceMeters), style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.current_speed_label, viewModel.currentSpeedMps), style = MaterialTheme.typography.bodyMedium)
                     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                    Text("Distance per Mode:", style = MaterialTheme.typography.titleSmall, color = Color.Gray)
+                    Text(stringResource(R.string.distance_per_mode), style = MaterialTheme.typography.titleSmall, color = Color.Gray)
                 }
             }
 
             val distances = viewModel.modeDistances.entries.filter { it.key != "still" }.toList()
             if (distances.isEmpty()) {
                 item {
-                    Text("No data yet", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                    Text(stringResource(R.string.no_data_yet), style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                 }
             } else {
                 items(distances) { entry ->
@@ -180,21 +181,21 @@ fun LocationScreen(navController: NavController) {
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(entry.key.replaceFirstChar { it.uppercase() })
-                        Text("${"%.1f".format(entry.value)} m", fontWeight = FontWeight.Bold)
+                        Text(getModeDisplayName(entry.key))
+                        Text(stringResource(R.string.distance_m_label, entry.value), fontWeight = FontWeight.Bold)
                     }
                 }
             }
 
             item {
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                Text("Emissions (Current Trip):", style = MaterialTheme.typography.titleSmall, color = Color.Gray)
+                Text(stringResource(R.string.emissions_current_trip), style = MaterialTheme.typography.titleSmall, color = Color.Gray)
             }
 
             val currentEmissions = viewModel.modeEmissions.entries.filter { it.key != "still" }.toList()
             if (currentEmissions.isEmpty()) {
                 item {
-                    Text("Emissions will appear once you start moving", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                    Text(stringResource(R.string.emissions_hint), style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                 }
             } else {
                 items(currentEmissions) { entry ->
@@ -207,8 +208,8 @@ fun LocationScreen(navController: NavController) {
                             modifier = Modifier.fillMaxWidth().padding(12.dp),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(entry.key.replaceFirstChar { it.uppercase() }, fontWeight = FontWeight.Medium)
-                            Text(text = "${"%.4f".format(entry.value)} kg CO₂", color = OverviewColors.BgGreen, fontWeight = FontWeight.Bold)
+                            Text(getModeDisplayName(entry.key), fontWeight = FontWeight.Medium)
+                            Text(text = stringResource(R.string.kg_co2_label, entry.value), color = OverviewColors.BgGreen, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -217,12 +218,28 @@ fun LocationScreen(navController: NavController) {
             item {
                 Spacer(Modifier.height(16.dp))
                 Text(
-                    text = "Visit the Overview screen for your full history.",
+                    text = stringResource(R.string.overview_history_hint),
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
         }
+    }
+}
+
+@Composable
+fun getModeDisplayName(mode: String): String {
+    return when (mode.lowercase()) {
+        "car" -> stringResource(R.string.mode_car)
+        "bus" -> stringResource(R.string.mode_bus)
+        "train" -> stringResource(R.string.mode_train)
+        "metro" -> stringResource(R.string.mode_metro)
+        "moped", "moped_scooter" -> stringResource(R.string.mode_moped)
+        "walking", "on_foot" -> stringResource(R.string.mode_walking)
+        "cycling", "bicycle", "on_bicycle" -> stringResource(R.string.mode_bicycle)
+        "tram" -> stringResource(R.string.mode_tram)
+        "still" -> stringResource(R.string.mode_still)
+        else -> stringResource(R.string.mode_none)
     }
 }

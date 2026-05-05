@@ -9,18 +9,20 @@ data class LocationEntity(
     val id: Int = 0,
     val latitude: Double,
     val longitude: Double,
-    val timestamp: Long = System.currentTimeMillis(),
+    val timestampMillis: Long = System.currentTimeMillis(),
+    
     val startLatitude: Double? = null,
     val startLongitude: Double? = null,
     val endLatitude: Double? = null,
     val endLongitude: Double? = null,
+    
     val isLocked: Boolean = false,
 
     // Persistent trip results
     val transportModes: String = "",
     val carbonEmissionGrams: Float = 0f,
 
-    // Existing fields for mode-specific totals
+    // Mode-specific emissions in Kg
     val emissionBussKg: Double = 0.0,
     val emissionMetroKg: Double = 0.0,
     val emissionTrainKg: Double = 0.0,
@@ -31,8 +33,7 @@ data class LocationEntity(
     val emissionElectricCarKg: Double = 0.0,
     val emissionMopedKg: Double = 0.0,
 
-    // New fields for walking and cycling distances
+    // Distance per mode in meters
     val walkingDistanceM: Double = 0.0,
-    val cyclingDistanceM: Double = 0.0,
-    val timestampMillis: Long,
+    val cyclingDistanceM: Double = 0.0
 )

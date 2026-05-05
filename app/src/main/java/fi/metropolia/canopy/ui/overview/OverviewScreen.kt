@@ -5,7 +5,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import fi.metropolia.canopy.ui.theme.Darkbutton
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -14,18 +13,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
+import fi.metropolia.canopy.R
 import fi.metropolia.canopy.utils.viewModelFactories.TripViewModelFactory
 import fi.metropolia.canopy.viewmodels.TripViewModel
 import kotlin.math.roundToInt
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import fi.metropolia.canopy.ui.screens.getModeDisplayName
 
 @Composable
 fun OverviewScreen() {
@@ -48,14 +48,14 @@ fun OverviewScreen() {
         val grouped = mutableMapOf<String, Double>()
         rawEmissions.forEach { (mode, value) ->
             val category = when (mode.lowercase().trim()) {
-                "petrol", "diesel", "hybrid", "electric", "car unknown", "car" -> "Car"
-                "bus", "car/bus" -> "Bus"
-                "metro" -> "Metro"
-                "train", "train/high-speed" -> "Train"
-                "moped" -> "Moped"
-                "walking" -> "Walking"
-                "cycling" -> "Cycling"
-                else -> mode.replaceFirstChar { it.uppercase() }
+                "petrol", "diesel", "hybrid", "electric", "car unknown", "car" -> "car"
+                "bus", "car/bus" -> "bus"
+                "metro" -> "metro"
+                "train", "train/high-speed" -> "train"
+                "moped", "moped_scooter" -> "moped"
+                "walking" -> "walking"
+                "cycling" -> "cycling"
+                else -> mode.lowercase().trim()
             }
             grouped[category] = (grouped[category] ?: 0.0) + value
         }
@@ -67,32 +67,30 @@ fun OverviewScreen() {
     val total = if (totalEmission == 0.0) 1.0 else totalEmission
 
     val showInfo = remember { mutableStateOf(false) }
-
     val showConfirm = remember { mutableStateOf(false) }
 
     val bgColor = OverviewColors.BgGreen
 
     val emissionsWithDistance = emissions.toMutableMap()
-    emissionsWithDistance["Walking"] = walkingDist / 1000
-    emissionsWithDistance["Cycling"] = cyclingDist / 1000
+    emissionsWithDistance["walking"] = walkingDist / 1000
+    emissionsWithDistance["cycling"] = cyclingDist / 1000
 
     val orderedModes = listOf(
-        "Car", "Moped",
-        "Bus", "Train", "Metro",
-        "Walking", "Cycling"
+        "car", "moped",
+        "bus", "train", "metro",
+        "walking", "cycling"
     )
 
     val slices =
         if (!hasData) {
-            listOf(EmissionSlice("No data", 1.0, Color(0xFFB2DFDB)))
+            listOf(EmissionSlice(stringResource(R.string.no_data_yet), 1.0, Color(0xFFB2DFDB)))
         } else {
             orderedModes
-                // Exclude Walking and Cycling from the donut chart slices
-                .filter { it != "Walking" && it != "Cycling" }
+                .filter { it != "walking" && it != "cycling" }
                 .filter { (emissionsWithDistance[it] ?: 0.0) > 0 }
                 .map {
                     EmissionSlice(
-                        it,
+                        getModeDisplayName(it),
                         emissionsWithDistance[it] ?: 0.0,
                         colorForMode(it)
                     )
@@ -109,7 +107,7 @@ fun OverviewScreen() {
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
-            text = "Overview",
+            text = stringResource(R.string.overview_title),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onPrimary,
             modifier = Modifier.padding(start = 20.dp)
@@ -119,7 +117,7 @@ fun OverviewScreen() {
 
         if (!hasData) {
             Text(
-                text = "No trips yet — start tracking to see your footprint",
+                text = stringResource(R.string.no_trips_hint),
                 color = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.padding(start = 20.dp)
             )
@@ -146,12 +144,12 @@ fun OverviewScreen() {
 
                 val centerText = if (hasData) {
                     when {
-                        totalEmission >= 1000 -> "${(totalEmission / 1000).toInt()} t CO₂"
-                        totalEmission >= 100 -> "${totalEmission.toInt()} kg\nCO₂"
-                        else -> "${totalEmission.toInt()} kg CO₂"
+                        totalEmission >= 1000 -> stringResource(R.string.t_co2_unit, (totalEmission / 1000).toInt())
+                        totalEmission >= 100 -> stringResource(R.string.kg_co2_multi_line, totalEmission.toInt())
+                        else -> stringResource(R.string.kg_co2_unit, totalEmission.toInt())
                     }
                 } else {
-                    "No Data"
+                    stringResource(R.string.no_data)
                 }
 
                 DonutChart(
@@ -170,7 +168,6 @@ fun OverviewScreen() {
 
             Spacer(modifier = Modifier.width(48.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
                 orderedModes.forEach { category ->
@@ -179,7 +176,7 @@ fun OverviewScreen() {
                     val value = emissions[category] ?: 0.0
 
                     val textValue =
-                        if (category == "Walking" || category == "Cycling") ""
+                        if (category == "walking" || category == "cycling") ""
                         else {
                             val pct = if (hasData) (value / total * 100).roundToInt() else 0
                             "$pct%"
@@ -194,7 +191,7 @@ fun OverviewScreen() {
                             Spacer(Modifier.width(8.dp))
 
                             Text(
-                                text = "$category $textValue",
+                                text = "${getModeDisplayName(category)} $textValue",
                                 color = MaterialTheme.colorScheme.onPrimary,
                                 style = MaterialTheme.typography.titleMedium
                             )
@@ -215,17 +212,17 @@ fun OverviewScreen() {
         ) {
 
             Text(
-                text = if (totalEmission > 1000)
-                    "${(totalEmission / 1000).toInt()} t CO₂ total"
+                text = stringResource(R.string.total_suffix, if (totalEmission > 1000)
+                    stringResource(R.string.t_co2_unit, (totalEmission / 1000).toInt())
                 else
-                    "${totalEmission.toInt()} kg CO₂ total",
+                    stringResource(R.string.kg_co2_unit, totalEmission.toInt())),
                 style = MaterialTheme.typography.headlineMedium
             )
 
             if (!hasData) {
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "No emissions recorded yet",
+                    text = stringResource(R.string.no_emissions_recorded),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )
@@ -259,7 +256,7 @@ fun OverviewScreen() {
                             Spacer(Modifier.width(10.dp))
 
                             Text(
-                                category,
+                                getModeDisplayName(category),
                                 style = MaterialTheme.typography.titleLarge,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -267,11 +264,11 @@ fun OverviewScreen() {
 
                         Text(
                             text = when (category) {
-                                "Walking" -> formatDistance(walkingDist)
-                                "Cycling" -> formatDistance(cyclingDist)
+                                "walking" -> formatDistance(walkingDist)
+                                "cycling" -> formatDistance(cyclingDist)
                                 else -> {
                                     if (value > 1000)
-                                        "%,.0f kg CO₂".format(value)
+                                        stringResource(R.string.kg_co2_int_format, value)
                                     else
                                         formatEmission(value)
                                 }
@@ -311,21 +308,18 @@ fun OverviewScreen() {
                         contentColor = Color.White
                     )
                 ) {
-                    Text("Export Data to CSV")
+                    Text(stringResource(R.string.export_csv))
                 }
             }
 
-            Spacer(Modifier.height(120.dp)) // tasapainottaa layoutin
+            Spacer(Modifier.height(120.dp))
 
             if (showInfo.value) {
                 AlertDialog(
                     onDismissRequest = { showInfo.value = false },
-                    title = { Text("Emissions") },
+                    title = { Text(stringResource(R.string.emissions_info_title)) },
                     text = {
-                        Text(
-                            "Each mode produces different emissions. Walking and cycling are the best.\n\n" +
-                                    "Currently, metro produces none and doesn't appear on the chart."
-                        )
+                        Text(stringResource(R.string.emissions_info_text))
                     },
                     confirmButton = {
                         Button(
@@ -335,7 +329,7 @@ fun OverviewScreen() {
                                 contentColor = Color.White
                             )
                         ) {
-                            Text("OK")
+                            Text(stringResource(R.string.ok))
                         }
                     }
                 )
@@ -344,9 +338,9 @@ fun OverviewScreen() {
             if (showConfirm.value) {
                 AlertDialog(
                     onDismissRequest = { showConfirm.value = false },
-                    title = { Text("Are you sure?") },
+                    title = { Text(stringResource(R.string.confirm_export_title)) },
                     text = {
-                        Text("Once you export your data, it will be locked and can no longer be edited from the calendar.")
+                        Text(stringResource(R.string.confirm_export_text))
                     },
                     confirmButton = {
                         Button(
@@ -354,14 +348,14 @@ fun OverviewScreen() {
                                 viewModel.exportData(context)
                                 showConfirm.value = false
                             }) {
-                            Text("Yes")
+                            Text(stringResource(R.string.yes))
                         }
                     },
                     dismissButton = {
                         Button(
                             onClick = { showConfirm.value = false }
                         ) {
-                            Text("No")
+                            Text(stringResource(R.string.no))
                         }
                     }
                 )
@@ -370,16 +364,16 @@ fun OverviewScreen() {
     }
 }
 
-/* FORMAT */
+@Composable
 fun formatDistance(meters: Double): String =
-    if (meters >= 1000) "%.2f km".format(meters / 1000)
-    else "%.0f m".format(meters)
+    if (meters >= 1000) stringResource(R.string.km_unit, meters / 1000)
+    else stringResource(R.string.m_unit, meters)
 
+@Composable
 fun formatEmission(kg: Double): String =
-    if (kg >= 1) "%,.2f kg CO₂".format(kg)
-    else "%.0f g CO₂".format(kg * 1000)
+    if (kg >= 1) stringResource(R.string.kg_co2_format, kg)
+    else stringResource(R.string.g_co2_unit, kg * 1000)
 
-/* ICONS */
 private fun iconForLabel(label: String) = when (label.lowercase()) {
     "bus" -> Icons.Filled.DirectionsBus
     "metro" -> Icons.Filled.DirectionsSubway
@@ -390,17 +384,13 @@ private fun iconForLabel(label: String) = when (label.lowercase()) {
     else -> Icons.Filled.DirectionsCar
 }
 
-    /* COLORS */
-    private fun colorForMode(mode: String) = when (mode.lowercase()) {
-
-
-        "car" -> Color(0xFFD32F2F)
-        "moped" -> Color(0xFFFF6B6B)
-        "bus" -> Color(0xFFFFC107)
-        "train" -> Color(0xFFFFE082)
-        "walking" -> Color(0xFF1B5E20)
-        "cycling" -> Color(0xFF2E7D32)
-        "metro" -> Color(0xFFA5D6A7)
-
-        else -> Color.Gray
-    }
+private fun colorForMode(mode: String) = when (mode.lowercase()) {
+    "car" -> Color(0xFFD32F2F)
+    "moped" -> Color(0xFFFF6B6B)
+    "bus" -> Color(0xFFFFC107)
+    "train" -> Color(0xFFFFE082)
+    "walking" -> Color(0xFF1B5E20)
+    "cycling" -> Color(0xFF2E7D32)
+    "metro" -> Color(0xFFA5D6A7)
+    else -> Color.Gray
+}

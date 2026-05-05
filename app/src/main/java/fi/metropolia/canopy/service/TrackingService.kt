@@ -10,6 +10,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.*
 import fi.metropolia.canopy.CanopyActivity
+import fi.metropolia.canopy.R
 import fi.metropolia.canopy.utils.ActivityRecognitionManager
 import fi.metropolia.canopy.domain.model.TrackingState
 import fi.metropolia.canopy.data.source.CanopyDatabase
@@ -20,10 +21,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import fi.metropolia.canopy.utils.CarbonHelper
 
-/**
- * Foreground service that tracks user location and activity to calculate carbon footprint.
- * It uses FusedLocationProvider for position and ActivityRecognition for transport mode detection.
- */
 class TrackingService : Service() {
 
     private val serviceJob = SupervisorJob()
@@ -55,10 +52,6 @@ class TrackingService : Service() {
         return START_STICKY
     }
 
-    /**
-     * Initializes and begins the tracking session. 
-     * Sets up foreground notification, activity recognition, and high-accuracy location updates.
-     */
     @SuppressLint("MissingPermission")
     private fun startTracking() {
         if (TrackingState.isTracking) return
@@ -66,17 +59,15 @@ class TrackingService : Service() {
         TrackingState.reset()
         TrackingState.isTracking = true
 
-        val notification = createNotification("Trip tracking active")
+        val notification = createNotification(getString(R.string.tracking_active))
         startForeground(NOTIFICATION_ID, notification)
 
-        // Start Activity Recognition
         try {
             activityRecognitionManager.start()
         } catch (e: SecurityException) {
             Log.e("TrackingService", "Activity Recognition permission missing", e)
         }
 
-        // Start Location Updates
         val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 2000L)
             .setMinUpdateDistanceMeters(1f)
             .build()
@@ -97,11 +88,6 @@ class TrackingService : Service() {
         )
     }
 
-    /**
-     * Core logic for handling location updates.
-     * Filters for GPS drift, detects signal gaps (like tunnels), and calculates
-     * distance/emissions based on the identified transport mode.
-     */
     private fun processLocationUpdate(location: Location, db: CanopyDatabase) {
         val lastLat = TrackingState.lastLatitude
         val lastLon = TrackingState.lastLongitude
@@ -110,19 +96,45 @@ class TrackingService : Service() {
         TrackingState.currentSpeedMps = location.speed
         TrackingState.updateRollingAverage(location.speed)
 
-        if (TrackingState.tripStartLatitude == null || TrackingState.tripStartLongitude == null) {
-            TrackingState.tripStartLatitude = location.latitude
-            TrackingState.tripStartLongitude = location.longitude
+        if (TrackingState.shouldFetchRailData(location.latitude, location.longitude)) {
+            serviceScope.launch {
+                val points = TrackingState.fetchRailData(location.latitude, location.longitude)
+                TrackingState.updateRailCache(points, location.latitude, location.longitude)
+            }
         }
-        TrackingState.tripEndLatitude = location.latitude
-        TrackingState.tripEndLongitude = location.longitude
 
-        val speedKmh = location.speed * 3.6
-        var mode = determineTransportMode(speedKmh)
+        TrackingState.addTrackPoint(location.latitude, location.longitude, location.speed, location.bearing)
+        val features = TrackingState.computeMotionFeatures()
+        val railInfo = TrackingState.getNearestRailProximity(location.latitude, location.longitude)
+
+        val sensorSignal = TrackingState.currentActivityByConfidence.lowercase()
+        
+        var mode = when {
+            sensorSignal == "walking" || sensorSignal == "running" || sensorSignal == "bicycle" -> {
+                sensorSignal
+            }
+            sensorSignal == "in_vehicle" || sensorSignal == "in vehicle" -> {
+                if (features != null) {
+                    determineInVehicleMode(features, railInfo)
+                } else {
+                    determineSimpleVehicleFallback(location.speed * 3.6, railInfo)
+                }
+            }
+            else -> {
+                if (features != null) {
+                    determineInVehicleMode(features, railInfo)
+                } else {
+                    determineSimpleTransportMode(location.speed * 3.6)
+                }
+            }
+        }
+
+        mode = TrackingState.smoothMode(mode)
+        TrackingState.currentConfirmedMode = mode
 
         var deltaEmission = 0.0
+        var currentDeltaDistance = 0.0
 
-        //Calculate time gap
         val timeGapMs = if (TrackingState.lastUpdateTime > 0L) {
             currentTime - TrackingState.lastUpdateTime
         } else 0L
@@ -131,35 +143,19 @@ class TrackingService : Service() {
             val results = FloatArray(1)
             Location.distanceBetween(lastLat, lastLon, location.latitude, location.longitude, results)
             val deltaDistance = results[0].toDouble()
+            currentDeltaDistance = deltaDistance
 
-            // Improved GPS Drift Filtering
-            // If activity is not STILL, we trust the movement and remove the filtering.
-            // If activity is STILL, we keep strict filters to prevent distance accumulation from GPS noise.
             val isConfirmedMoving = TrackingState.currentConfirmedMode != "still" && 
                                     TrackingState.currentConfirmedMode != "unknown" &&
                                     TrackingState.currentConfirmedMode != "none"
 
-            //Detect a "tunnel gap" (more than 10 seconds since last GPS fix)
             val isGapRecovery = timeGapMs > 10000L && isConfirmedMoving
 
-            // METRO LOGIC: If the gap is significant (e.g. > 25 seconds) while moving,
-            // it is very likely a subway/metro tunnel.
-            if (isGapRecovery && timeGapMs > 25000L) {
-                if (mode == "car" || mode == "unknown") {
-                    mode = "metro"
-                }
-            }
-
-            // Decide whether to count this distance based on accuracy and motion context
             val shouldAccumulate = if (isGapRecovery) {
-                // TUNNEL LOGIC: If we just regained signal after a gap and were moving,
-                // we accept the distance even if accuracy is slightly lower (up to 50m)
-                // because we need to "bridge" the tunnel entrance and exit.
                 location.accuracy < 50f && deltaDistance > 0.0
             } else if (isConfirmedMoving) {
                 location.accuracy < 25f && deltaDistance > 0.0
             } else {
-                // Strict noise filtering when essentially stationary
                 deltaDistance > 8.0 && location.accuracy < 15f && location.speed > 0.5f
             }
 
@@ -167,11 +163,6 @@ class TrackingService : Service() {
                 deltaEmission = CarbonHelper.calculate(deltaDistance, mode)
                 TrackingState.addDistanceToMode(mode, deltaDistance, deltaEmission)
                 TrackingState.totalDistanceMeters += deltaDistance
-
-                if (isGapRecovery) {
-                    val logMsg = if (mode == "metro") "Bridged Metro tunnel" else "Bridged gap"
-                    Log.d("TrackingService", "$logMsg: ${deltaDistance}m over ${timeGapMs/1000}s")
-                }
             }
         }
 
@@ -179,31 +170,69 @@ class TrackingService : Service() {
         TrackingState.lastLongitude = location.longitude
         TrackingState.lastUpdateTime = currentTime
 
-
-        // Database persistence
         serviceScope.launch {
-
-                val entity = LocationEntity(
+            db.locationDao().insertLocation(
+                LocationEntity(
                     latitude = location.latitude,
                     longitude = location.longitude,
-                    // Use a simple mapping to fill specific columns for the Overview summation
                     emissionBussKg = if (mode == "bus") deltaEmission else 0.0,
-                    emissionMetroKg = if (mode == "metro") deltaEmission else 0.0,
-                    emissionTrainKg = if (mode == "train") deltaEmission else 0.0,
+                    emissionMopedKg = if (mode == "moped" || mode == "moped_scooter") deltaEmission else 0.0,
                     emissionUnknownCarKg = if (mode == "car") deltaEmission else 0.0,
-                    emissionMopedKg = if (mode == "moped_scooter") deltaEmission else 0.0,
+                    emissionTrainKg = if (mode == "train") deltaEmission else 0.0,
+                    emissionMetroKg = if (mode == "metro") deltaEmission else 0.0,
+                    walkingDistanceM = if (mode == "walking" || mode == "running") currentDeltaDistance else 0.0,
+                    cyclingDistanceM = if (mode == "bicycle") currentDeltaDistance else 0.0,
                     timestampMillis = currentTime
-                    // Note: Activity recognition doesn't distinguish fuel type yet, defaulting to unknown
                 )
-                db.locationDao().insertLocation(entity)
+            )
         }
     }
 
-    /**
-     * Determines the most likely transport mode. 
-     * Prioritizes confirmed activity recognition, falling back to speed-based heuristics.
-     */
-    private fun determineTransportMode(speedKmh: Double): String {
+
+    private fun determineInVehicleMode(
+        features: TrackingState.MotionFeatures, 
+        railInfo: Pair<String?, Double>
+    ): String {
+        val (railType, railDistance) = railInfo
+
+        if (railDistance < 30.0) {
+            return when (railType) {
+                "tram" -> "tram"
+                "subway" -> "metro"
+                "rail" -> "train"
+                else -> "car"
+            }
+        }
+
+        if (features.meanSpeedKmh > 50.0 && features.straightness > 0.95 && features.accelerationStd < 2.0) {
+            return "train"
+        }
+        if (features.meanSpeedKmh > 30.0 && features.straightness > 0.9 && features.stopCount <= 1) {
+            return "metro"
+        }
+
+        if (features.meanSpeedKmh < 50.0 && features.stopCount >= 1) {
+            if (features.turnStd < 15.0) return "tram"
+            if (features.maxAcceleration < 1.5 && features.speedStd < 10.0) return "bus"
+        }
+
+        return "car"
+    }
+
+    private fun determineSimpleVehicleFallback(speedKmh: Double, railInfo: Pair<String?, Double>): String {
+        val (railType, railDistance) = railInfo
+        if (railDistance < 30.0) {
+            return when (railType) {
+                "tram" -> "tram"
+                "subway" -> "metro"
+                "rail" -> "train"
+                else -> "car"
+            }
+        }
+        return if (speedKmh > 120.0) "train" else "car"
+    }
+
+    private fun determineSimpleTransportMode(speedKmh: Double): String {
         return when {
             TrackingState.currentConfirmedMode != "still" &&
                     TrackingState.currentConfirmedMode != "unknown" &&
@@ -211,15 +240,12 @@ class TrackingService : Service() {
                 TrackingState.currentConfirmedMode.lowercase()
             }
             speedKmh < 3.0 -> "still"
-            speedKmh < 6.0 -> "walking"
-            speedKmh < 120.0 -> "car"
+            speedKmh < 10.0 -> "walking"
+            speedKmh < 60.0 -> "car"
             else -> "train"
         }
     }
 
-    /**
-     * Stops updates and cleans up resources.
-     */
     private fun stopTracking() {
         fusedLocationClient.removeLocationUpdates(locationCallback)
         try {
@@ -238,7 +264,7 @@ class TrackingService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Canopy Tracker")
+            .setContentTitle(getString(R.string.tracking_notification_title))
             .setContentText(content)
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
             .setContentIntent(pendingIntent)
@@ -248,7 +274,7 @@ class TrackingService : Service() {
 
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
-            CHANNEL_ID, "Trip Tracking", NotificationManager.IMPORTANCE_LOW
+            CHANNEL_ID, getString(R.string.tracking_channel_name), NotificationManager.IMPORTANCE_LOW
         )
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(channel)

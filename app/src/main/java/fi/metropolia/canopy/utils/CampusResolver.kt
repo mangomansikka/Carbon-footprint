@@ -24,11 +24,12 @@ object CampusResolver {
 
     private data class Campus(val name: String, val latitude: Double, val longitude: Double)
 
+    // Using names that match strings.xml for consistency in manual input and lookups
     private val campuses = listOf(
         Campus("Myllypuro", 60.22306, 25.07822),
         Campus("Karamalmi", 60.22392, 24.75852),
         Campus("Arabia", 60.21083, 24.97647),
-        Campus("Myyrmaki", 60.25889, 24.84445)
+        Campus("Myyrmäki", 60.25889, 24.84445)
     )
 
     /**
@@ -54,7 +55,11 @@ object CampusResolver {
      * Returns the static coordinates for a campus identified by its name.
      */
     fun getCampusCoordinates(name: String): Pair<Double, Double>? {
-        val campus = campuses.find { it.name.equals(name, ignoreCase = true) }
+        // Normalizing the name to handle case and common character variations
+        val normalizedSearch = name.trim().lowercase().replace("aki", "äki")
+        val campus = campuses.find { 
+            it.name.trim().lowercase().replace("aki", "äki") == normalizedSearch 
+        }
         return campus?.let { Pair(it.latitude, it.longitude) }
     }
 

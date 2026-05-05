@@ -17,10 +17,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -65,13 +65,11 @@ fun MainTreeContent(totalEmissionsKg: Double, onShowGallery: () -> Unit) {
 
     val imageRes = getTreeImage(stage)
 
-
     val colorFilter = when (stage) {
         TreeStage.SEED -> ColorFilter.tint(Color(0xFF795548), blendMode = BlendMode.Modulate)
         else -> null
     }
 
-    // Tausta muuttuu huonoksi vasta kun päästöt ovat korkeat
     val backgroundColor = when (stage) {
         TreeStage.DEAD -> Color(0xFFBCAAA4)
         TreeStage.SICK -> Color(0xFFD7CCC8)
@@ -106,7 +104,7 @@ fun MainTreeContent(totalEmissionsKg: Double, onShowGallery: () -> Unit) {
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "My Tree",
+                text = stringResource(R.string.my_tree),
                 style = MaterialTheme.typography.headlineLarge,
                 fontFamily = FontFamily.Serif,
                 fontWeight = FontWeight.Bold,
@@ -127,7 +125,7 @@ fun MainTreeContent(totalEmissionsKg: Double, onShowGallery: () -> Unit) {
                 )
             ) {
                 Text(
-                    "View All",
+                    stringResource(R.string.view_all),
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -165,13 +163,13 @@ fun MainTreeContent(totalEmissionsKg: Double, onShowGallery: () -> Unit) {
                 Spacer(modifier = Modifier.height(8.dp))
                 
                 Text(
-                    text = "Monthly Emissions",
+                    text = stringResource(R.string.monthly_emissions),
                     style = MaterialTheme.typography.labelMedium,
                     color = Color.Gray
                 )
                 
                 Text(
-                    text = "%.2f kg CO₂".format(displayEmission),
+                    text = stringResource(R.string.kg_co2_display, displayEmission),
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
@@ -207,11 +205,11 @@ fun AllTreesGallery(onBack: () -> Unit) {
                     contentColor = Color.Black
                 )
             ) {
-                Text("← Back", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.back_arrow), fontWeight = FontWeight.SemiBold)
             }
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Tree Stages",
+                text = stringResource(R.string.tree_stages),
                 style = MaterialTheme.typography.headlineMedium,
                 fontFamily = FontFamily.Serif,
                 fontWeight = FontWeight.Bold
@@ -258,8 +256,7 @@ fun TreeStageCard(stage: TreeStage) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = stage.name.replace("_", " ").lowercase(JavaLocale.getDefault())
-                    .replaceFirstChar { if (it.isLowerCase()) it.titlecase(JavaLocale.getDefault()) else it.toString() },
+                text = getStageText(stage),
                 style = MaterialTheme.typography.labelLarge,
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold
@@ -275,29 +272,31 @@ fun TreeStageCard(stage: TreeStage) {
     }
 }
 
+@Composable
 fun getEmissionRange(stage: TreeStage): String {
     return when (stage) {
-        TreeStage.SEED -> "0 - 100 kg CO₂"
-        TreeStage.SPROUT -> "100 - 220 kg CO₂"
-        TreeStage.SMALL_TREE -> "220 - 330 kg CO₂"
-        TreeStage.MEDIUM_TREE -> "330 - 440 kg CO₂"
-        TreeStage.BIG_TREE -> "440 - 550 kg CO₂"
-        TreeStage.FULL_TREE -> "550 - 660 kg CO₂"
-        TreeStage.SICK -> "660 - 800 kg CO₂"
-        TreeStage.DEAD -> "> 800 kg CO₂"
+        TreeStage.SEED -> stringResource(R.string.range_seed)
+        TreeStage.SPROUT -> stringResource(R.string.range_sprout)
+        TreeStage.SMALL_TREE -> stringResource(R.string.range_small)
+        TreeStage.MEDIUM_TREE -> stringResource(R.string.range_medium)
+        TreeStage.BIG_TREE -> stringResource(R.string.range_big)
+        TreeStage.FULL_TREE -> stringResource(R.string.range_full)
+        TreeStage.SICK -> stringResource(R.string.range_sick)
+        TreeStage.DEAD -> stringResource(R.string.range_dead)
     }
 }
 
+@Composable
 fun getStageText(stage: TreeStage): String {
     return when (stage) {
-        TreeStage.SEED -> "Seedling 🌱"
-        TreeStage.SPROUT -> "Growing 🌿"
-        TreeStage.SMALL_TREE -> "Little Tree 🌳"
-        TreeStage.MEDIUM_TREE -> "Expanding 🌳"
-        TreeStage.BIG_TREE -> "Sturdy Tree 🌳✨"
-        TreeStage.FULL_TREE -> "Majestic Tree 🌍💚"
-        TreeStage.SICK -> "Feeling Unwell 🌫️"
-        TreeStage.DEAD -> "Withered 🌫️"
+        TreeStage.SEED -> stringResource(R.string.stage_seedling)
+        TreeStage.SPROUT -> stringResource(R.string.stage_growing)
+        TreeStage.SMALL_TREE -> stringResource(R.string.stage_little_tree)
+        TreeStage.MEDIUM_TREE -> stringResource(R.string.stage_expanding)
+        TreeStage.BIG_TREE -> stringResource(R.string.stage_sturdy_tree)
+        TreeStage.FULL_TREE -> stringResource(R.string.stage_majestic_tree)
+        TreeStage.SICK -> stringResource(R.string.stage_feeling_unwell)
+        TreeStage.DEAD -> stringResource(R.string.stage_withered)
     }
 }
 
@@ -311,21 +310,5 @@ fun getTreeImage(stage: TreeStage): Int {
         TreeStage.FULL_TREE -> R.drawable.tree6
         TreeStage.SICK -> R.drawable.tree7
         TreeStage.DEAD -> R.drawable.tree8
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun TreeScreenPreview() {
-    MaterialTheme {
-        TreeScreen()
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GalleryPreview() {
-    MaterialTheme {
-        AllTreesGallery(onBack = {})
     }
 }

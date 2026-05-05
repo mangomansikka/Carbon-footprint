@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.core.content.FileProvider
+import fi.metropolia.canopy.R
 import fi.metropolia.canopy.data.source.LocationEntity
 import java.io.File
 import java.io.FileWriter
@@ -31,13 +32,13 @@ object ExportUtils {
         // Filter: only include records with actual data
         val filteredTrips = trips
             .filter { it.transportModes.isNotEmpty() || it.carbonEmissionGrams > 0f }
-            .sortedByDescending { it.timestamp }
+            .sortedByDescending { it.timestampMillis }
 
         val campusAggregates = linkedMapOf(
             "Myllypuro" to CampusAggregate(),
             "Karamalmi" to CampusAggregate(),
             "Arabia" to CampusAggregate(),
-            "Myyrmaki" to CampusAggregate(),
+            "Myyrmäki" to CampusAggregate(),
             "Off-campus" to CampusAggregate()
         )
 
@@ -66,7 +67,7 @@ object ExportUtils {
             csvBuilder.append("${formatCoordinate(startLon)},")
             csvBuilder.append("${formatCoordinate(endLat)},")
             csvBuilder.append("${formatCoordinate(endLon)},")
-            csvBuilder.append("${dateFormat.format(Date(trip.timestamp))},")
+            csvBuilder.append("${dateFormat.format(Date(trip.timestampMillis))},")
             csvBuilder.append("${quoteCsv(assignment.startCampus)},")
             csvBuilder.append("${quoteCsv(assignment.endCampus)},")
             csvBuilder.append("${quoteCsv(assignment.assignedCampus)},")
@@ -157,14 +158,14 @@ object ExportUtils {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/csv"
             putExtra(Intent.EXTRA_EMAIL, arrayOf(recipientEmail ?: ""))
-            putExtra(Intent.EXTRA_SUBJECT, "Carbon Footprint Data Export")
-            putExtra(Intent.EXTRA_TEXT, "Attached is your carbon footprint data in CSV format.")
+            putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.export_email_subject))
+            putExtra(Intent.EXTRA_TEXT, context.getString(R.string.export_email_body))
             putExtra(Intent.EXTRA_STREAM, csvUri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
 
         // Grant read permission to the chooser intent as well
-        val chooser = Intent.createChooser(intent, "Send Email")
+        val chooser = Intent.createChooser(intent, context.getString(R.string.send_email))
         chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
 
         context.startActivity(chooser)
@@ -173,7 +174,7 @@ object ExportUtils {
     // Combined function: Generate CSV, save to file, and send email
     fun exportAndEmailData(context: Context, trips: List<LocationEntity>, userRole: String, recipientEmail: String? = null) {
         if (trips.isEmpty()) {
-            Toast.makeText(context, "No trip data available to export", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.no_trip_data_export), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -183,7 +184,7 @@ object ExportUtils {
         if (csvUri != null) {
             sendEmailWithAttachment(context, csvUri, recipientEmail)
         } else {
-            Toast.makeText(context, "Failed to create CSV file", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.failed_create_csv), Toast.LENGTH_SHORT).show()
         }
     }
 }
