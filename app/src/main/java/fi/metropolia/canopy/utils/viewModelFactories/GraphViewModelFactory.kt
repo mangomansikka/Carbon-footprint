@@ -5,6 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import fi.metropolia.canopy.viewmodels.GraphViewModel
 
+/**
+ * Factory class for creating instances of [GraphViewModel].
+ * Allows passing [Context] as a dependency to the ViewModel.
+ */
 class GraphViewModelFactory(
     private val context: Context
 ) : ViewModelProvider.Factory {

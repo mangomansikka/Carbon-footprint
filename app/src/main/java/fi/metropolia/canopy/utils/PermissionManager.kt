@@ -9,15 +9,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 
+/**
+ * Utility class to manage and check application permissions.
+ */
 class PermissionManager {
 
     companion object {
+        /**
+         * List of permissions required for core app functionality (Location and Activity Recognition).
+         */
         val REQUIRED_PERMISSIONS = arrayOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACTIVITY_RECOGNITION
         )
     }
 
+    /**
+     * Checks if all [REQUIRED_PERMISSIONS] have been granted.
+     */
     fun hasAllPermissions(context: Context): Boolean {
         return REQUIRED_PERMISSIONS.all {
             ContextCompat.checkSelfPermission(
@@ -28,6 +37,13 @@ class PermissionManager {
     }
 }
 
+/**
+ * A Compose-friendly helper that provides a launcher for requesting required permissions.
+ *
+ * @param onPermissionsGranted Callback invoked when all permissions are granted.
+ * @param onPermissionsDenied Callback invoked if any permission is denied.
+ * @return A lambda function that initiates the permission check/request process.
+ */
 @Composable
 fun rememberPermissionLauncher(
     onPermissionsGranted: () -> Unit,

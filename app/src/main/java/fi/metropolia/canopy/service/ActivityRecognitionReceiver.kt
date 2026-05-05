@@ -8,6 +8,10 @@ import com.google.android.gms.location.ActivityRecognitionResult
 import com.google.android.gms.location.DetectedActivity
 import fi.metropolia.canopy.domain.model.TrackingState
 
+/**
+ * Receiver that processes activity recognition updates from Google Play Services.
+ * It translates physical movement into specific transport modes to track carbon emissions.
+ */
 class ActivityRecognitionReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -20,7 +24,7 @@ class ActivityRecognitionReceiver : BroadcastReceiver() {
         val activityType = activity.type
 
         val activityName = when (activityType) {
-            // Use averageSpeedMps for vehicle classification
+            // General "vehicle" detections are further refined using speed data
             DetectedActivity.IN_VEHICLE -> classifyVehicleType(TrackingState.averageSpeedMps)
             DetectedActivity.ON_BICYCLE -> "bicycle"
             DetectedActivity.WALKING -> "walking"
@@ -36,10 +40,12 @@ class ActivityRecognitionReceiver : BroadcastReceiver() {
         TrackingState.currentActivityByConfidence = activityName
         TrackingState.currentConfidence = confidence
 
+        // Filter out low-confidence detections to prevent erratic mode switching
         if (confidence >= 30) {
             val modeKey = activityName.lowercase()
             TrackingState.currentConfirmedMode = modeKey
 
+            // Track unique modes used during the current session
             if (modeKey != "still" && modeKey != "unknown") {
                 if (!TrackingState.usedTransportModes.contains(modeKey)) {
                     TrackingState.usedTransportModes.add(modeKey)
@@ -48,6 +54,9 @@ class ActivityRecognitionReceiver : BroadcastReceiver() {
         }
     }
 
+    /**
+     * Heuristic to distinguish vehicle types based on average speed in m/s.
+     */
     private fun classifyVehicleType(speed: Float): String {
         return when {
             speed < 12f -> "bus"

@@ -20,8 +20,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import fi.metropolia.canopy.utils.CarbonHelper
 
-
-
+/**
+ * Foreground service that tracks user location and activity to calculate carbon footprint.
+ * It uses FusedLocationProvider for position and ActivityRecognition for transport mode detection.
+ */
 class TrackingService : Service() {
 
     private val serviceJob = SupervisorJob()
@@ -53,6 +55,10 @@ class TrackingService : Service() {
         return START_STICKY
     }
 
+    /**
+     * Initializes and begins the tracking session. 
+     * Sets up foreground notification, activity recognition, and high-accuracy location updates.
+     */
     @SuppressLint("MissingPermission")
     private fun startTracking() {
         if (TrackingState.isTracking) return
@@ -91,6 +97,11 @@ class TrackingService : Service() {
         )
     }
 
+    /**
+     * Core logic for handling location updates.
+     * Filters for GPS drift, detects signal gaps (like tunnels), and calculates
+     * distance/emissions based on the identified transport mode.
+     */
     private fun processLocationUpdate(location: Location, db: CanopyDatabase) {
         val lastLat = TrackingState.lastLatitude
         val lastLon = TrackingState.lastLongitude
@@ -139,6 +150,7 @@ class TrackingService : Service() {
                 }
             }
 
+            // Decide whether to count this distance based on accuracy and motion context
             val shouldAccumulate = if (isGapRecovery) {
                 // TUNNEL LOGIC: If we just regained signal after a gap and were moving,
                 // we accept the distance even if accuracy is slightly lower (up to 50m)
@@ -147,6 +159,7 @@ class TrackingService : Service() {
             } else if (isConfirmedMoving) {
                 location.accuracy < 25f && deltaDistance > 0.0
             } else {
+                // Strict noise filtering when essentially stationary
                 deltaDistance > 8.0 && location.accuracy < 15f && location.speed > 0.5f
             }
 
@@ -186,6 +199,10 @@ class TrackingService : Service() {
         }
     }
 
+    /**
+     * Determines the most likely transport mode. 
+     * Prioritizes confirmed activity recognition, falling back to speed-based heuristics.
+     */
     private fun determineTransportMode(speedKmh: Double): String {
         return when {
             TrackingState.currentConfirmedMode != "still" &&
@@ -194,12 +211,15 @@ class TrackingService : Service() {
                 TrackingState.currentConfirmedMode.lowercase()
             }
             speedKmh < 3.0 -> "still"
-            speedKmh < 6.0 -> "walking"     // Fixed from "on foot"
-            speedKmh < 120.0 -> "car"        // Fixed from "car/bus"
-            else -> "train"                  // Fixed from "train/high-speed"
+            speedKmh < 6.0 -> "walking"
+            speedKmh < 120.0 -> "car"
+            else -> "train"
         }
     }
 
+    /**
+     * Stops updates and cleans up resources.
+     */
     private fun stopTracking() {
         fusedLocationClient.removeLocationUpdates(locationCallback)
         try {
