@@ -15,8 +15,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import fi.metropolia.canopy.R
 import fi.metropolia.canopy.ui.overview.OverviewColors
 import androidx.compose.foundation.verticalScroll
@@ -26,6 +24,9 @@ import fi.metropolia.canopy.data.repository.UserRepository
 import fi.metropolia.canopy.data.source.CanopyDatabase
 import kotlinx.coroutines.launch
 
+/**
+ * LandingScreen composable function for displaying the landing screen
+ */
 @Composable
 fun LandingScreen() {
 
@@ -34,7 +35,6 @@ fun LandingScreen() {
 
     val db = remember { CanopyDatabase.getInstance(context) }
     val userRepository = remember { UserRepository(db.userDao()) }
-
 
     val userRole by userRepository.userRole.collectAsState(initial = null)
 
@@ -50,7 +50,6 @@ fun LandingScreen() {
             .navigationBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Spacer(modifier = Modifier.height(32.dp))
 
         Image(
@@ -104,16 +103,12 @@ fun LandingScreen() {
                 modifier = Modifier.padding(vertical = 20.dp, horizontal = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
-                when {
-
-                    userRole == null -> {
+                // Display the user role or a loading indicator
+                when (userRole) {
+                    null -> {
                         CircularProgressIndicator()
                     }
-
-
-                    userRole == "" -> {
-
+                    "" -> {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
@@ -127,10 +122,11 @@ fun LandingScreen() {
                                     }
                                 }
                             )
+
                             Spacer(modifier = Modifier.width(8.dp))
+
                             Text("Student")
                         }
-
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
@@ -144,10 +140,13 @@ fun LandingScreen() {
                                     }
                                 }
                             )
+
                             Spacer(modifier = Modifier.width(8.dp))
+
                             Text("Staff")
                         }
 
+                        // Show a confirmation message if the user role has been saved
                         if (showSaved) {
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
@@ -157,8 +156,7 @@ fun LandingScreen() {
                             )
                         }
                     }
-
-
+                    // Display the user role if it is not null
                     else -> {
                         Text(
                             text = "${userRole!!.replaceFirstChar { it.uppercase() }} account ✓",
@@ -185,6 +183,7 @@ fun LandingScreen() {
         Spacer(modifier = Modifier.height(24.dp))
     }
 
+    // Show the role change dialog if showRoleDialog is true
     if (showRoleDialog) {
         AlertDialog(
             onDismissRequest = { showRoleDialog = false },

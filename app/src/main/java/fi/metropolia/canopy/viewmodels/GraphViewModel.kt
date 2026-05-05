@@ -12,6 +12,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
+/**
+ * GraphViewModel class for managing data for the graphs
+ */
 class GraphViewModel(context: Context) : ViewModel() {
     private val repository: TripRepository
 
@@ -39,6 +42,7 @@ class GraphViewModel(context: Context) : ViewModel() {
         loadDaysWithData()
     }
 
+    // Loads monthly emissions data from the repository
     fun loadMonthlyEmissions() {
         viewModelScope.launch {
             val data = repository.getEmissionsByMonth()
@@ -64,10 +68,7 @@ class GraphViewModel(context: Context) : ViewModel() {
         }
     }
 
-    /**
-     * Loads trips for a specific day. Uses Flow to ensure the UI updates 
-     * immediately if data is locked or deleted.
-     */
+    // Loads calendar data from the repository
     fun loadCalenderData(startMillis: Long, endMillis: Long) {
         calendarJob?.cancel()
         calendarJob = viewModelScope.launch {
@@ -77,12 +78,14 @@ class GraphViewModel(context: Context) : ViewModel() {
         }
     }
 
+    // Loads days with data from the repository
     fun loadDaysWithData() {
         viewModelScope.launch {
             _daysWithData.value = repository.getDaysWithData().toSet()
         }
     }
 
+    // Deletes locations by ID from the repository
     fun deleteLocationsById(id: Int, startMillis: Long, endMillis: Long) {
         viewModelScope.launch {
             repository.deleteLocationsById(id)

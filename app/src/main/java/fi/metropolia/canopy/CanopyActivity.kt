@@ -23,7 +23,9 @@ import fi.metropolia.canopy.ui.overview.OverviewScreen
 import fi.metropolia.canopy.ui.screens.LocationScreen
 import fi.metropolia.canopy.ui.screens.ManualInputScreen
 
-
+/**
+ * CanopyActivity class for the main activity of the application
+ */
 class CanopyActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,9 +46,11 @@ class CanopyActivity : ComponentActivity() {
     }
 }
 
+/**
+ * AppNavGraph composable function for navigating between screens
+ */
 @Composable
 fun AppNavGraph() {
-
     val navController = rememberNavController()
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
@@ -71,7 +75,7 @@ fun AppNavGraph() {
                         if (currentRoute == route) accentGreen else Color.Gray
                     }
 
-                    /* HOME */
+                    /* Landing screen */
                     IconButton(onClick = {
                         navController.navigate("landingScreen") {
                             popUpTo("landingScreen")
@@ -81,24 +85,23 @@ fun AppNavGraph() {
                         Icon(Icons.Default.Home, null, tint = iconColor("landingScreen"))
                     }
 
-                    /* ECO 🌱 (korvaa kynän) */
+                    /* Tree Screen */
                     IconButton(onClick = {
                         navController.navigate("ecoScreen")
                     }) {
                         Icon(Icons.Default.Eco, null, tint = iconColor("ecoScreen"))
                     }
 
-                    /* SPACE for center button */
                     Spacer(modifier = Modifier.width(40.dp))
 
-                    /* ACHIEVEMENTS 🏆 */
+                    /* Overview screen */
                     IconButton(onClick = {
                         navController.navigate("overviewScreen")
                     }) {
                         Icon(Icons.Default.PieChart, null, tint = iconColor("overviewScreen"))
                     }
 
-                    /* STATS 📈 */
+                    /* Home screen */
                     IconButton(onClick = {
                         navController.navigate("homeScreen")
                     }) {
@@ -106,7 +109,7 @@ fun AppNavGraph() {
                     }
                 }
 
-                /* CENTER BUTTON (TRACKING) */
+                /* Tracking screen */
                 FloatingActionButton(
                     onClick = {
                         navController.navigate("locationScreen")
@@ -122,6 +125,7 @@ fun AppNavGraph() {
         }
     ) { innerPadding ->
 
+        // NavHost for navigating between screens
         NavHost(
             navController = navController,
             startDestination = "landingScreen",
@@ -144,12 +148,10 @@ fun AppNavGraph() {
                 HomeScreen()
             }
 
-            /* ECO SCREEN (My Tree) */
             composable("ecoScreen") {
                 TreeScreen()
             }
 
-            /* MANUAL löytyy edelleen mutta ei navissa */
             composable("manualScreen") {
                 ManualInputScreen()
             }

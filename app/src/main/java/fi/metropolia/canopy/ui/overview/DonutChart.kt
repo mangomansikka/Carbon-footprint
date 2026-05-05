@@ -16,6 +16,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.math.max
 
+/**
+ * DonutChart composable function for displaying a donut chart
+ */
 @Composable
 fun DonutChart(
     modifier: Modifier = Modifier,
@@ -24,7 +27,7 @@ fun DonutChart(
     centerText: String,
     slices: List<EmissionSlice>
 ) {
-    val total = max(0.000001, slices.sumOf { it.value }) // ettei nollalla jakoa
+    val total = max(0.000001, slices.sumOf { it.value }) // Avoid division by zero
 
     Box(
         modifier = modifier.size(size),
@@ -34,6 +37,7 @@ fun DonutChart(
             val stroke = Stroke(width = strokeWidth.toPx())
             var startAngle = -90f
 
+            // Draw the slices of the donut chart
             slices.forEach { slice ->
                 val sweep = (slice.value / total * 360.0).toFloat()
                 drawArc(

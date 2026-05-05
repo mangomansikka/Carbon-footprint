@@ -31,6 +31,9 @@ import fi.metropolia.canopy.utils.viewModelFactories.TripViewModelFactory
 import fi.metropolia.canopy.viewmodels.TripViewModel
 import java.util.Locale as JavaLocale
 
+/**
+ * TreeScreen composable function for displaying the tree screen
+ */
 @Composable
 fun TreeScreen() {
     val context = LocalContext.current
@@ -46,7 +49,7 @@ fun TreeScreen() {
     }
 
     var showGallery by remember { mutableStateOf(false) }
-    
+
     if (showGallery) {
         AllTreesGallery(onBack = { showGallery = false })
     } else {
@@ -57,6 +60,9 @@ fun TreeScreen() {
     }
 }
 
+/**
+ * MainTreeContent composable function for displaying the main tree content
+ */
 @Composable
 fun MainTreeContent(totalEmissionsKg: Double, onShowGallery: () -> Unit) {
     val currentTrackingEmission = TrackingState.totalEmissionKg
@@ -71,13 +77,14 @@ fun MainTreeContent(totalEmissionsKg: Double, onShowGallery: () -> Unit) {
         else -> null
     }
 
-    // Tausta muuttuu huonoksi vasta kun päästöt ovat korkeat
+    // Background color based on unhealthy tree stage
     val backgroundColor = when (stage) {
         TreeStage.DEAD -> Color(0xFFBCAAA4)
         TreeStage.SICK -> Color(0xFFD7CCC8)
         else -> OverviewColors.BgGreen
     }
 
+    // Animated size based on tree stage
     val size by animateDpAsState(
         targetValue = when (stage) {
             TreeStage.SEED -> 140.dp
@@ -183,6 +190,9 @@ fun MainTreeContent(totalEmissionsKg: Double, onShowGallery: () -> Unit) {
     }
 }
 
+/**
+ * AllTreesGallery composable function for displaying the all tree stages in a gallery
+ */
 @Composable
 fun AllTreesGallery(onBack: () -> Unit) {
     Column(
@@ -209,7 +219,9 @@ fun AllTreesGallery(onBack: () -> Unit) {
             ) {
                 Text("← Back", fontWeight = FontWeight.SemiBold)
             }
+
             Spacer(modifier = Modifier.width(8.dp))
+
             Text(
                 text = "Tree Stages",
                 style = MaterialTheme.typography.headlineMedium,
@@ -234,6 +246,9 @@ fun AllTreesGallery(onBack: () -> Unit) {
     }
 }
 
+/**
+ * TreeStageCard composable function for displaying a tree stage card
+ */
 @Composable
 fun TreeStageCard(stage: TreeStage) {
     Card(
@@ -256,7 +271,9 @@ fun TreeStageCard(stage: TreeStage) {
                 modifier = Modifier.size(80.dp),
                 colorFilter = if (stage == TreeStage.SEED) ColorFilter.tint(Color(0xFF795548), blendMode = BlendMode.Modulate) else null
             )
+
             Spacer(modifier = Modifier.height(8.dp))
+
             Text(
                 text = stage.name.replace("_", " ").lowercase(JavaLocale.getDefault())
                     .replaceFirstChar { if (it.isLowerCase()) it.titlecase(JavaLocale.getDefault()) else it.toString() },
@@ -264,7 +281,9 @@ fun TreeStageCard(stage: TreeStage) {
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold
             )
+
             Spacer(modifier = Modifier.height(4.dp))
+
             Text(
                 text = getEmissionRange(stage),
                 style = MaterialTheme.typography.bodySmall,
@@ -275,6 +294,9 @@ fun TreeStageCard(stage: TreeStage) {
     }
 }
 
+/**
+ * Returns the emission range for a given tree stage
+ */
 fun getEmissionRange(stage: TreeStage): String {
     return when (stage) {
         TreeStage.SEED -> "0 - 100 kg CO₂"
@@ -288,6 +310,9 @@ fun getEmissionRange(stage: TreeStage): String {
     }
 }
 
+/**
+ * Returns the text for a given tree stage
+ */
 fun getStageText(stage: TreeStage): String {
     return when (stage) {
         TreeStage.SEED -> "Seedling 🌱"
@@ -301,6 +326,9 @@ fun getStageText(stage: TreeStage): String {
     }
 }
 
+/**
+ * Returns the image resource for a given tree stage
+ */
 fun getTreeImage(stage: TreeStage): Int {
     return when (stage) {
         TreeStage.SEED -> R.drawable.tree1

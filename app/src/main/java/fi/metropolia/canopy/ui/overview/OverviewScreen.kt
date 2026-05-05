@@ -5,7 +5,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import fi.metropolia.canopy.ui.theme.Darkbutton
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -14,19 +13,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import fi.metropolia.canopy.utils.viewModelFactories.TripViewModelFactory
 import fi.metropolia.canopy.viewmodels.TripViewModel
 import kotlin.math.roundToInt
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 
+/**
+ * OverviewScreen composable function for displaying the overview screen
+ */
 @Composable
 fun OverviewScreen() {
 
@@ -44,6 +44,7 @@ fun OverviewScreen() {
         viewModel.loadEmissions()
     }
 
+    // Group emissions by mode
     val emissions = remember(rawEmissions) {
         val grouped = mutableMapOf<String, Double>()
         rawEmissions.forEach { (mode, value) ->
@@ -67,7 +68,6 @@ fun OverviewScreen() {
     val total = if (totalEmission == 0.0) 1.0 else totalEmission
 
     val showInfo = remember { mutableStateOf(false) }
-
     val showConfirm = remember { mutableStateOf(false) }
 
     val bgColor = OverviewColors.BgGreen
@@ -82,6 +82,7 @@ fun OverviewScreen() {
         "Walking", "Cycling"
     )
 
+    // Calculate the slices for the donut chart
     val slices =
         if (!hasData) {
             listOf(EmissionSlice("No data", 1.0, Color(0xFFB2DFDB)))
@@ -117,6 +118,7 @@ fun OverviewScreen() {
 
         Spacer(Modifier.height(12.dp))
 
+        // Display a message if no trips have been recorded
         if (!hasData) {
             Text(
                 text = "No trips yet — start tracking to see your footprint",
@@ -144,6 +146,7 @@ fun OverviewScreen() {
                     label = "donutAnimation"
                 )
 
+                // Display the donut chart with the animated progress
                 val centerText = if (hasData) {
                     when {
                         totalEmission >= 1000 -> "${(totalEmission / 1000).toInt()} t CO₂"
@@ -160,6 +163,7 @@ fun OverviewScreen() {
                         it.copy(value = it.value * animatedProgress)
                     }
                 )
+
                 Text(
                     text = centerText,
                     style = MaterialTheme.typography.titleMedium,
@@ -171,13 +175,14 @@ fun OverviewScreen() {
             Spacer(modifier = Modifier.width(48.dp))
 
             Spacer(modifier = Modifier.height(16.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 orderedModes.forEach { category ->
 
                     val icon = iconForLabel(category)
                     val value = emissions[category] ?: 0.0
 
+                    // Calculate the percentage of emissions for the category
                     val textValue =
                         if (category == "Walking" || category == "Cycling") ""
                         else {
@@ -185,6 +190,7 @@ fun OverviewScreen() {
                             "$pct%"
                         }
 
+                    // Only show categories with emissions
                     if ((emissionsWithDistance[category] ?: 0.0) > 0) {
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -213,7 +219,6 @@ fun OverviewScreen() {
                 .background(MaterialTheme.colorScheme.surface)
                 .padding(20.dp)
         ) {
-
             Text(
                 text = if (totalEmission > 1000)
                     "${(totalEmission / 1000).toInt()} t CO₂ total"
@@ -222,6 +227,7 @@ fun OverviewScreen() {
                 style = MaterialTheme.typography.headlineMedium
             )
 
+            // Display a message if no emissions have been recorded
             if (!hasData) {
                 Spacer(Modifier.height(8.dp))
                 Text(
@@ -237,6 +243,7 @@ fun OverviewScreen() {
                 (emissionsWithDistance[it] ?: 0.0) > 0
             }
 
+            // Display the emissions for each mode
             if (hasData) {
                 visibleModes.forEach { category ->
 
@@ -315,8 +322,9 @@ fun OverviewScreen() {
                 }
             }
 
-            Spacer(Modifier.height(120.dp)) // tasapainottaa layoutin
+            Spacer(Modifier.height(120.dp))
 
+            // Show information about the emissions
             if (showInfo.value) {
                 AlertDialog(
                     onDismissRequest = { showInfo.value = false },
@@ -341,6 +349,7 @@ fun OverviewScreen() {
                 )
             }
 
+            // Show a confirmation dialog to export data
             if (showConfirm.value) {
                 AlertDialog(
                     onDismissRequest = { showConfirm.value = false },

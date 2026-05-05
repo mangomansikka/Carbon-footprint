@@ -25,6 +25,9 @@ import fi.metropolia.canopy.ui.theme.Darkbutton
 import fi.metropolia.canopy.utils.viewModelFactories.TripViewModelFactory
 import fi.metropolia.canopy.viewmodels.TripViewModel
 
+/**
+ * LocationScreen composable function for displaying the location screen
+ */
 @Composable
 fun LocationScreen(navController: NavController) {
     val context = LocalContext.current
@@ -36,6 +39,7 @@ fun LocationScreen(navController: NavController) {
         viewModel.loadEmissions()
     }
 
+    // Request location permissions
     val permissionLauncher =
         rememberLauncherForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
@@ -81,7 +85,7 @@ fun LocationScreen(navController: NavController) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             
-            // Action Buttons
+            // Start & End Trip Buttons
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Button(
@@ -120,6 +124,7 @@ fun LocationScreen(navController: NavController) {
                 }
             }
 
+            // Manual Entry Button
             item {
                 OutlinedButton(
                     onClick = { navController.navigate("manualScreen") },
@@ -160,6 +165,7 @@ fun LocationScreen(navController: NavController) {
                 }
             }
 
+            // Trip Summary Section
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text("Total Distance: ${"%.2f".format(viewModel.totalDistanceMeters)} m", style = MaterialTheme.typography.titleMedium)
@@ -170,6 +176,8 @@ fun LocationScreen(navController: NavController) {
             }
 
             val distances = viewModel.modeDistances.entries.filter { it.key != "still" }.toList()
+
+            // Display distance data for each mode
             if (distances.isEmpty()) {
                 item {
                     Text("No data yet", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
@@ -186,12 +194,15 @@ fun LocationScreen(navController: NavController) {
                 }
             }
 
+            // Emissions Section
             item {
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 Text("Emissions (Current Trip):", style = MaterialTheme.typography.titleSmall, color = Color.Gray)
             }
 
             val currentEmissions = viewModel.modeEmissions.entries.filter { it.key != "still" }.toList()
+
+            // Display emission data for each mode
             if (currentEmissions.isEmpty()) {
                 item {
                     Text("Emissions will appear once you start moving", style = MaterialTheme.typography.bodySmall, color = Color.Gray)

@@ -163,13 +163,11 @@ object ExportUtils {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
 
-        // *NEW ADDITION*
         // Grant read permission to the chooser intent as well
         val chooser = Intent.createChooser(intent, "Send Email")
         chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
 
         context.startActivity(chooser)
-        // *END NEW ADDITION*
     }
 
     // Combined function: Generate CSV, save to file, and send email
