@@ -19,6 +19,9 @@ import fi.metropolia.canopy.utils.ExportUtils
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 
+/**
+ * TripViewModel class for managing data for the trips
+ */
 class TripViewModel(context: Context) : ViewModel() {
 
     private val repository: TripRepository
@@ -53,6 +56,7 @@ class TripViewModel(context: Context) : ViewModel() {
     val modeDistances get() = TrackingState.modeDistances
     val modeEmissions get() = TrackingState.modeEmissions
 
+    // Start tracking
     fun startTracking(context: Context) {
         TrackingState.reset()
         val intent = Intent(context, TrackingService::class.java).apply {
@@ -61,12 +65,21 @@ class TripViewModel(context: Context) : ViewModel() {
         ContextCompat.startForegroundService(context, intent)
     }
 
-    fun loadTrips() {
+    // Stop tracking
+    fun endTrip(context: Context) {
+        val intent = Intent(context, TrackingService::class.java).apply {
+            action = TrackingService.ACTION_STOP
+        }
+        context.startService(intent)
+
         viewModelScope.launch {
-            _trips.value = repository.getAllTrips()
+            repository.saveTripSummary()
+            TrackingState.isTracking = false
+            loadEmissions()
         }
     }
-    
+
+    // Load emissions from the repository
     fun loadEmissions() {
         viewModelScope.launch {
             _emissions.value = repository.getEmissionsByMode()
@@ -74,7 +87,8 @@ class TripViewModel(context: Context) : ViewModel() {
             _cyclingDistance.value = repository.getTotalCyclingDistance()
         }
     }
-    
+
+    // Save trips manually
     fun saveManualTrip(
         distance: Double,
         mode: String,
@@ -92,19 +106,7 @@ class TripViewModel(context: Context) : ViewModel() {
         }
     }
 
-    fun endTrip(context: Context) {
-        val intent = Intent(context, TrackingService::class.java).apply {
-            action = TrackingService.ACTION_STOP
-        }
-        context.startService(intent)
-
-        viewModelScope.launch {
-            repository.saveTripSummary()
-            TrackingState.isTracking = false
-            loadEmissions()
-        }
-    }
-
+    // Export data to CSV util
     fun exportData(context: Context, recipientEmail: String? = null) {
         viewModelScope.launch {
             val trips = repository.getAllTrips()
@@ -115,7 +117,4 @@ class TripViewModel(context: Context) : ViewModel() {
             repository.lockAllCurrentData()
         }
     }
-    
-    // Removed redundant manual check as we now use StateFlow
-    fun loadIsLocked() { }
 }

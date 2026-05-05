@@ -1,14 +1,17 @@
 package fi.metropolia.canopy.ui.treeview
 
+/**
+ * TreeGrowthManager object for managing tree growth based on emissions
+ */
 enum class TreeStage {
     SEED,           // 0 - 100
     SPROUT,         // 100 - 220
     SMALL_TREE,     // 220 - 330
     MEDIUM_TREE,    // 330 - 440
     BIG_TREE,       // 440 - 550
-    FULL_TREE,      // 550 - 660 (Terve ja täysikasvuinen)
-    SICK,           // 660 - 800 (Huonokuntoinen)
-    DEAD            // 800+ (Kuollut)
+    FULL_TREE,      // 550 - 660
+    SICK,           // 660 - 800
+    DEAD            // 800+
 }
 
 object TreeGrowthManager {

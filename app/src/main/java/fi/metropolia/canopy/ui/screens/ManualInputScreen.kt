@@ -24,6 +24,9 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
+/**
+ * ManualInputScreen composable function for displaying the manual input screen
+ */
 @Composable
 fun ManualInputScreen() {
 
@@ -164,7 +167,6 @@ fun ManualInputScreen() {
                 Text("Selected: $dateLabel")
             }
 
-
             Spacer(Modifier.height(18.dp))
 
             Row(
@@ -205,6 +207,7 @@ fun ManualInputScreen() {
 
             Spacer(Modifier.height(12.dp))
 
+            // Show error message if campus is not selected
             if (showCampusValidationError) {
                 Text(
                     text = "Please select a campus or Non campus trip",
@@ -225,6 +228,7 @@ fun ManualInputScreen() {
                     val distKm = distance.toDoubleOrNull() ?: 0.0
                     val distM = distKm * 1000.0
                     val campusToSend = if (selectedCampus == "Non campus trip") null else selectedCampus
+
                     viewModel.saveManualTrip(distM, selectedMode, selectedTripTimeMillis, campusToSend)
                     distance = ""
                     showSaved = true
@@ -248,6 +252,7 @@ fun ManualInputScreen() {
 
             Spacer(Modifier.height(16.dp))
 
+            // Show confirmation message if trip is saved
             if (showSaved) {
                 Text(
                     text = "Trip saved!",
@@ -257,8 +262,6 @@ fun ManualInputScreen() {
                 )
             }
 
-            // Extra space at the bottom to ensure the button can be scrolled
-            // well above the bottom navigation bar
             Spacer(Modifier.height(80.dp))
 
             if (showCampusInfo) {
@@ -281,6 +284,9 @@ fun ManualInputScreen() {
     }
 }
 
+/**
+ * Returns the corresponding icon for a given mode
+ */
 private fun iconForMode(mode: String) = when (mode.lowercase()) {
     "bus" -> Icons.Default.DirectionsBus
     "metro" -> Icons.Default.DirectionsSubway
