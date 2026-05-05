@@ -7,13 +7,21 @@ import fi.metropolia.canopy.utils.CarbonHelper
 import fi.metropolia.canopy.utils.CampusResolver
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * Manages the persistence and retrieval of trip data.
+ * Acts as the single source of truth for location and emission records.
+ */
 class TripRepository(private val dao: LocationDAO) {
 
+    /**
+     * Processes and persists the current active tracking session.
+     * Aggregates distances and emissions across all used transport modes before saving.
+     */
     suspend fun saveTripSummary() {
         val modesString = TrackingState.usedTransportModes.joinToString(",")
 
         var totalEmissionsKg = 0.0
-        
+
         // Prepare individual mode totals
         var busKg = 0.0
         var metroKg = 0.0
@@ -46,7 +54,6 @@ class TripRepository(private val dao: LocationDAO) {
             }
         }
 
-
             val entity = LocationEntity(
                 latitude = TrackingState.tripEndLatitude ?: TrackingState.lastLatitude ?: 0.0,
                 longitude = TrackingState.tripEndLongitude ?: TrackingState.lastLongitude ?: 0.0,
@@ -72,6 +79,9 @@ class TripRepository(private val dao: LocationDAO) {
         return dao.getAllLocations()
     }
 
+    /**
+     * Retrieves accumulated emission data grouped by transport category.
+     */
     suspend fun getEmissionsByMode(): Map<String, Double> {
         val summary = dao.getEmissionsSummary()
         // Convert Kg from DB to Grams for the Overview UI which expects grams
@@ -92,13 +102,16 @@ class TripRepository(private val dao: LocationDAO) {
         return dao.getMonthlyEmissions().associate { it.month to it.totalEmissionsGrams }
     }
 
+    /**
+     * Creates a trip record from manual user input.
+     * Optionally resolves campus names to geographical coordinates.
+     */
     suspend fun saveManualTrip(
         distance: Double,
         mode: String,
         selectedTripTimeMillis: Long,
         assignedCampusName: String? = null
     ) {
-
         val emissionKg = CarbonHelper.calculate(distance, mode)
 
         var busKg = 0.0
@@ -106,7 +119,6 @@ class TripRepository(private val dao: LocationDAO) {
         var trainKg = 0.0
         var unknownCarKg = 0.0
         var mopedKg = 0.0
-
         var walkingDistanceM = 0.0
         var cyclingDistanceM = 0.0
 
@@ -159,26 +171,31 @@ class TripRepository(private val dao: LocationDAO) {
             timestampMillis = selectedTripTimeMillis
         )
         dao.insertLocation(entity)
-
     }
 
+    /** Total walking distance across all trips in meters. */
     suspend fun getTotalWalkingDistance(): Double = dao.getTotalWalkingDistance()
     suspend fun getTotalCyclingDistance(): Double = dao.getTotalCyclingDistance()
 
+    /** Returns a flow of trips within a specific time range. */
     fun getLocationsByDate(startDate: Long, endDate: Long): Flow<List<LocationEntity>> {
         return dao.getLocationsByDate(startDate, endDate)
     }
 
+    /** Deletes a trip by its unique identifier. */
     suspend fun deleteLocationsById(id: Int) {
         dao.deleteLocationsById(id)
     }
 
+    /** Returns a list of dates (YYYY-MM-DD) that have recorded data. */
     suspend fun getDaysWithData(): List<String> = dao.getDaysWithData()
     
+    /** Locks all existing data, preventing it from being modified by background processes. */
     suspend fun lockAllCurrentData() {
         dao.lockAllCurrentData()
     }
     
+    /** Flow monitoring whether any data in the database is currently locked. */
     fun checkIfDataIsLockedFlow(): Flow<Boolean> {
         return dao.hasAnyLockedDataFlow()
     }

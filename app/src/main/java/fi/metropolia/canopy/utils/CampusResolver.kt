@@ -3,12 +3,22 @@ package fi.metropolia.canopy.utils
 import android.location.Location
 import kotlin.math.roundToInt
 
+/**
+ * Result of a campus resolution attempt.
+ * @param name Name of the matched campus.
+ * @param distanceMeters Distance from the coordinates to the campus center.
+ * @param withinThreshold Whether the distance is within the geofencing limit.
+ */
 data class CampusMatch(
     val name: String,
     val distanceMeters: Int,
     val withinThreshold: Boolean
 )
 
+/**
+ * Utility for mapping geographical coordinates to Metropolia campus locations.
+ * Used for geofencing and associating trips with specific campuses.
+ */
 object CampusResolver {
     private const val CAMPUS_THRESHOLD_METERS = 250f
 
@@ -21,6 +31,9 @@ object CampusResolver {
         Campus("Myyrmaki", 60.25889, 24.84445)
     )
 
+    /**
+     * Finds the nearest campus to the given coordinates and determines if it's within range.
+     */
     fun resolveCampus(latitude: Double?, longitude: Double?): CampusMatch? {
         if (latitude == null || longitude == null) return null
         if (latitude == 0.0 && longitude == 0.0) return null
@@ -37,6 +50,9 @@ object CampusResolver {
         )
     }
 
+    /**
+     * Returns the static coordinates for a campus identified by its name.
+     */
     fun getCampusCoordinates(name: String): Pair<Double, Double>? {
         val campus = campuses.find { it.name.equals(name, ignoreCase = true) }
         return campus?.let { Pair(it.latitude, it.longitude) }
@@ -53,4 +69,3 @@ object CampusResolver {
         return result[0]
     }
 }
-

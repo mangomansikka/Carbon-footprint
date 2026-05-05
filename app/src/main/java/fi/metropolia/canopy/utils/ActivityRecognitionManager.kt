@@ -9,6 +9,9 @@ import androidx.annotation.RequiresPermission
 import com.google.android.gms.location.ActivityRecognition
 import fi.metropolia.canopy.service.ActivityRecognitionReceiver
 
+/**
+ * Manages requests for activity recognition updates using Google Play Services.
+ */
 class ActivityRecognitionManager(private val context: Context) {
 
     private val client = ActivityRecognition.getClient(context)
@@ -23,6 +26,9 @@ class ActivityRecognitionManager(private val context: Context) {
         )
     }
 
+    /**
+     * Registers for activity recognition updates every 2 seconds.
+     */
     @RequiresPermission(Manifest.permission.ACTIVITY_RECOGNITION)
     fun start() {
         client.requestActivityUpdates(
@@ -35,6 +41,9 @@ class ActivityRecognitionManager(private val context: Context) {
         }
     }
 
+    /**
+     * Unregisters for activity recognition updates.
+     */
     @RequiresPermission(Manifest.permission.ACTIVITY_RECOGNITION)
     fun stop() {
         client.removeActivityUpdates(pendingIntent)

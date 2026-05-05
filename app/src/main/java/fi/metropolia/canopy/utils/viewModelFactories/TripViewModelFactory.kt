@@ -5,7 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import fi.metropolia.canopy.viewmodels.TripViewModel
 
-
+/**
+ * Factory class to provide the Context dependency to TripViewModel.
+ */
 class TripViewModelFactory(
     private val context: Context
 ) : ViewModelProvider.Factory {
