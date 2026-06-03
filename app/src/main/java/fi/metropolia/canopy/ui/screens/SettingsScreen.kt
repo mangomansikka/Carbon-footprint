@@ -124,7 +124,7 @@ fun SettingsScreen(navController: NavController) {
                 )
 
                 Text("Email: Not connected")
-                Text("Campus: Myyrmäki")
+
             }
         }
 
