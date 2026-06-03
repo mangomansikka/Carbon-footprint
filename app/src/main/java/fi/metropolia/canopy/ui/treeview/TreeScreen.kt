@@ -17,7 +17,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -115,20 +114,18 @@ fun MainTreeContent(totalEmissionsKg: Double, onShowGallery: () -> Unit) {
             Text(
                 text = "My Tree",
                 style = MaterialTheme.typography.headlineLarge,
-                fontFamily = FontFamily.Serif,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
-
             TextButton(
                 onClick = onShowGallery,
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
                     .background(
-                        color = Color.White.copy(alpha = 0.2f),
-                        shape = RoundedCornerShape(50)
+                        Color.White.copy(alpha = 0.3f),
+                        RoundedCornerShape(20.dp)
                     )
-                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                    .height(48.dp),
                 colors = ButtonDefaults.textButtonColors(
                     contentColor = Color.Black
                 )
@@ -153,9 +150,10 @@ fun MainTreeContent(totalEmissionsKg: Double, onShowGallery: () -> Unit) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Surface(
-            color = Color.White.copy(alpha = 0.7f),
+            color = Color.White.copy(alpha = 0.85f),
             shape = RoundedCornerShape(24.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            shadowElevation = 6.dp
         ) {
             Column(
                 modifier = Modifier.padding(20.dp),
@@ -164,7 +162,6 @@ fun MainTreeContent(totalEmissionsKg: Double, onShowGallery: () -> Unit) {
                 Text(
                     text = getStageText(stage),
                     style = MaterialTheme.typography.headlineSmall,
-                    fontFamily = FontFamily.Serif,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center
                 )
@@ -183,6 +180,20 @@ fun MainTreeContent(totalEmissionsKg: Double, onShowGallery: () -> Unit) {
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                if (stage != TreeStage.DEAD) {
+
+                    val remaining =
+                        getNextStageLimit(stage) - displayEmission
+
+                    Text(
+                        text = "%.0f kg remaining to ${getNextStageText(stage)}"
+                            .format(remaining),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color(0xFF4E7D5A)
+                    )
+                }
             }
         }
         
@@ -210,9 +221,9 @@ fun AllTreesGallery(onBack: () -> Unit) {
                 modifier = Modifier
                     .background(
                         color = Color.White.copy(alpha = 0.3f),
-                        shape = RoundedCornerShape(50)
+                        shape = RoundedCornerShape(20.dp)
                     )
-                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                    .height(48.dp),
                 colors = ButtonDefaults.textButtonColors(
                     contentColor = Color.Black
                 )
@@ -225,7 +236,6 @@ fun AllTreesGallery(onBack: () -> Unit) {
             Text(
                 text = "Tree Stages",
                 style = MaterialTheme.typography.headlineMedium,
-                fontFamily = FontFamily.Serif,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -323,6 +333,7 @@ fun getStageText(stage: TreeStage): String {
         TreeStage.FULL_TREE -> "Majestic Tree 🌍💚"
         TreeStage.SICK -> "Feeling Unwell 🌫️"
         TreeStage.DEAD -> "Withered 🌫️"
+
     }
 }
 
@@ -339,6 +350,31 @@ fun getTreeImage(stage: TreeStage): Int {
         TreeStage.FULL_TREE -> R.drawable.tree6
         TreeStage.SICK -> R.drawable.tree7
         TreeStage.DEAD -> R.drawable.tree8
+    }
+}
+fun getNextStageText(stage: TreeStage): String {
+    return when (stage) {
+        TreeStage.SEED -> "Growing 🌿"
+        TreeStage.SPROUT -> "Little Tree 🌳"
+        TreeStage.SMALL_TREE -> "Expanding 🌳"
+        TreeStage.MEDIUM_TREE -> "Sturdy Tree 🌳✨"
+        TreeStage.BIG_TREE -> "Majestic Tree 🌍💚"
+        TreeStage.FULL_TREE -> "Feeling Unwell 🌫️"
+        TreeStage.SICK -> "Withered 🌫️"
+        TreeStage.DEAD -> "Maximum Stage"
+    }
+}
+
+fun getNextStageLimit(stage: TreeStage): Double {
+    return when (stage) {
+        TreeStage.SEED -> 100.0
+        TreeStage.SPROUT -> 220.0
+        TreeStage.SMALL_TREE -> 330.0
+        TreeStage.MEDIUM_TREE -> 440.0
+        TreeStage.BIG_TREE -> 550.0
+        TreeStage.FULL_TREE -> 660.0
+        TreeStage.SICK -> 800.0
+        TreeStage.DEAD -> 800.0
     }
 }
 

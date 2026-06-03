@@ -32,10 +32,12 @@ import fi.metropolia.canopy.viewmodels.GraphViewModel
 import fi.metropolia.canopy.viewmodels.TripViewModel
 import java.util.Calendar
 import java.util.Locale
+import fi.metropolia.canopy.ui.overview.OverviewColors
 
-private val BgGreen = Color(0xFF6F9C73)
+
 private val LightGreen = Color(0xFFAED3B0)
 private val AccentGreen = Color(0xFF58F0B1)
+private val DarkButton = Color(0xFF4A3D35)
 
 /**
  * HomeScreen composable function for visualizing the user's carbon footprint
@@ -85,7 +87,7 @@ fun HomeScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BgGreen)
+            .background(OverviewColors.BgGreen)
             .verticalScroll(rememberScrollState())
     ) {
         Column(
@@ -95,8 +97,9 @@ fun HomeScreen() {
 
             Text(
                 text = "My Footprint",
-                style = MaterialTheme.typography.titleLarge,
-                color = Color.White
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
             )
 
             Spacer(Modifier.height(16.dp))
@@ -139,12 +142,16 @@ fun AnimatedFootprintHeader(valueState: State<Float>, percentageChange: Double) 
             Text(
                 text = String.format("%.2f", valueState.value),
                 style = MaterialTheme.typography.displayLarge,
-                color = Color.White
+                color = Color.Black
             )
 
             Spacer(Modifier.width(8.dp))
 
-            Text(text = "ton CO₂/year", style = MaterialTheme.typography.bodyLarge, color = Color.White)
+            Text(
+                text = "kg CO₂",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.Black
+            )
         }
 
         Spacer(Modifier.height(20.dp))
@@ -161,7 +168,7 @@ fun AnimatedFootprintHeader(valueState: State<Float>, percentageChange: Double) 
             Text(
                 text = String.format("%.1f", Math.abs(percentageChange)) + "% " + 
                        (if (percentageChange >= 0) "increase" else "decrease") + " since last month",
-                color = Color.White
+                color = Color.Black
             )
         }
     }
@@ -170,27 +177,46 @@ fun AnimatedFootprintHeader(valueState: State<Float>, percentageChange: Double) 
 /**
  * ToggleViewButtons composable function for toggling between monthly and calendar view
  */
+
 @Composable
 fun ToggleViewButtons(viewState: MutableState<Boolean>) {
-    Row(modifier = Modifier.fillMaxWidth()) {
+
+    Row(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+
         Button(
             onClick = { viewState.value = false },
-            modifier = Modifier.weight(1f).height(48.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = if (!viewState.value) Color.White else LightGreen, contentColor = Color.Black),
-            shape = RoundedCornerShape(12.dp)
+            modifier = Modifier
+                .weight(1f)
+                .height(56.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor =
+                    if (!viewState.value) DarkButton else Color.White,
+                contentColor =
+                    if (!viewState.value) Color.White else Color.Black
+            )
         ) {
-            Text("Monthly", fontSize = 12.sp)
+            Text("Monthly")
         }
 
-        Spacer(Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(12.dp))
 
         Button(
             onClick = { viewState.value = true },
-            modifier = Modifier.weight(1f).height(48.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = if (viewState.value) Color.White else LightGreen, contentColor = Color.Black),
-            shape = RoundedCornerShape(12.dp)
+            modifier = Modifier
+                .weight(1f)
+                .height(56.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor =
+                    if (viewState.value) DarkButton else Color.White,
+                contentColor =
+                    if (viewState.value) Color.White else Color.Black
+            )
         ) {
-            Text("Calendar", fontSize = 12.sp)
+            Text("Calendar")
         }
     }
 }
