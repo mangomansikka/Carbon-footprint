@@ -23,6 +23,7 @@ import fi.metropolia.canopy.viewmodels.TripViewModel
 import kotlin.math.roundToInt
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.ui.text.font.FontWeight
 
 /**
  * OverviewScreen composable function for displaying the overview screen
@@ -111,14 +112,15 @@ fun OverviewScreen() {
 
         Text(
             text = "Overview",
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onPrimary,
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black,
             modifier = Modifier.padding(start = 20.dp)
         )
 
         Spacer(Modifier.height(12.dp))
 
-        // Display a message if no trips have been recorded
+
         if (!hasData) {
             Text(
                 text = "No trips yet — start tracking to see your footprint",

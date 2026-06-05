@@ -164,7 +164,20 @@ class TrackingService : Service() {
             }
 
             if (shouldAccumulate) {
-                deltaEmission = CarbonHelper.calculate(deltaDistance, mode)
+                val customCo2 = db.userDao().getCustomCo2Value()
+
+                deltaEmission =
+                    if (mode == "car" && customCo2 != null && customCo2 > 0) {
+                        CarbonHelper.calculateCarWithCustomCo2(
+                            deltaDistance,
+                            customCo2
+                        )
+                    } else {
+                        CarbonHelper.calculate(
+                            deltaDistance,
+                            mode
+                        )
+                    }
                 TrackingState.addDistanceToMode(mode, deltaDistance, deltaEmission)
                 TrackingState.totalDistanceMeters += deltaDistance
 

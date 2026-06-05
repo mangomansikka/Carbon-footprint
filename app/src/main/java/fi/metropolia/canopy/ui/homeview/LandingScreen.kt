@@ -23,12 +23,13 @@ import androidx.compose.ui.platform.LocalContext
 import fi.metropolia.canopy.data.repository.UserRepository
 import fi.metropolia.canopy.data.source.CanopyDatabase
 import kotlinx.coroutines.launch
+import androidx.navigation.NavController
 
 /**
  * LandingScreen composable function for displaying the landing screen
  */
 @Composable
-fun LandingScreen() {
+fun LandingScreen(navController: NavController) {
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -91,9 +92,9 @@ fun LandingScreen() {
         Spacer(modifier = Modifier.height(40.dp))
 
         Card(
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F8F4)),
-            elevation = CardDefaults.cardElevation(4.dp),
+            elevation = CardDefaults.cardElevation(6.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp)
@@ -156,16 +157,17 @@ fun LandingScreen() {
                             )
                         }
                     }
-                    // Display the user role if it is not null
                     else -> {
                         Text(
-                            text = "${userRole!!.replaceFirstChar { it.uppercase() }} account ✓",
+                            "${userRole!!.replaceFirstChar { it.uppercase() }} account ⚙️ Open Settings",
                             style = MaterialTheme.typography.bodyLarge,
                             color = Color(0xFF2E7D32),
                             textAlign = TextAlign.Center,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { showRoleDialog = true }
+                                .clickable {
+                                    navController.navigate("settingsScreen")
+                                }
                         )
                     }
                 }
@@ -209,7 +211,7 @@ fun LandingScreen() {
         )
     }
 }
-
+/*
 @Preview(showBackground = true)
 @Composable
 fun LandingPreview() {
@@ -217,3 +219,4 @@ fun LandingPreview() {
         LandingScreen()
     }
 }
+*/

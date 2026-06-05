@@ -7,11 +7,26 @@ import kotlinx.coroutines.flow.map
 
 class UserRepository(private val userDao: UserDao) {
 
-    // Expose as a Flow so the UI can observe changes in real-time
-    val userRole: Flow<String> = userDao.getUserRole().map { it ?: "student" }
+    val userRole: Flow<String> =
+        userDao.getUserRole().map { it ?: "student" }
+
+    val customCo2: Flow<Double> =
+        userDao.getCustomCo2().map { it ?: 0.0 }
 
     suspend fun changeRole(newRole: String) {
-        val user = UserEntity(userRole = newRole)
+        val user = UserEntity(
+            userRole = newRole
+        )
         userDao.setUserRole(user)
+    }
+
+    suspend fun updateCustomCo2(value: Double) {
+        userDao.setUserRole(
+            UserEntity(
+                id = 1,
+                userRole = "student",
+                customCo2 = value
+            )
+        )
     }
 }

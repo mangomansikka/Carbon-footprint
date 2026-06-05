@@ -1,6 +1,7 @@
 package fi.metropolia.canopy
 
 import android.os.Bundle
+import fi.metropolia.canopy.ui.screens.SettingsScreen
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -133,7 +134,7 @@ fun AppNavGraph() {
         ) {
 
             composable("landingScreen") {
-                LandingScreen()
+                LandingScreen(navController)
             }
 
             composable("locationScreen") {
@@ -154,6 +155,10 @@ fun AppNavGraph() {
 
             composable("manualScreen") {
                 ManualInputScreen()
+
+            }
+            composable("settingsScreen") {
+                SettingsScreen(navController)
             }
         }
     }

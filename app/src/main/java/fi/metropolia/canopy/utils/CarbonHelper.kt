@@ -13,6 +13,7 @@ object CarbonHelper {
     fun calculate(distance: Double, transportMode: String): Double {
         // assuming that distance is in meters and transportMode is a string
 
+
         var emissions : Double
         val distanceInKm : Double = distance / 1000
 
@@ -49,4 +50,15 @@ object CarbonHelper {
         return emissions
 
     }
+
+    fun calculateCarWithCustomCo2(
+        distance: Double,
+        customCo2: Double
+    ): Double {
+
+        val distanceInKm = distance / 1000
+
+        return distanceInKm * (customCo2 / 1000)
+    }
+
 }
