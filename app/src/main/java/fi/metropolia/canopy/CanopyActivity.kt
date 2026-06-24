@@ -18,6 +18,8 @@ import androidx.compose.material.icons.filled.*
 import androidx.core.view.WindowCompat
 import fi.metropolia.canopy.ui.theme.CanopyMinnoTheme
 import fi.metropolia.canopy.ui.treeview.TreeScreen
+import fi.metropolia.canopy.ui.LoginPage.LoginPage
+import fi.metropolia.canopy.ui.LoginPage.SignUpPage
 import fi.metropolia.canopy.ui.homeview.HomeScreen
 import fi.metropolia.canopy.ui.homeview.LandingScreen
 import fi.metropolia.canopy.ui.overview.OverviewScreen
@@ -129,9 +131,35 @@ fun AppNavGraph() {
         // NavHost for navigating between screens
         NavHost(
             navController = navController,
-            startDestination = "landingScreen",
+            startDestination = "loginPage",
             modifier = Modifier.padding(innerPadding)
         ) {
+
+            composable("loginPage") {
+                LoginPage(
+                    onLoginSuccess = {
+                        navController.navigate("landingScreen") {
+                            popUpTo("loginPage") { inclusive = true }
+                        }
+                    },
+                    onNavigateToSignUp = {
+                        navController.navigate("signUpPage")
+                    }
+                )
+            }
+
+            composable("signUpPage") {
+                SignUpPage(
+                    onSignUpSuccess = {
+                        navController.navigate("landingScreen") {
+                            popUpTo("loginPage") { inclusive = true }
+                        }
+                    },
+                    onBackToLogin = {
+                        navController.popBackStack()
+                    }
+                )
+            }
 
             composable("landingScreen") {
                 LandingScreen(navController)

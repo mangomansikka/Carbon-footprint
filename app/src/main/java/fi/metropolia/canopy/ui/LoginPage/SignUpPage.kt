@@ -3,7 +3,9 @@ package fi.metropolia.canopy.ui.LoginPage
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,43 +25,48 @@ import fi.metropolia.canopy.ui.theme.Darkbutton
 
 
 @Composable
-fun LoginPage(onLoginSuccess: () -> Unit = {}, onNavigateToSignUp: () -> Unit = {}) {
+fun SignUpPage(onSignUpSuccess: () -> Unit = {}, onBackToLogin: () -> Unit = {}) {
+    var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(OverviewColors.BgGreen)
+            .verticalScroll(rememberScrollState())
             .padding(24.dp)
             .navigationBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Spacer(modifier = Modifier.height(32.dp))
+
         Image(
             painter = painterResource(R.drawable.eco_footprint),
             contentDescription = "App Logo",
             contentScale = ContentScale.Fit,
-            modifier = Modifier.size(150.dp)
+            modifier = Modifier.size(120.dp)
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Welcome Back",
+            text = "Create Account",
             style = MaterialTheme.typography.headlineLarge,
             color = Color.Black,
             textAlign = TextAlign.Center
         )
 
         Text(
-            text = "Log in to your account",
+            text = "Join us to track your impact",
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF2E4E3F),
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         Card(
             shape = RoundedCornerShape(20.dp),
@@ -71,6 +78,23 @@ fun LoginPage(onLoginSuccess: () -> Unit = {}, onNavigateToSignUp: () -> Unit = 
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Full Name") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Darkbutton,
+                        unfocusedBorderColor = Darkbutton.copy(alpha = 0.5f),
+                        focusedLabelColor = Darkbutton,
+                        cursorColor = Darkbutton
+                    ),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
@@ -104,10 +128,28 @@ fun LoginPage(onLoginSuccess: () -> Unit = {}, onNavigateToSignUp: () -> Unit = 
                     singleLine = true
                 )
 
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    label = { Text("Confirm Password") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Darkbutton,
+                        unfocusedBorderColor = Darkbutton.copy(alpha = 0.5f),
+                        focusedLabelColor = Darkbutton,
+                        cursorColor = Darkbutton
+                    ),
+                    singleLine = true
+                )
+
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Button(
-                    onClick = { onLoginSuccess() },
+                    onClick = { onSignUpSuccess() },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -117,14 +159,14 @@ fun LoginPage(onLoginSuccess: () -> Unit = {}, onNavigateToSignUp: () -> Unit = 
                         contentColor = Color.White
                     )
                 ) {
-                    Text("Log In", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text("Sign Up", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                TextButton(onClick = { onNavigateToSignUp() }) {
+                TextButton(onClick = { onBackToLogin() }) {
                     Text(
-                        text = "Don't have an account? Sign up",
+                        text = "Already have an account? Log in",
                         color = Darkbutton,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -132,18 +174,20 @@ fun LoginPage(onLoginSuccess: () -> Unit = {}, onNavigateToSignUp: () -> Unit = 
             }
         }
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         Image(
             painter = painterResource(id = R.drawable.metropolia),
             contentDescription = "Metropolia Logo",
             modifier = Modifier.size(60.dp)
         )
+        
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun LoginPagePreview() {
-    LoginPage()
+fun SignUpPagePreview() {
+    SignUpPage()
 }
